@@ -1,0 +1,1460 @@
+[2021-10-16 18:12:33 pid:2877253 tid:7f117d38d740  INFO: /root/miniob/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+Finish dump configuration 
+
+[2021-10-16 18:12:33 pid:2877253 tid:7f117d38d740  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 66]>>(Re)Starting State: Pid: 2877253 Time: Sat Oct 16 18:12:33 2021
+
+[2021-10-16 18:12:33 pid:2877253 tid:7f117d38d740  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-16 18:12:33 pid:2877253 tid:7f117d38d740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_event_history 201]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-16 18:12:33 pid:2877253 tid:7f117d38d740  ERROR: /root/miniob/deps/common/seda/seda_config.cpp init_thread_pool 218]>>Configuration hasn't set ThreadPools
+[2021-10-16 18:12:33 pid:2877253 tid:7f117d38d740  ERROR: /root/miniob/deps/common/seda/seda_config.cpp instantiate 415]>>Failed to init thread pool
+
+[2021-10-16 18:12:33 pid:2877253 tid:7f117d38d740  ERROR: /root/miniob/deps/common/seda/init.cpp init_seda 73]>>SedaConfig: unable to initialize seda stages
+[2021-10-16 18:12:33 pid:2877253 tid:7f117d38d740  ERROR: /root/miniob/src/observer/init.cpp init 212]>>Failed to init seda configuration!
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+[DefaultStorageStage]
+BaseDir=./miniob
+SystemDb=sys
+ThreadId=IOThreads
+
+[DefaultThreads]
+count=3
+
+[ExecuteStage]
+NextStages=DefaultStorageStage,MemStorageStage
+ThreadId=SQLThreads
+
+[IOThreads]
+count=3
+
+[LOG]
+LOG_CONSOLE_LEVEL=1
+LOG_FILE_LEVEL=3
+LOG_FILE_NAME=observer.log
+
+[MemStorageStage]
+ThreadId=IOThreads
+
+[MetricsStage]
+NextStages=TimerStage
+
+[NET]
+CLIENT_ADDRESS=INADDR_ANY
+MAX_CONNECTION_NUM=8192
+PORT=6789
+
+[OptimizeStage]
+NextStages=ExecuteStage
+ThreadId=SQLThreads
+
+[ParseStage]
+NextStages=OptimizeStage
+ThreadId=SQLThreads
+
+[PlanCacheStage]
+NextStages=ExecuteStage,ParseStage
+ThreadId=SQLThreads
+
+[QueryCacheStage]
+NextStages=PlanCacheStage
+ThreadId=SQLThreads
+
+[ResolveStage]
+NextStages=QueryCacheStage
+ThreadId=SQLThreads
+
+[SEDA_BASE]
+EventHistory=false
+MaxEventHistoryNum=100
+STAGES=SessionStage,ExecuteStage,OptimizeStage,ParseStage,ResolveStage,PlanCacheStage,QueryCacheStage,DefaultStorageStage,MemStorageStage,TimerStage,MetricsStage
+ThreadPools=SQLThre
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 66]>>(Re)Starting State: Pid: 2877496 Time: Sat Oct 16 18:13:25 2021
+
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_event_history 201]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1095700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7feca1095700, threadname = SQLThreads
+
+[2021-10-16 18:13:25 pid:2877496 tid:7feca0894700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7feca0894700, threadname = SQLThreads
+
+[2021-10-16 18:13:25 pid:2877496 tid:7fec9bfff700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fec9bfff700, threadname = SQLThreads
+
+[2021-10-16 18:13:25 pid:2877496 tid:7fec9b7fe700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fec9b7fe700, threadname = IOThreads
+
+[2021-10-16 18:13:25 pid:2877496 tid:7fec9affd700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fec9affd700, threadname = IOThreads
+
+[2021-10-16 18:13:25 pid:2877496 tid:7fec9a7fc700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fec9a7fc700, threadname = IOThreads
+
+[2021-10-16 18:13:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fec997fa700, threadname = DefaultThreads
+
+[2021-10-16 18:13:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fec99ffb700, threadname = DefaultThreads
+
+[2021-10-16 18:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fec98ff9700, threadname = DefaultThreads
+
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage SessionStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ExecuteStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage OptimizeStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ParseStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ResolveStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage PlanCacheStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage QueryCacheStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 86]>>Use sys as system db
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/storage/default/default_handler.cpp init 52]>>Default handler init with ./miniob success
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 111]>>All table have been opened. num=0
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 110]>>Open system db success: sys
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage DefaultStorageStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MemStorageStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for TimerStage, use default threadpool DefaultThreads
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage TimerStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for MetricsStage, use default threadpool DefaultThreads
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MetricsStage use threadpool DefaultThreads.
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :DefaultStorageStage.query
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.sql
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/init.cpp init 228]>>Successfully init utility
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.readsocket
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.writesocket
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp start_tcp_server 330]>>Listen on port 6789
+[2021-10-16 18:13:25 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp start_tcp_server 348]>>Observer start success
+[2021-10-16 18:13:42 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp accept 276]>>Accepted connection from 127.0.0.1:9935
+
+[2021-10-16 18:13:46 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=6): help
+
+[2021-10-16 18:13:51 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=7): heko;
+
+[2021-10-16 18:13:54 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp recv 160]>>The peer has been closed 127.0.0.1:9935
+
+[2021-10-16 18:13:54 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp close_connection 97]>>Close connection of 127.0.0.1:9935.
+[2021-10-16 18:13:55 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp accept 276]>>Accepted connection from 127.0.0.1:14543
+
+[2021-10-16 18:13:58 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=7): help;
+
+[2021-10-16 18:14:24 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=40): create table t(id int, birthday date);
+
+[2021-10-16 18:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0833333
+[2021-10-16 18:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0666667
+[2021-10-16 18:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.133333
+[2021-10-16 18:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:16:1 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp recv 160]>>The peer has been closed 127.0.0.1:14543
+
+[2021-10-16 18:16:1 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/net/server.cpp close_connection 97]>>Close connection of 127.0.0.1:14543.
+[2021-10-16 18:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0166667
+[2021-10-16 18:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 18:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 18:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 18:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 18:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 19:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 19:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 19:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 19:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 20:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 20:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 20:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 20:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:15:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:16:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:17:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:18:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:19:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:20:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:21:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:22:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:23:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:24:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:25:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:26:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:27:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:28:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:29:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:30:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:31:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:32:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:33:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:34:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:35:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:36:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:37:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:38:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:39:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:40:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:41:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:42:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:43:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:44:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:45:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:46:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:47:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:48:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:49:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:50:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:51:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:52:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:53:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:54:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:55:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:56:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:57:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:58:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 21:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 21:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 21:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 21:59:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:0:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:1:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:2:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:3:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:4:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:5:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:6:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:7:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:8:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:9:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:10:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:11:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:12:25 pid:2877496 tid:7fec99ffb700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:13:25 pid:2877496 tid:7fec98ff9700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+[DefaultStorageStage]
+BaseDir=./miniob
+SystemDb=sys
+ThreadId=IOThreads
+
+[DefaultThreads]
+count=3
+
+[ExecuteStage]
+NextStages=DefaultStorageStage,MemStorageStage
+ThreadId=SQLThreads
+
+[IOThreads]
+count=3
+
+[LOG]
+LOG_CONSOLE_LEVEL=1
+LOG_FILE_LEVEL=3
+LOG_FILE_NAME=observer.log
+
+[MemStorageStage]
+ThreadId=IOThreads
+
+[MetricsStage]
+NextStages=TimerStage
+
+[NET]
+CLIENT_ADDRESS=INADDR_ANY
+MAX_CONNECTION_NUM=8192
+PORT=6789
+
+[OptimizeStage]
+NextStages=ExecuteStage
+ThreadId=SQLThreads
+
+[ParseStage]
+NextStages=OptimizeStage
+ThreadId=SQLThreads
+
+[PlanCacheStage]
+NextStages=ExecuteStage,ParseStage
+ThreadId=SQLThreads
+
+[QueryCacheStage]
+NextStages=PlanCacheStage
+ThreadId=SQLThreads
+
+[ResolveStage]
+NextStages=QueryCacheStage
+ThreadId=SQLThreads
+
+[SEDA_BASE]
+EventHistory=false
+MaxEventHistoryNum=100
+STAGES=SessionStage,ExecuteStage,OptimizeStage,ParseStage,ResolveStage,PlanCacheStage,QueryCacheStage,DefaultStorageStage,MemStorageStage,TimerStage,MetricsStage
+ThreadPools=SQLThre
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 66]>>(Re)Starting State: Pid: 2890194 Time: Sat Oct 16 22:14:22 2021
+
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_event_history 201]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cc700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f3e0c6cc700, threadname = SQLThreads
+
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0becb700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f3e0becb700, threadname = SQLThreads
+
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0b6ca700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f3e0b6ca700, threadname = SQLThreads
+
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0a6c8700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f3e0a6c8700, threadname = IOThreads
+
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e09ec7700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f3e09ec7700, threadname = IOThreads
+
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0aec9700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f3e0aec9700, threadname = IOThreads
+
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e096c6700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f3e096c6700, threadname = DefaultThreads
+
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage SessionStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3debfff700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f3debfff700, threadname = DefaultThreads
+
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ExecuteStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e08ec5700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f3e08ec5700, threadname = DefaultThreads
+
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage OptimizeStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ParseStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ResolveStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage PlanCacheStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage QueryCacheStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 93]>>Use sys as system db
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/src/observer/storage/default/default_handler.cpp init 56]>>Default handler init with ./miniob success
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  WARNNING: /root/miniob/src/observer/storage/default/default_handler.cpp create_db 83]>>Db already exists: sys
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 112]>>All table have been opened. num=0
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 120]>>Open system db success: sys
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage DefaultStorageStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MemStorageStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for TimerStage, use default threadpool DefaultThreads
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage TimerStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for MetricsStage, use default threadpool DefaultThreads
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MetricsStage use threadpool DefaultThreads.
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :DefaultStorageStage.query
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.sql
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/src/observer/init.cpp init 228]>>Successfully init utility
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.readsocket
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.writesocket
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  ERROR: /root/miniob/src/observer/net/server.cpp start_tcp_server 319]>>bind(): can not bind server socket, Address already in use
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  PANIC: /root/miniob/src/observer/net/server.cpp serve 419]>>Failed to start network
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/src/observer/storage/common/db.cpp sync 136]>>Sync db over. db=sys
+[2021-10-16 22:14:22 pid:2890194 tid:7f3e0c6cd740  INFO: /root/miniob/src/observer/storage/common/db.cpp ~Db 33]>>Db has been closed: sys
+[2021-10-16 22:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:14:25 pid:2877496 tid:7fec997fa700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:14:42 pid:2877496 tid:7fec7b7fe700  INFO: /root/miniob/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-16 22:14:42 pid:2877496 tid:7fec7b7fe700  INFO: /root/miniob/src/observer/net/server.cpp shutdown 429]>>Server shutting down
+[2021-10-16 22:14:42 pid:2877496 tid:7fec7b7fe700  INFO: /root/miniob/src/observer/net/server.cpp shutdown 449]>>Server quit
+[2021-10-16 22:14:43 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/main.cpp main 165]>>Server stopped
+[2021-10-16 22:14:43 pid:2877496 tid:7fec7affd700  INFO: /root/miniob/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-16 22:14:43 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/storage/common/db.cpp sync 135]>>Sync db over. db=sys
+[2021-10-16 22:14:43 pid:2877496 tid:7feca1096740  INFO: /root/miniob/src/observer/storage/common/db.cpp ~Db 33]>>Db has been closed: sys
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+[DefaultStorageStage]
+BaseDir=./miniob
+SystemDb=sys
+ThreadId=IOThreads
+
+[DefaultThreads]
+count=3
+
+[ExecuteStage]
+NextStages=DefaultStorageStage,MemStorageStage
+ThreadId=SQLThreads
+
+[IOThreads]
+count=3
+
+[LOG]
+LOG_CONSOLE_LEVEL=1
+LOG_FILE_LEVEL=3
+LOG_FILE_NAME=observer.log
+
+[MemStorageStage]
+ThreadId=IOThreads
+
+[MetricsStage]
+NextStages=TimerStage
+
+[NET]
+CLIENT_ADDRESS=INADDR_ANY
+MAX_CONNECTION_NUM=8192
+PORT=6789
+
+[OptimizeStage]
+NextStages=ExecuteStage
+ThreadId=SQLThreads
+
+[ParseStage]
+NextStages=OptimizeStage
+ThreadId=SQLThreads
+
+[PlanCacheStage]
+NextStages=ExecuteStage,ParseStage
+ThreadId=SQLThreads
+
+[QueryCacheStage]
+NextStages=PlanCacheStage
+ThreadId=SQLThreads
+
+[ResolveStage]
+NextStages=QueryCacheStage
+ThreadId=SQLThreads
+
+[SEDA_BASE]
+EventHistory=false
+MaxEventHistoryNum=100
+STAGES=SessionStage,ExecuteStage,OptimizeStage,ParseStage,ResolveStage,PlanCacheStage,QueryCacheStage,DefaultStorageStage,MemStorageStage,TimerStage,MetricsStage
+ThreadPools=SQLThre
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 66]>>(Re)Starting State: Pid: 2890316 Time: Sat Oct 16 22:14:48 2021
+
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_event_history 201]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4244700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f19d4244700, threadname = SQLThreads
+
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d3a43700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f19d3a43700, threadname = SQLThreads
+
+[2021-10-16 22:14:48 pid:2890316 tid:7f19cbfff700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f19cbfff700, threadname = SQLThreads
+
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d3242700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f19d3242700, threadname = IOThreads
+
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d2240700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f19d2240700, threadname = IOThreads
+
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d2a41700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f19d2a41700, threadname = IOThreads
+
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f19d1a3f700, threadname = DefaultThreads
+
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f19d123e700, threadname = DefaultThreads
+
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f19d0a3d700, threadname = DefaultThreads
+
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage SessionStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ExecuteStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage OptimizeStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ParseStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ResolveStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage PlanCacheStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage QueryCacheStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 93]>>Use sys as system db
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/storage/default/default_handler.cpp init 56]>>Default handler init with ./miniob success
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  WARNNING: /root/miniob/src/observer/storage/default/default_handler.cpp create_db 83]>>Db already exists: sys
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 112]>>All table have been opened. num=0
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 120]>>Open system db success: sys
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage DefaultStorageStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MemStorageStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for TimerStage, use default threadpool DefaultThreads
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage TimerStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for MetricsStage, use default threadpool DefaultThreads
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MetricsStage use threadpool DefaultThreads.
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :DefaultStorageStage.query
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.sql
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/init.cpp init 228]>>Successfully init utility
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.readsocket
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.writesocket
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp start_tcp_server 330]>>Listen on port 6789
+[2021-10-16 22:14:48 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp start_tcp_server 348]>>Observer start success
+[2021-10-16 22:14:59 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp accept 276]>>Accepted connection from 127.0.0.1:61086
+
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=34): create table t(id int, age int);
+
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/src/observer/storage/common/table.cpp create 59]>>Begin to create table ./miniob/db/sys:t
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 72]>>Init a field with name=__trx
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 72]>>Init a field with name=id
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 72]>>Init a field with name=age
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/src/observer/storage/common/table_meta.cpp init 97]>>Init table meta success. table name=t
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp create_file 78]>>Successfully create ./miniob/db/sys/t.data.
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 107]>>Successfully open file ./miniob/db/sys/t.data.
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 147]>>Successfully open ./miniob/db/sys/t.data. file_id=0, hdr_frame=0x7f19d020a010
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/src/observer/storage/common/table.cpp create 120]>>Successfully create table ./miniob/db/sys:t
+[2021-10-16 22:15:5 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/src/observer/storage/common/db.cpp create_table 71]>>Create table success. table name=t
+[2021-10-16 22:15:16 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 160]>>The peer has been closed 127.0.0.1:61086
+
+[2021-10-16 22:15:16 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp close_connection 97]>>Close connection of 127.0.0.1:61086.
+[2021-10-16 22:15:17 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp accept 276]>>Accepted connection from 127.0.0.1:3231
+
+[2021-10-16 22:15:32 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=34): create table t(id int, age int);
+
+[2021-10-16 22:15:40 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=36): create table t(id int, name char);
+
+[2021-10-16 22:15:46 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=35): update t set age =100 where id=2;
+
+[2021-10-16 22:15:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0666667
+[2021-10-16 22:15:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0833333
+[2021-10-16 22:15:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0666667
+[2021-10-16 22:15:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.133333
+[2021-10-16 22:15:55 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=33): update set age=20 where id>100;
+
+[2021-10-16 22:16:34 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=35): update t set age =100 where id=2;
+
+[2021-10-16 22:16:46 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=37): update t set age =100 where id=101;
+
+[2021-10-16 22:16:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0333333
+[2021-10-16 22:16:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.05
+[2021-10-16 22:16:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.05
+[2021-10-16 22:16:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.1
+[2021-10-16 22:17:4 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=15): show table t;
+
+[2021-10-16 22:17:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:17:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0166667
+[2021-10-16 22:17:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0166667
+[2021-10-16 22:17:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0333333
+[2021-10-16 22:17:53 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=14): show tables;
+
+[2021-10-16 22:18:5 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=18): select * from t;
+
+[2021-10-16 22:18:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0166667
+[2021-10-16 22:18:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0333333
+[2021-10-16 22:18:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0333333
+[2021-10-16 22:18:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0666667
+[2021-10-16 22:19:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:19:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:19:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:19:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:20:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:20:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:20:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:20:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:21:42 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=30): INSERT INTO t VALUES (1, 1);
+
+[2021-10-16 22:21:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0166667
+[2021-10-16 22:21:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0166667
+[2021-10-16 22:21:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0166667
+[2021-10-16 22:21:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0333333
+[2021-10-16 22:21:49 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=18): select * from t;
+
+[2021-10-16 22:22:4 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=35): update t set age =100 where id=1;
+
+[2021-10-16 22:22:10 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=18): select * from t;
+
+[2021-10-16 22:22:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0166667
+[2021-10-16 22:22:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.05
+[2021-10-16 22:22:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.05
+[2021-10-16 22:22:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.1
+[2021-10-16 22:23:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:23:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:23:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:23:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:24:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:24:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:24:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:24:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:25:0 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=37): update t set age =100 where id=101;
+
+[2021-10-16 22:25:9 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=37): update t set age =100 where id > 0;
+
+[2021-10-16 22:25:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0333333
+[2021-10-16 22:25:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0333333
+[2021-10-16 22:25:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0333333
+[2021-10-16 22:25:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0666667
+[2021-10-16 22:26:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:26:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:26:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:26:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:27:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:27:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:27:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:27:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:28:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:28:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:28:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:28:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:29:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:29:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:29:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:29:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:30:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:30:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:30:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:30:48 pid:2890316 tid:7f19d1a3f700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:31:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:31:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:31:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:31:48 pid:2890316 tid:7f19d123e700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:32:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-16 22:32:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-16 22:32:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-16 22:32:48 pid:2890316 tid:7f19d0a3d700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-16 22:33:29 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp recv 160]>>The peer has been closed 127.0.0.1:3231
+
+[2021-10-16 22:33:29 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/net/server.cpp close_connection 97]>>Close connection of 127.0.0.1:3231.
+[2021-10-16 22:33:32 pid:2890316 tid:7f19caffd700  INFO: /root/miniob/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-16 22:33:32 pid:2890316 tid:7f19caffd700  INFO: /root/miniob/src/observer/net/server.cpp shutdown 429]>>Server shutting down
+[2021-10-16 22:33:32 pid:2890316 tid:7f19caffd700  INFO: /root/miniob/src/observer/net/server.cpp shutdown 449]>>Server quit
+[2021-10-16 22:33:33 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/main.cpp main 165]>>Server stopped
+[2021-10-16 22:33:33 pid:2890316 tid:7f19ca7fc700  INFO: /root/miniob/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-16 22:33:33 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 979]>>Sync table over. table=t
+[2021-10-16 22:33:33 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/storage/common/db.cpp sync 136]>>Sync db over. db=sys
+[2021-10-16 22:33:33 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 173]>>Successfully close file 0:.
+[2021-10-16 22:33:33 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t
+[2021-10-16 22:33:33 pid:2890316 tid:7f19d4245740  INFO: /root/miniob/src/observer/storage/common/db.cpp ~Db 33]>>Db has been closed: sys
