@@ -28,6 +28,7 @@ typedef struct
 {
   char *relation_name;  // relation name (may be NULL) 表名
   char *attribute_name; // attribute name              属性名
+  char *window_function_name; // 窗口函数名
 } RelAttr;
 
 typedef enum
@@ -73,11 +74,14 @@ typedef struct _Condition
 } Condition;
 
 // struct of select
+// SELECT column_name,column_name
+// FROM table_name
+// WHERE column_name operator value;
 typedef struct
 {
   size_t attr_num;               // Length of attrs in Select clause
   RelAttr attributes[MAX_NUM];   // attrs in Select clause
-  size_t relation_num;           // Length of relations in Fro clause
+  size_t relation_num;           // Length of relations in For clause
   char *relations[MAX_NUM];      // relations in From clause
   size_t condition_num;          // Length of conditions in Where clause
   Condition conditions[MAX_NUM]; // conditions in Where clause
@@ -204,7 +208,7 @@ extern "C"
 {
 #endif // __cplusplus
 
-  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name);
+  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *window_function_name);
   void relation_attr_destroy(RelAttr *relation_attr);
 
   void value_init_integer(Value *value, int v);

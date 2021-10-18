@@ -74,11 +74,13 @@ RC Trx::update_record(Table *table, Record *record, char *new_record_data)
     {
       // 每次更新都会删除上次更新的记录
       // 即整个事务最多一次update
+      // 每次更新都会删除上次更新/插入的记录
+      // 即整个事务最多一次update或insert
       delete_operation(table, record->rid);
     }
   }
 
-  
+  // digeset：相当于rid的哈希函数
   reocrd_data_map_[digest_(record->rid)] = new_record_data;
   set_record_trx_id(table, *record, trx_id_, false);
   insert_operation(table, Operation::Type::UPDATE, record->rid);
@@ -98,7 +100,8 @@ RC Trx::insert_record(Table *table, Record *record)
   start_if_not_started();
 
   // 设置record中trx_field为当前的事务号
-  // set_record_trx_id(table, record, trx_id_, false);
+  // commit insert的时候会将事务号设置为0，所以这里不用设置？
+  // set_record_trx_id(table, *record, trx_id_, false);
   // 记录到operations中
   insert_operation(table, Operation::Type::INSERT, record->rid);
   return rc;
@@ -109,34 +112,29 @@ RC Trx::delete_record(Table *table, Record *record)
   RC rc = RC::SUCCESS;
   start_if_not_started();
   Operation *old_oper = find_operation(table, record->rid);
+  // 原代码
   // if (old_oper != nullptr)
   // {
-  // if (old_oper->type() == Operation::Type::INSERT)
-  // {
-  //   delete_operation(table, record->rid);
-  //   return RC::SUCCESS;
+  //   if (old_oper->type() != Operation::Type::DELETE)
+  //   {
+  //     // 上次操作是插入或更新，删除即为撤销
+  //     delete_operation(table, record->rid);
+  //     return RC::SUCCESS;
+  //   }
+  //   else
+  //   {
+  //     return RC::GENERIC_ERROR;
+  //   }
   // }
-  // else
-  // {
-  //   return RC::GENERIC_ERROR;
-  // }
-  // }
-  while (old_oper != nullptr && old_oper->type() != Operation::Type::DELETE)
-  {
-    delete_operation(table, record->rid);
-    old_oper = find_operation(table, record->rid);
-  }
 
   if (old_oper != nullptr)
   {
-    if (old_oper->type() == Operation::Type::INSERT)
-    {
-      return RC::SUCCESS;
-    }
-    else
+    if (old_oper->type() == Operation::Type::DELETE)
     {
       return RC::GENERIC_ERROR;
     }
+    // 上次操作是插入或更新，删除即为撤销
+    delete_operation(table, record->rid);
   }
 
   set_record_trx_id(table, *record, trx_id_, true);
@@ -189,7 +187,6 @@ void Trx::insert_operation(Table *table, Operation::Type type, const RID &rid)
 
 void Trx::delete_operation(Table *table, const RID &rid)
 {
-
   std::unordered_map<Table *, OperationSet>::iterator table_operations_iter = operations_.find(table);
   if (table_operations_iter == operations_.end())
   {
@@ -304,6 +301,18 @@ RC Trx::rollback()
         }
       }
       break;
+      // TODO(xiong): 先不写roll back
+      // case Operation::Type::UPDATE:
+      // {
+      //   rc = table->rollback_update(this, rid);
+      //   if (rc != RC::SUCCESS)
+      //   {
+      //     // handle rc
+      //     LOG_ERROR("Failed to rollback delete operation. rid=%d.%d, rc=%d:%s",
+      //               rid.page_num, rid.slot_num, rc, strrc(rc));
+      //   }
+      // }
+      // break;
       default:
       {
         LOG_PANIC("Unknown operation. type=%d", (int)operation.type());

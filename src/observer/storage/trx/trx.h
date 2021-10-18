@@ -59,7 +59,8 @@ public:
     return slot_num_;
   }
 
-  char *new_record_data() const {
+  char *new_record_data() const
+  {
     return new_record_data_;
   }
 
@@ -125,6 +126,8 @@ private:
   static void get_record_trx_id(Table *table, const Record &record, int32_t &trx_id, bool &deleted);
 
 private:
+  // OperationSet以rid作为计算作为哈希函数，与Operation::Type::UNDEFINED无关
+  // 因此rid唯一则操作唯一
   using OperationSet = std::unordered_set<Operation, OperationHasher, OperationEqualer>;
 
   Operation *find_operation(Table *table, const RID &rid);
@@ -137,7 +140,7 @@ private:
 private:
   int32_t trx_id_ = 0;
   std::unordered_map<Table *, OperationSet> operations_;
-  std::unordered_map<size_t, char*> reocrd_data_map_;
+  std::unordered_map<size_t, char *> reocrd_data_map_;
   RidDigest digest_;
 };
 
