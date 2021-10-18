@@ -176,50 +176,53 @@ void DefaultStorageStage::handle_event(StageEvent *event)
   char response[256];
   switch (sql->flag)
   {
-  case SCF_INSERT:
-  { // insert into
-    const Inserts &inserts = sql->sstr.insertion;
-    const char *table_name = inserts.relation_name;
-    rc = handler_->insert_record(current_trx, current_db, table_name, inserts.value_num, inserts.values);
-    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
-  }
-  break;
-  case SCF_UPDATE:
-  {
-    const Updates &updates = sql->sstr.update;
-    const char *table_name = updates.relation_name;
-    const char *field_name = updates.attribute_name;
-    int updated_count = 0;
-    rc = handler_->update_record(current_trx, current_db, table_name, field_name, &updates.value,
-                                 updates.condition_num, updates.conditions, &updated_count);
-    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
-  }
-  break;
-  case SCF_DELETE:
-  {
-    const Deletes &deletes = sql->sstr.deletion;
-    const char *table_name = deletes.relation_name;
-    int deleted_count = 0;
-    rc = handler_->delete_record(current_trx, current_db, table_name, deletes.condition_num, deletes.conditions, &deleted_count);
-    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
-  }
-  break;
-  case SCF_CREATE_TABLE:
-  { // create table
-    const CreateTable &create_table = sql->sstr.create_table;
-    rc = handler_->create_table(current_db, create_table.relation_name,
-                                create_table.attribute_count, create_table.attributes);
-    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
-  }
-  break;
-  case SCF_CREATE_INDEX:
-  {
-    const CreateIndex &create_index = sql->sstr.create_index;
-    rc = handler_->create_index(current_trx, current_db, create_index.relation_name,
-                                create_index.index_name, create_index.attribute_name);
-    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
-  }
-  break;
+  case SCF_INSERT: { // insert into
+      const Inserts &inserts = sql->sstr.insertion;
+      const char *table_name = inserts.relation_name;
+      rc = handler_->insert_record(current_trx, current_db, table_name, inserts.value_num, inserts.values);
+      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+    }
+    break;
+  case SCF_UPDATE: {
+      const Updates &updates = sql->sstr.update;
+      const char *table_name = updates.relation_name;
+      const char *field_name = updates.attribute_name;
+      int updated_count = 0;
+      rc = handler_->update_record(current_trx, current_db, table_name, field_name, &updates.value,
+                                   updates.condition_num, updates.conditions, &updated_count);
+      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+    }
+    break;
+  case SCF_DELETE: {
+      const Deletes &deletes = sql->sstr.deletion;
+      const char *table_name = deletes.relation_name;
+      int deleted_count = 0;
+      rc = handler_->delete_record(current_trx, current_db, table_name, deletes.condition_num, deletes.conditions, &deleted_count);
+      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+    }
+    break;
+  case SCF_CREATE_TABLE: { // create table
+      const CreateTable &create_table = sql->sstr.create_table;
+      rc = handler_->create_table(current_db, create_table.relation_name, 
+              create_table.attribute_count, create_table.attributes);
+      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+    }
+    break;
+
+    case SCF_DROP_TABLE: { // drop table
+      const DropTable &drop_table = sql->sstr.drop_table;
+      rc = handler_->drop_table(current_db, drop_table.relation_name);
+      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+    }
+    break;
+
+  case SCF_CREATE_INDEX: {
+      const CreateIndex &create_index = sql->sstr.create_index;
+      rc = handler_->create_index(current_trx, current_db, create_index.relation_name, 
+                                  create_index.index_name, create_index.attribute_name);
+      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+    }
+    break;
 
   case SCF_SHOW_TABLES:
   {

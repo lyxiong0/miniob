@@ -39,6 +39,7 @@ void record_reader(const char *data, void *context) {
   TupleRecordConverter *converter = (TupleRecordConverter *)context;
   converter->add_record(data);
 }
+
 RC SelectExeNode::execute(TupleSet &tuple_set) {
   CompositeConditionFilter condition_filter;
   condition_filter.init((const ConditionFilter **)condition_filters_.data(), condition_filters_.size());
