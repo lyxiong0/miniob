@@ -32,6 +32,14 @@ public:
 
   void swap(TableMeta &other) noexcept;
 
+  /**
+   * @brief 初始化表
+   * 
+   * @param name 表名
+   * @param field_num 字段个数 
+   * @param attributes 字段
+   * @return RC 
+   */
   RC init(const char *name, int field_num, const AttrInfo attributes[]);
 
   RC add_index(const IndexMeta &index);
@@ -63,7 +71,7 @@ private:
   static RC init_sys_fields();
 private:
   std::string   name_;
-  std::vector<FieldMeta>  fields_; // 包含sys_fields
+  std::vector<FieldMeta>  fields_; // 包含sys_fields，存储解析后的字段
   std::vector<IndexMeta>  indexes_;
 
   int  record_size_ = 0;

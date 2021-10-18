@@ -224,6 +224,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
   std::vector<SelectExeNode *> select_nodes;
   for (size_t i = 0; i < selects.relation_num; i++) {
+    // 遍历所有表
     const char *table_name = selects.relations[i];
     SelectExeNode *select_node = new SelectExeNode;
     rc = create_selection_executor(trx, selects, db, table_name, *select_node);
@@ -261,6 +262,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
   std::stringstream ss;
   if (tuple_sets.size() > 1) {
+    // TODO(xiong): 任务6 多表查询
     // 本次查询了多张表，需要做join操作
   } else {
     // 当前只查询一张表，直接返回结果即可
@@ -308,6 +310,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     const RelAttr &attr = selects.attributes[i];
     if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name)) {
       if (0 == strcmp("*", attr.attribute_name)) {
+        // 找到对应的表
         // 列出这张表所有字段
         TupleSchema::from_table(table, schema);
         break; // 没有校验，给出* 之后，再写字段的错误

@@ -54,6 +54,7 @@ RC Db::init(const char *name, const char *dbpath) {
 RC Db::create_table(const char *table_name, int attribute_count, const AttrInfo *attributes) {
   RC rc = RC::SUCCESS;
   // check table_name
+  // 检查是否有重名table
   if (opened_tables_.count(table_name) != 0) {
     return RC::SCHEMA_TABLE_EXIST;
   }
