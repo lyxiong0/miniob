@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #include <string>
 #include <sstream>
-
+#include <algorithm>
 #include "execute_stage.h"
 
 #include "common/io/io.h"
@@ -223,9 +223,13 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   const Selects &selects = sql->sstr.selection;
   // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
   std::vector<SelectExeNode *> select_nodes;
+
+  // 遍历from子句中的所有表,生成对应的SelectExeNode
   for (size_t i = 0; i < selects.relation_num; i++) {
     const char *table_name = selects.relations[i];
+    LOG_INFO("table_name: %s", table_name);
     SelectExeNode *select_node = new SelectExeNode;
+    // 这个函数里检查了from子句中的表是否存在
     rc = create_selection_executor(trx, selects, db, table_name, *select_node);
     if (rc != RC::SUCCESS) {
       delete select_node;
@@ -238,6 +242,8 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     select_nodes.push_back(select_node);
   }
 
+    LOG_INFO("select_nodes count: %d", select_nodes.size());
+
   if (select_nodes.empty()) {
     LOG_ERROR("No table given");
     end_trx_if_need(session, trx, false);
@@ -245,11 +251,13 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   }
 
   std::vector<TupleSet> tuple_sets;
-  for (SelectExeNode *&node: select_nodes) {
+  // 一张表对应一个SelectExeNode, 产生一个TupleSet
+  for (SelectExeNode *&node : select_nodes) {
     TupleSet tuple_set;
+    // 这里执行只能在单个表上执行
     rc = node->execute(tuple_set);
     if (rc != RC::SUCCESS) {
-      for (SelectExeNode *& tmp_node: select_nodes) {
+      for (SelectExeNode *& tmp_node : select_nodes) {
         delete tmp_node;
       }
       end_trx_if_need(session, trx, false);
@@ -260,8 +268,11 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   }
 
   std::stringstream ss;
-  if (tuple_sets.size() > 1) {
-    // 本次查询了多张表，需要做join操作
+  if (tuple_sets.size() > 1) {  // 本次查询了多张表，需要做join操作
+    //e.g. select t1.id, t2.name from t1, t2 where t1.id=t2.id;
+    // 首先要从where子句的Condition中找出两边都是属性的Condition
+    // 然后要根据这个condition找出对应的两个表的TupleSet
+    // 并根据condition的谓词过滤出满足条件的构造Tuple
   } else {
     // 当前只查询一张表，直接返回结果即可
     tuple_sets.front().print(ss);
@@ -299,6 +310,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   // 列出跟这张表关联的Attr
   TupleSchema schema;
   Table * table = DefaultHandler::get_default().find_table(db, table_name);
+  // 检查表是否存在
   if (nullptr == table) {
     LOG_WARN("No such table [%s] in db [%s]", table_name, db);
     return RC::SCHEMA_TABLE_NOT_EXIST;
@@ -321,6 +333,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     }
   }
 
+
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
   std::vector<DefaultConditionFilter *> condition_filters;
   for (size_t i = 0; i < selects.condition_num; i++) {
@@ -330,8 +343,11 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         (condition.left_is_attr == 0 && condition.right_is_attr == 1 && match_table(selects, condition.right_attr.relation_name, table_name)) ||  // 左边是值，右边是属性名
         (condition.left_is_attr == 1 && condition.right_is_attr == 1 &&
             match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name)) // 左右都是属性名，并且表名都符合
+            // t1.id = t2.id，左右两边的relation_name不可能都是table_name
         ) {
+
       DefaultConditionFilter *condition_filter = new DefaultConditionFilter();
+      // 这个init函数里检查了where子句中的列名是否存在
       RC rc = condition_filter->init(*table, condition);
       if (rc != RC::SUCCESS) {
         delete condition_filter;
@@ -343,6 +359,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
       condition_filters.push_back(condition_filter);
     }
   }
-
+    LOG_INFO("condition_filters count: %d", condition_filters.size());
   return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
 }
