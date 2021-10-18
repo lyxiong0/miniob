@@ -260,3 +260,10 @@ docs/dev
 
 # Vagrant
 .vagrant
+
+/build/
+**/log
+**/*.log.*
+**/*.log
+
+/miniob/
