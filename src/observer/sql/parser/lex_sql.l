@@ -24,7 +24,6 @@ extern double atof();
 
 WHITE_SAPCE      [\ \t\b\f]
 DIGIT            [0-9]+
-
 ID               [A-Za-z_]+[A-Za-z0-9_]*
 DOT              \.
 QUOTE            [\'\"]
@@ -71,6 +70,8 @@ QUOTE            [\'\"]
 [Ll][Oo][Aa][Dd]			                   RETURN_TOKEN(LOAD);
 [Dd][Aa][Tt][Aa]	                       RETURN_TOKEN(DATA);
 [Ii][Nn][Ff][Ii][Ll][Ee]                 RETURN_TOKEN(INFILE);
+[Cc][Oo][Uu][Nn][Tt]					yylval->string=strdup(yytext); RETURN_TOKEN(COUNT);
+[Aa][Vv][Gg]|[Mm][Aa][Xx]|[Mm][Ii][Nn]	yylval->string=strdup(yytext); RETURN_TOKEN(OTHER_FUNCTION_TYPE);
 {ID}							                       yylval->string=strdup(yytext); RETURN_TOKEN(ID);
 "("								                       RETURN_TOKEN(LBRACE);
 ")"								                       RETURN_TOKEN(RBRACE);

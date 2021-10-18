@@ -44,6 +44,10 @@ public:
     return value_ - int_other.value_;
   }
 
+  int GetValue() {
+    return value_;
+  }
+
 private:
   int value_;
 };
@@ -68,6 +72,11 @@ public:
     }
     return 0;
   }
+
+  float GetValue() {
+    return value_;
+  }
+
 private:
   float value_;
 };
@@ -87,6 +96,15 @@ public:
     const StringValue &string_other = (const StringValue &)other;
     return strcmp(value_.c_str(), string_other.value_.c_str());
   }
+
+  const char * GetValue() {
+    return value_.c_str();
+  }
+
+  int GetLen() {
+    return value_.size();
+  }
+
 private:
   std::string value_;
 };

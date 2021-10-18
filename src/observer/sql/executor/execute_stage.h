@@ -18,10 +18,97 @@ See the Mulan PSL v2 for more details. */
 #include "common/seda/stage.h"
 #include "sql/parser/parse.h"
 #include "rc.h"
+#include "sql/executor/tuple.h"
+
+#include <cctype>
+#include <unordered_map>
 
 class SessionEvent;
 
-class ExecuteStage : public common::Stage {
+class AttrFunction
+{
+public:
+  void AddFunctionType(const std::string &attr_name, FUNCTION_TYPE function_type)
+  {
+    attr_function_type_.emplace_back(attr_name, function_type);
+  }
+
+  void SetIsCount(bool is_count)
+  {
+    is_count_ = is_count;
+  }
+
+  std::string ToString(int i)
+  {
+    FUNCTION_TYPE type = attr_function_type_[i].second;
+    std::string attr = attr_function_type_[i].first;
+    LOG_ERROR("attr = %s", attr);
+    std::string s;
+
+    switch (type)
+    {
+    case FUNCTION_TYPE::COUNT:
+    {
+      s = std::string("COUNT(") + attr + std::string(")");
+      break;
+    }
+    case FUNCTION_TYPE::AVG:
+    {
+      s = std::string("AVG(") + attr + std::string(")");
+      LOG_ERROR("s = %s", s);
+      break;
+    }
+    case FUNCTION_TYPE::MAX:
+    {
+      s = std::string("MAX(") + attr + std::string(")");
+      break;
+    }
+    case FUNCTION_TYPE::MIN:
+    {
+      s = std::string("MIN(") + attr + std::string(")");
+      break;
+    }
+    default:
+      s = std::string("UNDEFINED(") + attr + std::string(")");
+      break;
+    }
+
+    //return s.c_str();
+    return s;
+  }
+
+  FUNCTION_TYPE GetFunctionType(int i)
+  {
+    return attr_function_type_[i].second;
+  }
+
+  const char* GetAttrName(int i) {
+    return attr_function_type_[i].first.c_str();
+  }
+
+  int GetSize()
+  {
+    return attr_function_type_.size();
+  }
+
+  bool GetIsCount()
+  {
+    return is_count_;
+  }
+
+  const std::pair<std::string, FUNCTION_TYPE> &GetAttrFunctionType(int i)
+  {
+    return attr_function_type_[i];
+  }
+
+private:
+  bool is_count_ = false; // 是否执行count函数
+  // 存储<属性名，函数类型>
+  std::vector<std::pair<std::string, FUNCTION_TYPE>> attr_function_type_;
+};
+
+class ExecuteStage : public common::Stage
+{
 public:
   ~ExecuteStage();
   static Stage *make_stage(const std::string &tag);
@@ -35,10 +122,11 @@ protected:
   void cleanup() override;
   void handle_event(common::StageEvent *event) override;
   void callback_event(common::StageEvent *event,
-                     common::CallbackContext *context) override;
+                      common::CallbackContext *context) override;
 
   void handle_request(common::StageEvent *event);
   RC do_select(const char *db, Query *sql, SessionEvent *session_event);
+
 protected:
 private:
   Stage *default_storage_stage_ = nullptr;
