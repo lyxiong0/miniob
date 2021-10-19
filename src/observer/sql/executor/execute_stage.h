@@ -28,7 +28,7 @@ class SessionEvent;
 class AttrFunction
 {
 public:
-  void AddFunctionType(const std::string &attr_name, FUNCTION_TYPE function_type)
+  void AddFunctionType(const std::string &attr_name, FuncType function_type)
   {
     attr_function_type_.emplace_back(attr_name, function_type);
   }
@@ -40,30 +40,28 @@ public:
 
   std::string ToString(int i)
   {
-    FUNCTION_TYPE type = attr_function_type_[i].second;
+    FuncType type = attr_function_type_[i].second;
     std::string attr = attr_function_type_[i].first;
-    LOG_ERROR("attr = %s", attr);
     std::string s;
 
     switch (type)
     {
-    case FUNCTION_TYPE::COUNT:
+    case FuncType::COUNT:
     {
       s = std::string("COUNT(") + attr + std::string(")");
       break;
     }
-    case FUNCTION_TYPE::AVG:
+    case FuncType::AVG:
     {
       s = std::string("AVG(") + attr + std::string(")");
-      LOG_ERROR("s = %s", s);
       break;
     }
-    case FUNCTION_TYPE::MAX:
+    case FuncType::MAX:
     {
       s = std::string("MAX(") + attr + std::string(")");
       break;
     }
-    case FUNCTION_TYPE::MIN:
+    case FuncType::MIN:
     {
       s = std::string("MIN(") + attr + std::string(")");
       break;
@@ -77,7 +75,7 @@ public:
     return s;
   }
 
-  FUNCTION_TYPE GetFunctionType(int i)
+  FuncType GetFunctionType(int i)
   {
     return attr_function_type_[i].second;
   }
@@ -96,7 +94,7 @@ public:
     return is_count_;
   }
 
-  const std::pair<std::string, FUNCTION_TYPE> &GetAttrFunctionType(int i)
+  const std::pair<std::string, FuncType> &GetAttrFunctionType(int i)
   {
     return attr_function_type_[i];
   }
@@ -104,7 +102,7 @@ public:
 private:
   bool is_count_ = false; // 是否执行count函数
   // 存储<属性名，函数类型>
-  std::vector<std::pair<std::string, FUNCTION_TYPE>> attr_function_type_;
+  std::vector<std::pair<std::string, FuncType>> attr_function_type_;
 };
 
 class ExecuteStage : public common::Stage

@@ -23,7 +23,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/parser/parse.h"
 #include "sql/executor/value.h"
 
-enum FUNCTION_TYPE
+enum FuncType
 {
   COUNT,
   MAX,

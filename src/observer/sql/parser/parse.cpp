@@ -23,7 +23,7 @@ RC parse(char *st, Query *sqln);
 extern "C"
 {
 #endif // __cplusplus
-  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *window_function_name)
+  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *window_function_name, int _is_desc)
   {
     if (relation_name != nullptr)
     {
@@ -33,20 +33,30 @@ extern "C"
     {
       relation_attr->relation_name = nullptr;
     }
+
     relation_attr->attribute_name = strdup(attribute_name);
 
     if (window_function_name != nullptr)
     {
       relation_attr->window_function_name = strdup(window_function_name);
     }
+    else
+    {
+      relation_attr->window_function_name = nullptr;
+    }
+
+    relation_attr->is_desc = _is_desc;
   }
 
   void relation_attr_destroy(RelAttr *relation_attr)
   {
     free(relation_attr->relation_name);
     free(relation_attr->attribute_name);
+    free(relation_attr->window_function_name);
+
     relation_attr->relation_name = nullptr;
     relation_attr->attribute_name = nullptr;
+    relation_attr->window_function_name = nullptr;
   }
 
   void value_init_integer(Value *value, int v)
@@ -139,6 +149,10 @@ extern "C"
   {
     selects->relations[selects->relation_num++] = strdup(relation_name);
   }
+  void selects_append_order(Selects *selects, RelAttr *rel_attr)
+  {
+    selects->order_attrs[selects->order_num++] = *rel_attr;
+  }
 
   void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num)
   {
@@ -170,29 +184,42 @@ extern "C"
       condition_destroy(&selects->conditions[i]);
     }
     selects->condition_num = 0;
+
+    for (size_t i = 0; i < selects->order_num; i++)
+    {
+      relation_attr_destroy(&selects->order_attrs[i]);
+    }
+    selects->order_num = 0;
   }
 
-  void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num)
+  void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index)
   {
-    assert(value_num <= sizeof(inserts->values) / sizeof(inserts->values[0]));
+    assert(value_num <= sizeof(inserts->values[index]) / sizeof(inserts->values[index][0]));
 
     inserts->relation_name = strdup(relation_name);
     for (size_t i = 0; i < value_num; i++)
     {
-      inserts->values[i] = values[i];
+      inserts->values[index][i] = values[i];
     }
-    inserts->value_num = value_num;
+    inserts->value_num[index] = value_num;
+    inserts->group_num = index;
   }
+
   void inserts_destroy(Inserts *inserts)
   {
     free(inserts->relation_name);
     inserts->relation_name = nullptr;
 
-    for (size_t i = 0; i < inserts->value_num; i++)
+    for (size_t i = 0; i < inserts->group_num; i++)
     {
-      value_destroy(&inserts->values[i]);
+      for (size_t j = 0; j < inserts->value_num[i]; j++)
+      {
+        value_destroy(&inserts->values[i][j]);
+      }
+      inserts->value_num[i] = 0;
     }
-    inserts->value_num = 0;
+
+    inserts->group_num = 0;
   }
 
   void deletes_init_relation(Deletes *deletes, const char *relation_name)
@@ -439,6 +466,11 @@ extern "C"
   {
     query_reset(query);
     free(query);
+  }
+
+  void log_err(const char *info)
+  {
+    LOG_ERROR(info);
   }
 #ifdef __cplusplus
 } // extern "C"

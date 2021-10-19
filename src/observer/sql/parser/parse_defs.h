@@ -26,8 +26,9 @@ See the Mulan PSL v2 for more details. */
 //属性结构体
 typedef struct
 {
-  char *relation_name;  // relation name (may be NULL) 表名
-  char *attribute_name; // attribute name              属性名
+  int is_desc; // 默认采用升序asc，=1降序
+  char *relation_name;        // relation name (may be NULL) 表名
+  char *attribute_name;       // attribute name              属性名
   char *window_function_name; // 窗口函数名
 } RelAttr;
 
@@ -85,14 +86,18 @@ typedef struct
   char *relations[MAX_NUM];      // relations in From clause
   size_t condition_num;          // Length of conditions in Where clause
   Condition conditions[MAX_NUM]; // conditions in Where clause
+  size_t order_num;
+  RelAttr order_attrs[MAX_NUM]; // order by数组
 } Selects;
 
 // struct of insert
 typedef struct
 {
-  char *relation_name;   // Relation to insert into
-  size_t value_num;      // Length of values
-  Value values[MAX_NUM]; // values to insert
+  char *relation_name;       // Relation to insert into
+  size_t value_num[MAX_NUM]; // Length of values
+  size_t group_num;
+  // Value values[MAX_NUM]; // values to insert
+  Value values[MAX_NUM][MAX_NUM]; // values to insert, values[i][j] - 插入的第i组元素第j个值
 } Inserts;
 
 // struct of delete
@@ -208,7 +213,7 @@ extern "C"
 {
 #endif // __cplusplus
 
-  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *window_function_name);
+  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *window_function_name, int _is_desc);
   void relation_attr_destroy(RelAttr *relation_attr);
 
   void value_init_integer(Value *value, int v);
@@ -227,9 +232,10 @@ extern "C"
   void selects_append_attribute(Selects *selects, RelAttr *rel_attr);
   void selects_append_relation(Selects *selects, const char *relation_name);
   void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
+  void selects_append_order(Selects *selects, RelAttr *rel_attr);
   void selects_destroy(Selects *selects);
 
-  void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num);
+  void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index);
   void inserts_destroy(Inserts *inserts);
 
   void deletes_init_relation(Deletes *deletes, const char *relation_name);
@@ -264,6 +270,8 @@ extern "C"
   Query *query_create(); // create and init
   void query_reset(Query *query);
   void query_destroy(Query *query); // reset and delete
+
+  void log_err(const char *info);
 
 #ifdef __cplusplus
 }

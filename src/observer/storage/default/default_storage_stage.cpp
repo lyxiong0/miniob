@@ -180,7 +180,17 @@ void DefaultStorageStage::handle_event(StageEvent *event)
   { // insert into
     const Inserts &inserts = sql->sstr.insertion;
     const char *table_name = inserts.relation_name;
-    rc = handler_->insert_record(current_trx, current_db, table_name, inserts.value_num, inserts.values);
+    RC rc = RC::SUCCESS;
+
+    for (size_t i = 0; i < inserts.group_num; ++i)
+    {
+      rc = handler_->insert_record(current_trx, current_db, table_name, inserts.value_num[i], inserts.values[i]);
+      if (rc != RC::SUCCESS) {
+        LOG_ERROR("插入第%ld组失败", i);
+        current_trx->rollback(); // 一个插入失败，则全部失败
+        break;
+      }
+    }
     snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
   }
   break;

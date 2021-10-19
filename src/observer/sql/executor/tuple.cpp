@@ -96,19 +96,14 @@ void TupleSchema::add(AttrType type, const char *table_name, const char *field_n
 
 void TupleSchema::add_if_not_exists(AttrType type, const char *table_name, const char *field_name)
 {
-  LOG_ERROR("field name = %s", field_name);
-  LOG_ERROR("table_name = %s", table_name);
   for (const auto &field : fields_)
   {
-    LOG_ERROR("inside field name = %s", field.field_name());
     if (0 == strcmp(field.table_name(), table_name) &&
         0 == strcmp(field.field_name(), field_name))
     {
       return;
     }
   }
-  LOG_ERROR("insert");
-
   add(type, table_name, field_name);
 }
 
