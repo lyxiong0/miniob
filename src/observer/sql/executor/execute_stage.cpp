@@ -318,7 +318,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
   ////////////////////////////聚合函数开始/////////////////////////////
   std::vector<TupleSet> results;
-  // do_aggregation(tuple_sets, attr_functions, results);
   size_t n = tuple_sets.size();
 
   for (size_t i = 0; i < n; ++i)
