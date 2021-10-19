@@ -200,7 +200,6 @@ RC Table::insert_record(Trx *trx, Record *record) {
     rc = trx->insert_record(this, record);
     if (rc != RC::SUCCESS) {
       LOG_ERROR("Failed to log operation(insertion) to trx");
-
       RC rc2 = record_handler_->delete_record(&record->rid);
       if (rc2 != RC::SUCCESS) {
         LOG_PANIC("Failed to rollback record data when insert index entries failed. table name=%s, rc=%d:%s",

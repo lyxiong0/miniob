@@ -106,7 +106,7 @@ public:
   void clear() {
     fields_.clear();
   }
-
+  
   void print(std::ostream &os) const;
 public:
   static void from_table(const Table *table, TupleSchema &schema);

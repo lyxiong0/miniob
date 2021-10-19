@@ -11,7 +11,8 @@ See the Mulan PSL v2 for more details. */
 //
 // Created by Wangyunlai on 2021/5/14.
 //
-
+#include <string>
+#include <stdio.h>
 #include "sql/executor/tuple.h"
 #include "storage/common/table.h"
 #include "common/log/log.h"
@@ -210,6 +211,20 @@ const std::vector<Tuple> &TupleSet::tuples() const {
 TupleRecordConverter::TupleRecordConverter(Table *table, TupleSet &tuple_set) :
       table_(table), tuple_set_(tuple_set){
 }
+std::string num2date(int n){
+  char str1[10];
+  sprintf(str1, "%d" , n);
+  char str[10];
+  for(int i=0,j=0;i<10;i++){
+    if(i==4||i==7){
+      str[i]='-';
+      i++;
+    }
+    str[i]=str1[j++];
+  }
+  std::string s = str;
+  return s;
+}
 
 void TupleRecordConverter::add_record(const char *record) {
   const TupleSchema &schema = tuple_set_.schema();
@@ -232,6 +247,12 @@ void TupleRecordConverter::add_record(const char *record) {
       case CHARS: {
         const char *s = record + field_meta->offset();  // 现在当做Cstring来处理
         tuple.add(s, strlen(s));
+      }
+      break;
+      case DATES: {
+        int value = *(int*)(record + field_meta->offset());
+        const char *s = num2date(value).data();                           
+        tuple.add(s,strlen(s));
       }
       break;
       default: {
