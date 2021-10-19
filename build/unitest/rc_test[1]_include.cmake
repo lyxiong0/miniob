@@ -1,0 +1,5 @@
+if(EXISTS "/root/miniob/build/unitest/rc_test[1]_tests.cmake")
+  include("/root/miniob/build/unitest/rc_test[1]_tests.cmake")
+else()
+  add_test(rc_test_NOT_BUILT rc_test_NOT_BUILT)
+endif()

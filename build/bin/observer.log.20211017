@@ -1,0 +1,30 @@
+[2021-10-17 8:5:39 pid:49339 tid:7f7aa7518200  INFO: /root/miniob/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+Finish dump configuration 
+
+[2021-10-17 8:5:39 pid:49339 tid:7f7aa7518200  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 67]>>(Re)Starting State: Pid: 49339 Time: Sun Oct 17 08:05:39 2021
+
+[2021-10-17 8:5:39 pid:49339 tid:7f7aa7518200  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-17 8:5:39 pid:49339 tid:7f7aa7518200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_event_history 202]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-17 8:5:39 pid:49339 tid:7f7aa7518200  ERROR: /root/miniob/deps/common/seda/seda_config.cpp init_thread_pool 218]>>Configuration hasn't set ThreadPools
+[2021-10-17 8:5:39 pid:49339 tid:7f7aa7518200  ERROR: /root/miniob/deps/common/seda/seda_config.cpp instantiate 415]>>Failed to init thread pool
+
+[2021-10-17 8:5:39 pid:49339 tid:7f7aa7518200  ERROR: /root/miniob/deps/common/seda/init.cpp init_seda 73]>>SedaConfig: unable to initialize seda stages
+[2021-10-17 8:5:39 pid:49339 tid:7f7aa7518200  ERROR: /root/miniob/src/observer/init.cpp init 212]>>Failed to init seda configuration!
+[2021-10-17 8:11:25 pid:49479 tid:7f01887bd200  INFO: /root/miniob/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+Finish dump configuration 
+
+[2021-10-17 8:11:25 pid:49479 tid:7f01887bd200  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 67]>>(Re)Starting State: Pid: 49479 Time: Sun Oct 17 08:11:25 2021
+
+[2021-10-17 8:11:25 pid:49479 tid:7f01887bd200  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-17 8:11:25 pid:49479 tid:7f01887bd200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_event_history 202]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-17 8:11:25 pid:49479 tid:7f01887bd200  ERROR: /root/miniob/deps/common/seda/seda_config.cpp init_thread_pool 218]>>Configuration hasn't set ThreadPools
+[2021-10-17 8:11:25 pid:49479 tid:7f01887bd200  ERROR: /root/miniob/deps/common/seda/seda_config.cpp instantiate 415]>>Failed to init thread pool
+
+[2021-10-17 8:11:25 pid:49479 tid:7f01887bd200  ERROR: /root/miniob/deps/common/seda/init.cpp init_seda 73]>>SedaConfig: unable to initialize seda stages
+[2021-10-17 8:11:25 pid:49479 tid:7f01887bd200  ERROR: /root/miniob/src/observer/init.cpp init 212]>>Failed to init seda configuration!
