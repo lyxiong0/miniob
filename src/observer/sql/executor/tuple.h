@@ -33,6 +33,7 @@ enum FuncType
 };
 
 class Table;
+class OrderInfo;
 
 class Tuple
 {
@@ -169,6 +170,14 @@ public:
   const std::vector<Tuple> &tuples() const;
 
   void print(std::ostream &os) const;
+
+  void swap_tuple(int i, int j)
+  {
+    // Tuple tmp = std::move(tuples_[i]);
+    // tuples_[i] = std::move(tuples_[j]);
+    // tuples_[j] = std::move(tmp);
+    std::swap(tuples_[i], tuples_[j]);
+  }
 
 public:
   const TupleSchema &schema() const

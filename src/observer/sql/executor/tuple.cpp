@@ -207,6 +207,7 @@ void TupleSet::print(std::ostream &os) const
 
   schema_.print(os);
 
+  LOG_DEBUG("here");
   for (const Tuple &item : tuples_)
   {
     const std::vector<std::shared_ptr<TupleValue>> &values = item.values();

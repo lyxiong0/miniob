@@ -71,7 +71,7 @@ public:
       break;
     }
 
-    //return s.c_str();
+    // return s.c_str();
     return s;
   }
 
@@ -80,7 +80,8 @@ public:
     return attr_function_type_[i].second;
   }
 
-  const char* GetAttrName(int i) {
+  const char *GetAttrName(int i)
+  {
     return attr_function_type_[i].first.c_str();
   }
 
@@ -103,6 +104,58 @@ private:
   bool is_count_ = false; // 是否执行count函数
   // 存储<属性名，函数类型>
   std::vector<std::pair<std::string, FuncType>> attr_function_type_;
+};
+
+class OrderInfo
+{
+public:
+  void add_is_desc(bool is_desc)
+  {
+    is_desc_.emplace_back(is_desc);
+  }
+
+  void add_attr_name(const char *attr_name)
+  {
+    attr_name_.emplace_back(attr_name);
+  }
+
+  void add_index(int idx)
+  {
+    index_.emplace_back(idx);
+  }
+
+  int get_size()
+  {
+    return is_desc_.size();
+  }
+
+  bool get_is_desc(int i)
+  {
+    return is_desc_[i];
+  }
+
+  int get_index(int i)
+  {
+    return index_[i];
+  }
+
+  // void from_table(const Table *table)
+  // {
+  //   const char *table_name = table->name();
+  //   const TableMeta &table_meta = table->table_meta();
+  //   const int field_num = table_meta.field_num();
+
+  //   for (int i = 0; i < field_num; i++)
+  //   {
+  //     index_.emplace_back(i);
+  //   }
+  // }
+
+private:
+  // 包含一个表的排序信息
+  std::vector<bool> is_desc_; // 默认为升序asc
+  std::vector<const char *> attr_name_;
+  std::vector<int> index_; // attr_name对应tuple里的index
 };
 
 class ExecuteStage : public common::Stage

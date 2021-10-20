@@ -35,9 +35,11 @@ See the Mulan PSL v2 for more details. */
 
 using namespace common;
 
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, AttrFunction &attr_function);
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, AttrFunction &attr_function, OrderInfo &order_info);
 
 RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results);
+
+void quick_sort(TupleSet *tuple_set, int l, int r, OrderInfo *order_info);
 
 //! Constructor
 ExecuteStage::ExecuteStage(const char *tag) : Stage(tag) {}
@@ -251,6 +253,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
   std::vector<SelectExeNode *> select_nodes;
   std::vector<AttrFunction *> attr_functions; // 储存每个表的类型
+  std::vector<OrderInfo *> order_infos;
 
   for (size_t i = 0; i < selects.relation_num; i++)
   {
@@ -258,8 +261,9 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     const char *table_name = selects.relations[i];
     SelectExeNode *select_node = new SelectExeNode;
     AttrFunction *attr_function = new AttrFunction;
+    OrderInfo *order_info = new OrderInfo;
 
-    rc = create_selection_executor(trx, selects, db, table_name, *select_node, *attr_function);
+    rc = create_selection_executor(trx, selects, db, table_name, *select_node, *attr_function, *order_info);
     if (rc != RC::SUCCESS)
     {
       delete select_node;
@@ -273,6 +277,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
     select_nodes.push_back(select_node);
     attr_functions.push_back(attr_function);
+    order_infos.push_back(order_info);
   }
 
   if (select_nodes.empty())
@@ -322,7 +327,11 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
   for (size_t i = 0; i < n; ++i)
   {
-    do_aggregation(&tuple_sets[i], attr_functions[i], results);
+    RC rc = do_aggregation(&tuple_sets[i], attr_functions[i], results);
+    if (rc != RC::SUCCESS)
+    {
+      return rc;
+    }
   }
 
   // ////////////////////////////聚合函数结束/////////////////////////////
@@ -333,6 +342,18 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   }
   else
   {
+    // tuple_sets.front().print(ss);
+
+    // 当前没有group by，先假设聚合和排序是矛盾的，仍然用tuples_sets进行快速排序
+    ///////////////////////////////////排序开始////////////////////////////////
+    for (size_t i = 0; i < n; ++i)
+    {
+      if (order_infos[i]->get_size() > 0)
+      {
+        // 遍历每个TupleSet（即每个表的结果）
+        quick_sort(&tuple_sets[i], 0, tuple_sets[i].size() - 1, order_infos[i]);
+      }
+    }
     tuple_sets.front().print(ss);
   }
 
@@ -346,6 +367,74 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   return rc;
 }
 
+bool tuple_compare(const Tuple *lhs, const Tuple *rhs, OrderInfo *order_info)
+{
+  // 左在右前返回true
+  for (int i = order_info->get_size() - 1; i >= 0; --i)
+  {
+    auto l_value = lhs->get_pointer(order_info->get_index(i));
+    auto r_value = rhs->get_pointer(order_info->get_index(i));
+    bool is_desc = order_info->get_is_desc(i);
+
+    if (l_value->compare(*r_value) > 0)
+    {
+      return !is_desc;
+    }
+
+    if (l_value->compare(*r_value) < 0)
+    {
+      return is_desc;
+    }
+  }
+
+  // 两者数据完全一样，返回true/false都可以
+  return true;
+}
+
+int partition(TupleSet *tuple_set, int l, int r, OrderInfo *order_info)
+{
+  auto pivot = &(tuple_set->get(r));
+  int i = l - 1;
+
+  for (int j = l; j < r; j++)
+  {
+    if (tuple_compare(pivot, &(tuple_set->get(j)), order_info))
+    {
+      i++;
+      tuple_set->swap_tuple(i, j);
+    }
+  }
+
+  tuple_set->swap_tuple(i + 1, r);
+  return i + 1;
+}
+
+/**
+ * @brief 快速排序
+ *
+ * @param tuple_set 表的当前结果集合
+ * @param index     按第index列进行排序
+ * @param is_desc   是否降序，默认升序
+ * @return RC
+ */
+void quick_sort(TupleSet *tuple_set, int l, int r, OrderInfo *order_info)
+{
+  if (l < r)
+  {
+    int mid = partition(tuple_set, l, r, order_info);
+    quick_sort(tuple_set, l, mid - 1, order_info);
+    quick_sort(tuple_set, mid + 1, r, order_info);
+  }
+}
+
+/**
+ * @brief 聚合函数运算
+ *
+ * @param tuple_set 表的当前结果集合
+ * @param attr_function 表的聚合函数信息
+ * @param results 表的聚合数结果
+ * @return RC
+ */
 RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results)
 {
   TupleSchema tmp_scheme;
@@ -373,8 +462,9 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
 
     if (func_type == FuncType::NOFUNC)
     {
-      LOG_ERROR("未定义的聚合函数，跳过");
-      continue;
+      LOG_ERROR("未定义的聚合函数");
+      rc = RC::GENERIC_ERROR;
+      return rc;
     }
 
     // 增加tuple
@@ -391,9 +481,9 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     }
     case FuncType::AVG:
     {
-      if (type == AttrType::CHARS)
+      if (type == AttrType::CHARS || type == DATES)
       {
-        // CHARS不应该计算平均值
+        // CHARS和DATES不应该计算平均值
         rc = RC::GENERIC_ERROR;
         break;
       }
@@ -432,7 +522,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
 
         if (value->compare(*ans) > 0)
         {
-
           ans = value;
         }
       }
@@ -453,6 +542,9 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
                       std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
       }
+      // else if (type == AttrType::DATES) {
+      //   tmp_tuple.add();
+      // }
 
       break;
     }
@@ -487,6 +579,9 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
                       std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
       }
+      // else if (type == AttrType::DATES) {
+      //   tmp_tuple.add();
+      // }
 
       break;
     }
@@ -569,7 +664,7 @@ FuncType JudgeFunctionType(char *window_function_name)
 }
 
 // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, AttrFunction &attr_function)
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, AttrFunction &attr_function, OrderInfo &order_info)
 {
   // 列出跟这张表关联的Attr
   // 1. 找到表
@@ -596,7 +691,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         // 找到对应的表
         // 列出这张表所有字段
         TupleSchema::from_table(table, schema);
-
         break; // 没有校验，给出* 之后，再写字段的错误
       }
       else
@@ -663,6 +757,21 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         return rc;
       }
       condition_filters.push_back(condition_filter);
+    }
+  }
+
+  // 提取排序信息
+  for (int i = selects.order_num - 1; i >= 0; i--)
+  {
+    const RelAttr &attr = selects.order_attrs[i];
+
+    // 确定该属性与这张表有关
+    if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name))
+    {
+      order_info.add_attr_name(attr.attribute_name);
+      order_info.add_is_desc(attr.is_desc == 1);
+      // TODO: 这里效率可能很低，在哪里获取index更合适一点？
+      order_info.add_index(schema.index_of_field(table_name, attr.attribute_name));
     }
   }
 
