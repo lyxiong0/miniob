@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #include <string>
 #include <sstream>
-
+#include <algorithm>
 #include "execute_stage.h"
 
 #include "common/io/io.h"
@@ -259,6 +259,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   {
     // 遍历所有表
     const char *table_name = selects.relations[i];
+    LOG_INFO("table_name: %s", table_name);
     SelectExeNode *select_node = new SelectExeNode;
     AttrFunction *attr_function = new AttrFunction;
     OrderInfo *order_info = new OrderInfo;
@@ -746,6 +747,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     )
     {
       DefaultConditionFilter *condition_filter = new DefaultConditionFilter();
+      // 这个init函数里检查了where子句中的列名是否存在
       RC rc = condition_filter->init(*table, condition);
       if (rc != RC::SUCCESS)
       {

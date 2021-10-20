@@ -69,6 +69,7 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   if (1 == condition.left_is_attr) {
     left.is_attr = true;
     const FieldMeta *field_left = table_meta.field(condition.left_attr.attribute_name);
+    // 这里检查了where子句中的列名是否存在
     if (nullptr == field_left) {
       LOG_WARN("No such field in condition. %s.%s", table.name(), condition.left_attr.attribute_name);
       return RC::SCHEMA_FIELD_MISSING;
@@ -91,6 +92,7 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   if (1 == condition.right_is_attr) {
     right.is_attr = true;
     const FieldMeta *field_right = table_meta.field(condition.right_attr.attribute_name);
+    // 这里检查了where子句中的列名是否存在
     if (nullptr == field_right) {
       LOG_WARN("No such field in condition. %s.%s", table.name(), condition.right_attr.attribute_name);
       return RC::SCHEMA_FIELD_MISSING;
