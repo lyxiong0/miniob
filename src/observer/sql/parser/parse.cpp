@@ -77,17 +77,14 @@ void relation_attr_destroy(RelAttr *relation_attr) {
     value->data = malloc(sizeof(v));
     memcpy(value->data, &v, sizeof(v));
   }
+
   void value_init_float(Value *value, float v)
   {
     value->type = FLOATS;
     value->data = malloc(sizeof(v));
     memcpy(value->data, &v, sizeof(v));
   }
-  void value_init_string(Value *value, const char *v)
-  {
-    value->type = CHARS;
-    value->data = strdup(v);
-  }
+  
   void value_destroy(Value *value)
   {
     value->type = UNDEFINED;
@@ -107,6 +104,7 @@ void relation_attr_destroy(RelAttr *relation_attr) {
     }
     return false;
   }
+
   bool check_date_data(const char *s)
   {
     std::string str = s;
@@ -117,6 +115,7 @@ void relation_attr_destroy(RelAttr *relation_attr) {
     }
     return false;
   }
+
   int convert_date(const char *s)
   {
     // 设定格式为yyyy-mm-dd/yyyy-m-dd/yyyy-mm-d/yyyy-m-d
@@ -149,6 +148,7 @@ void relation_attr_destroy(RelAttr *relation_attr) {
     }
     return num;
   }
+  
   void value_init_string(Value *value, const char *v)
   {
     if (check_date_data(v))

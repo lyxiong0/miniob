@@ -147,17 +147,12 @@ RC DefaultHandler::create_table(const char *dbname, const char *relation_name, i
   return db->create_table(relation_name, attribute_count, attributes);
 }
 
-RC DefaultHandler::drop_table(const char *dbname, const char *relation_name)
-{
-  // TODO(xiong): 任务2 drop table
+RC DefaultHandler::drop_table(const char *dbname, const char *relation_name) {
   Db *db = find_db(dbname);
-  if (db == nullptr)
-  {
+  if (db == nullptr) {
     return RC::SCHEMA_DB_NOT_OPENED;
   }
-
-  // return db->drop_table(relation_name);
-  return RC::GENERIC_ERROR;
+  return db->drop_table(relation_name);
 }
 
 RC DefaultHandler::create_index(Trx *trx, const char *dbname, const char *relation_name, const char *index_name, const char *attribute_name)

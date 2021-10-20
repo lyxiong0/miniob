@@ -25,7 +25,6 @@ See the Mulan PSL v2 for more details. */
 #include "storage/common/table.h"
 #include "storage/common/meta_util.h"
 
-
 Db::~Db() {
   for (auto &iter : opened_tables_) {
     delete iter.second;
@@ -70,6 +69,36 @@ RC Db::create_table(const char *table_name, int attribute_count, const AttrInfo 
   opened_tables_[table_name] = table;
   LOG_INFO("Create table success. table name=%s", table_name);
   return RC::SUCCESS;
+}
+
+RC Db::drop_table(const char *table_name) {
+    RC rc = RC::SUCCESS;
+
+    // 表不存在
+    if (opened_tables_.count(table_name) == 0) {
+        return RC::SCHEMA_TABLE_NOT_EXIST;
+    }
+
+  // 删除table_meta文件
+    std::string table_file_path = table_meta_file(path_.c_str(), table_name);
+    LOG_ERROR("%s", table_file_path.c_str());
+  if (::remove(table_file_path.c_str()) != 0) {
+    LOG_ERROR("Failed to remove table file: %s", table_file_path.c_str());
+    return RC::IOERR;
+  }
+
+  // 删除data文件
+  std::string datafile_path = path_ + "/" + table_name + TABLE_DATA_SUFFIX;
+  LOG_ERROR("%s", datafile_path.c_str());
+  if (::remove(datafile_path.c_str()) != 0) {
+    LOG_ERROR("Failed to remove table file: %s", datafile_path.c_str());
+    return RC::IOERR;
+  }
+    opened_tables_.erase(table_name);
+    
+    LOG_INFO("Create table success. table name=%s", table_name);
+    return RC::SUCCESS;
+
 }
 
 Table *Db::find_table(const char *table_name) const {

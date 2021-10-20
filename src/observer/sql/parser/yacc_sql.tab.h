@@ -74,34 +74,35 @@ extern int yydebug;
     ORDER = 280,
     ASC = 281,
     BY = 282,
-    HELP = 283,
-    EXIT = 284,
-    DOT = 285,
-    INTO = 286,
-    VALUES = 287,
-    FROM = 288,
-    WHERE = 289,
-    AND = 290,
-    SET = 291,
-    ON = 292,
-    LOAD = 293,
-    DATA = 294,
-    INFILE = 295,
-    EQ = 296,
-    LT = 297,
-    GT = 298,
-    LE = 299,
-    GE = 300,
-    NE = 301,
-    NUMBER = 302,
-    FLOAT = 303,
-    ID = 304,
-    PATH = 305,
-    SSS = 306,
-    STAR = 307,
-    STRING_V = 308,
-    COUNT = 309,
-    OTHER_FUNCTION_TYPE = 310
+    DATE_T = 283,
+    HELP = 284,
+    EXIT = 285,
+    DOT = 286,
+    INTO = 287,
+    VALUES = 288,
+    FROM = 289,
+    WHERE = 290,
+    AND = 291,
+    SET = 292,
+    ON = 293,
+    LOAD = 294,
+    DATA = 295,
+    INFILE = 296,
+    EQ = 297,
+    LT = 298,
+    GT = 299,
+    LE = 300,
+    GE = 301,
+    NE = 302,
+    NUMBER = 303,
+    FLOAT = 304,
+    ID = 305,
+    PATH = 306,
+    SSS = 307,
+    STAR = 308,
+    STRING_V = 309,
+    COUNT = 310,
+    OTHER_FUNCTION_TYPE = 311
   };
 #endif
 
@@ -109,7 +110,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 115 "yacc_sql.y"
+#line 120 "yacc_sql.y"
 
   struct _Attr *attr;
   struct _Condition *condition1;
@@ -120,7 +121,7 @@ union YYSTYPE
   float floats;
 	char *position;
 
-#line 123 "yacc_sql.tab.h"
+#line 125 "yacc_sql.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

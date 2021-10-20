@@ -256,11 +256,15 @@ const std::vector<Tuple> &TupleSet::tuples() const
 /////////////////////////////////////////////////////////////////////////////
 TupleRecordConverter::TupleRecordConverter(Table *table, TupleSet &tuple_set) : table_(table), tuple_set_(tuple_set)
 {
+
 }
+
+
 std::string num2date(int n){
   char str1[10];
   sprintf(str1, "%d" , n);
   char str[10];
+
   for(int i=0,j=0;i<10;i++){
     if(i==4||i==7){
       str[i]='-';
@@ -268,6 +272,7 @@ std::string num2date(int n){
     }
     str[i]=str1[j++];
   }
+  
   std::string s = str;
   return s;
 }
