@@ -55,7 +55,7 @@ void value_init_float(Value *value, float v) {
 bool match_date_format(const char *s)
 {
   std::string str = s;
-	std::regex format_("^(\d{4})-(\d{1,2})-(\d{1,2})");
+	std::regex format_("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})");
   // std::cout<<"匹配结果是 "<<std::regex_match(str,pattern)<<std::endl;
   if(std::regex_match(str,format_)){
     return true;

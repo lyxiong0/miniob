@@ -27,7 +27,7 @@ struct PageHeader {
   int first_record_offset; // 第一条记录的偏移量
 };
 
-int align8(int size) {
+int align8(int size) {      // 用于 size 对齐
   return size / 8 * 8 + ((size % 8 == 0) ? 0 : 8);
 }
 
@@ -79,7 +79,7 @@ RC RecordPageHandler::init(DiskBufferPool &buffer_pool, int file_id, PageNum pag
     LOG_ERROR("Failed to get page handle from disk buffer pool. ret=%d:%s", ret, strrc(ret));
     return ret;
   }
-
+  //1. 这里的data虽然会在函数作用域结束后消失，但是已经在内存上某个地址放置了data具体数据
   char *data;
   ret = buffer_pool.get_data(&page_handle_, &data);
   if (ret != RC::SUCCESS) {
@@ -89,7 +89,7 @@ RC RecordPageHandler::init(DiskBufferPool &buffer_pool, int file_id, PageNum pag
 
   disk_buffer_pool_ = &buffer_pool;
   file_id_ = file_id;
-
+  //2. 后面data指针会被销毁，但是这里已经地址传给了当前类的中指针，存放具体数据的地址已经留存下来了
   page_header_ = (PageHeader*)(data);
   bitmap_ = data + page_fix_size();
   LOG_TRACE("Successfully init file_id:page_num %d:%d.", file_id, page_num);
