@@ -537,7 +537,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       {
         tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
       }
-      else if (type == AttrType::CHARS)
+      else // AttrType::CHARS和DATES一样计算
       {
         tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
                       std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
@@ -574,7 +574,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       {
         tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
       }
-      else if (type == AttrType::CHARS)
+      else // AttrType::CHARS和DATES一样计算
       {
         tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
                       std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
