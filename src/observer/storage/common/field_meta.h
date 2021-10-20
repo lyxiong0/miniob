@@ -28,7 +28,16 @@ class FieldMeta {
 public:
   FieldMeta();
   ~FieldMeta() = default;
-
+  /**
+   * @brief 初始化字段
+   * 
+   * @param name 字段名
+   * @param attr_type 字段类型
+   * @param attr_offset 无视，不考虑字节对齐问题，默认4字节对齐
+   * @param attr_len 字段长度
+   * @param visible 字段是否可见
+   * @return RC 
+   */
   RC init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible);
 
 public:

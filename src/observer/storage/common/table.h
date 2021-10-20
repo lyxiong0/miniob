@@ -17,6 +17,8 @@ See the Mulan PSL v2 for more details. */
 
 #include "storage/common/table_meta.h"
 
+#include <cstring>
+
 class DiskBufferPool;
 class RecordFileHandler;
 class ConditionFilter;
@@ -28,13 +30,15 @@ class IndexScanner;
 class RecordDeleter;
 class Trx;
 
-class Table {
+class Table
+{
 public:
   Table();
   ~Table();
 
   /**
-   * 创建一个表
+   * @brief 创建一个表
+   *
    * @param path 元数据保存的文件(完整路径)
    * @param name 表名
    * @param base_dir 表数据存放的路径
@@ -49,9 +53,25 @@ public:
    * @param base_dir 表所在的文件夹，表记录数据文件、索引数据文件存放位置
    */
   RC open(const char *meta_file, const char *base_dir);
-  
+
   RC insert_record(Trx *trx, int value_num, const Value *values);
+
+  /**
+   * @brief 该函数用于更新表中所有满足指定条件的元组，
+   * 在每一个更新的元组中将属性attrName的值设置为一个新的值。
+   * 如果没有指定条件，则此方法更新表中所有元组。
+   * 如果要更新一个被索引的属性，应当先删除每个被更新元组对应的索引条目，然后插入一个新的索引条目
+   *
+   * @param trx 事务
+   * @param attribute_name 属性名
+   * @param value 新的值
+   * @param condition_num 条件个数
+   * @param conditions 条件
+   * @param updated_count 更新数量
+   * @return RC
+   */
   RC update_record(Trx *trx, const char *attribute_name, const Value *value, int condition_num, const Condition conditions[], int *updated_count);
+
   RC delete_record(Trx *trx, ConditionFilter *filter, int *deleted_count);
 
   RC scan_record(Trx *trx, ConditionFilter *filter, int limit, void *context, void (*record_reader)(const char *data, void *context));
@@ -68,6 +88,7 @@ public:
 public:
   RC commit_insert(Trx *trx, const RID &rid);
   RC commit_delete(Trx *trx, const RID &rid);
+  RC commit_update(Trx *trx, const RID &rid, char *new_record_data);
   RC rollback_insert(Trx *trx, const RID &rid);
   RC rollback_delete(Trx *trx, const RID &rid);
 
@@ -79,6 +100,7 @@ private:
 
   RC insert_record(Trx *trx, Record *record);
   RC delete_record(Trx *trx, Record *record);
+  RC update_record(Trx *trx, Record *record, const char *attribute_name, const Value *value);
 
 private:
   friend class RecordUpdater;
@@ -86,20 +108,21 @@ private:
 
   RC insert_entry_of_indexes(const char *record, const RID &rid);
   RC delete_entry_of_indexes(const char *record, const RID &rid, bool error_on_not_exists);
+
 private:
   RC init_record_handler(const char *base_dir);
-  RC make_record(int value_num, const Value *values, char * &record_out);
+  RC make_record(int value_num, const Value *values, char *&record_out);
 
 private:
   Index *find_index(const char *index_name) const;
 
 private:
-  std::string             base_dir_;
-  TableMeta               table_meta_;
-  DiskBufferPool *        data_buffer_pool_; /// 数据文件关联的buffer pool
-  int                     file_id_;
-  RecordFileHandler *     record_handler_;   /// 记录操作
-  std::vector<Index *>    indexes_;
+  std::string base_dir_;
+  TableMeta table_meta_;
+  DiskBufferPool *data_buffer_pool_; /// 数据文件关联的buffer pool
+  int file_id_;
+  RecordFileHandler *record_handler_; /// 记录操作
+  std::vector<Index *> indexes_;
 };
 
 #endif // __OBSERVER_STORAGE_COMMON_TABLE_H__

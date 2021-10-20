@@ -24,13 +24,22 @@ See the Mulan PSL v2 for more details. */
 
 class Table;
 
-class Db {
+class Db
+{
 public:
   Db() = default;
   ~Db();
 
   RC init(const char *name, const char *dbpath);
 
+  /**
+   * @brief Create a table object
+   *
+   * @param table_name 表名
+   * @param attribute_count 字段个数
+   * @param attributes 字段
+   * @return RC 执行结果状态
+   */
   RC create_table(const char *table_name, int attribute_count, const AttrInfo *attributes);
 
   Table *find_table(const char *table_name) const;
@@ -40,13 +49,14 @@ public:
   void all_tables(std::vector<std::string> &table_names) const;
 
   RC sync();
+
 private:
   RC open_all_tables();
 
 private:
-  std::string   name_;
-  std::string   path_;
-  std::unordered_map<std::string, Table *>  opened_tables_;
+  std::string name_;
+  std::string path_;
+  std::unordered_map<std::string, Table *> opened_tables_;
 };
 
 #endif // __OBSERVER_STORAGE_COMMON_DB_H__

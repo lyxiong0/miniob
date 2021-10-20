@@ -52,11 +52,13 @@ RC TableMeta::init_sys_fields() {
   return rc;
 }
 RC TableMeta::init(const char *name, int field_num, const AttrInfo attributes[]) {
+  // 检查表名参数
   if (nullptr == name || '\0' == name[0]) {
     LOG_ERROR("Name cannot be empty");
     return RC::INVALID_ARGUMENT;
   }
 
+  // 检查属性参数
   if (field_num <= 0 || nullptr == attributes) {
     LOG_ERROR("Invalid argument. field_num=%d, attributes=%p", field_num, attributes);
     return RC::INVALID_ARGUMENT;

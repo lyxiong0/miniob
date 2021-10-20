@@ -56,8 +56,6 @@ TEST(test_bp_manager, test_bp_manager_simple_lru) {
 }
 
 int main(int argc, char **argv) {
-
-
   // 分析gtest程序的命令行参数
   testing::InitGoogleTest(&argc, argv);
 

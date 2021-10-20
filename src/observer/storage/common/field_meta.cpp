@@ -54,12 +54,14 @@ FieldMeta::FieldMeta() : attr_type_(AttrType::UNDEFINED), attr_offset_(-1), attr
 }
 
 RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible) {
+  // 检查字段名参数
   // std::cout<<"init FieldMeta that attr_type is "<<attr_type<<std::endl;
   if (nullptr == name || '\0' == name[0]) {
     LOG_WARN("Name cannot be empty");
     return RC::INVALID_ARGUMENT;
   }
 
+  // 检查其他参数
   if (AttrType::UNDEFINED == attr_type || attr_offset < 0 || attr_len <= 0) {
     LOG_WARN("Invalid argument. name=%s, attr_type=%d, attr_offset=%d, attr_len=%d",
       name, attr_type, attr_offset, attr_len);
