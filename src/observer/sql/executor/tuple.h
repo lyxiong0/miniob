@@ -134,7 +134,7 @@ public:
   {
     fields_.clear();
   }
-
+  
   void print(std::ostream &os) const;
 
 public:

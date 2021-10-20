@@ -115,6 +115,7 @@ union YYSTYPE
   struct _Condition *condition1;
   struct _Value *value1;
   char *string;
+  //char *date;
   int number;
   float floats;
 	char *position;

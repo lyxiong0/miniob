@@ -228,7 +228,6 @@ RC Table::insert_record(Trx *trx, Record *record)
     if (rc != RC::SUCCESS)
     {
       LOG_ERROR("Failed to log operation(insertion) to trx");
-
       RC rc2 = record_handler_->delete_record(&record->rid);
       if (rc2 != RC::SUCCESS)
       {

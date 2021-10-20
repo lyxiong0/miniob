@@ -26,12 +26,16 @@ typedef struct ParserContext {
 //获取子串
 char *substr(const char *s,int n1,int n2)/*从s中提取下标为n1~n2的字符组成一个新字符串，然后返回这个新串的首地址*/
 {
+  // printf("start call substr on s %s with n1 is %d and n2 is %d \n",s,n1,n2);
   char *sp = malloc(sizeof(char) * (n2 - n1 + 2));
   int i, j = 0;
+  
+  // printf("now the substr is going \n");
   for (i = n1; i <= n2; i++) {
     sp[j++] = s[i];
   }
   sp[j] = 0;
+  // printf("now the substr end and new string is %s \n",sp);
   return sp;
 }
 
@@ -92,6 +96,7 @@ ParserContext *get_context(yyscan_t scanner)
 		ORDER
 		ASC
 		BY
+		DATE_T
         HELP
         EXIT
         DOT //QUOTE
@@ -117,6 +122,7 @@ ParserContext *get_context(yyscan_t scanner)
   struct _Condition *condition1;
   struct _Value *value1;
   char *string;
+  //char *date;
   int number;
   float floats;
 	char *position;
@@ -127,6 +133,7 @@ ParserContext *get_context(yyscan_t scanner)
 %token <string> ID
 %token <string> PATH
 %token <string> SSS
+// %token <string> DATE 
 %token <string> STAR
 %token <string> STRING_V
 %token <string> COUNT 
@@ -275,10 +282,23 @@ attr_def:
 number:
 		NUMBER {$$ = $1;}
 		;
-type:
-	INT_T { $$=INTS; }
-       | STRING_T { $$=CHARS; }
-       | FLOAT_T { $$=FLOATS; }
+type: 
+	INT_T { 
+		$$=INTS; 
+		// printf("CREATE 语句语法解析 type 为 INTS\n");
+	}
+       | STRING_T { 
+		   $$=CHARS;
+		// printf("CREATE 语句语法解析 type 为 STRING_T\n");
+	}
+       | FLOAT_T { 
+		   $$=FLOATS;
+		// printf("CREATE 语句语法解析 type 为 FLOAT_T\n");
+	}
+	   | DATE_T { 
+		   $$=DATES;
+		// printf("CREATE 语句语法解析 type 为 DATE_T\n");
+	}  
        ;
 ID_get:
 	ID 
@@ -336,8 +356,9 @@ value:
   		value_init_float(&CONTEXT->values[CONTEXT->value_length++], $1);
 		}
     |SSS {
+			// $1 = substr($1,1,strlen($1)-2);
 			$1 = substr($1,1,strlen($1)-2);
-  		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1);
 		}
     ;
 

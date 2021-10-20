@@ -94,12 +94,16 @@ typedef struct ParserContext {
 //获取子串
 char *substr(const char *s,int n1,int n2)/*从s中提取下标为n1~n2的字符组成一个新字符串，然后返回这个新串的首地址*/
 {
+  // printf("start call substr on s %s with n1 is %d and n2 is %d \n",s,n1,n2);
   char *sp = malloc(sizeof(char) * (n2 - n1 + 2));
   int i, j = 0;
+  
+  // printf("now the substr is going \n");
   for (i = n1; i <= n2; i++) {
     sp[j++] = s[i];
   }
   sp[j] = 0;
+  // printf("now the substr end and new string is %s \n",sp);
   return sp;
 }
 
@@ -789,7 +793,7 @@ static const yytype_uint8 yytable[] =
        0,     0,     0,    87,   106
 };
 
-static const yytype_int16 yycheck[] =
+static const yytype_uint8 yycheck[] =
 {
      107,   113,    81,    82,   105,    54,    55,     0,     3,   116,
       49,     4,     5,    10,    31,    33,     9,    10,    11,    12,
@@ -1811,8 +1815,9 @@ yyreduce:
   case 49:
 #line 338 "yacc_sql.y"
          {
+			// $1 = substr($1,1,strlen($1)-2);
 			(yyvsp[0].string) = substr((yyvsp[0].string),1,strlen((yyvsp[0].string))-2);
-  		value_init_string(&CONTEXT->values[CONTEXT->value_length++], (yyvsp[0].string));
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], (yyvsp[0].string));
 		}
 #line 1818 "yacc_sql.tab.c"
     break;

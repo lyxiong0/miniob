@@ -13,6 +13,9 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include <mutex>
+#include <regex>
+#include <string>
+#include <vector>
 #include "sql/parser/parse.h"
 #include "rc.h"
 #include "common/log/log.h"
@@ -81,6 +84,82 @@ extern "C"
     value->type = UNDEFINED;
     free(value->data);
     value->data = nullptr;
+  }
+
+  // 用于匹配date类型
+  bool match_date_format(const char *s)
+  {
+    std::string str = s;
+    std::regex format_("^(\d{4})-(\d{1,2})-(\d{1,2})");
+    // std::cout<<"匹配结果是 "<<std::regex_match(str,pattern)<<std::endl;
+    if (std::regex_match(str, format_))
+    {
+      return true;
+    }
+    return false;
+  }
+  bool check_date_data(const char *s)
+  {
+    std::string str = s;
+    std::regex pattern("((1[0-9]{3}|20[0-2][0-9]|203[0-7])-(0?[1-9]|1[0-2])-([1-2][0-9]|3[0-1]|0?[1-9]))|(2038-(0?[1-2])-([1-2][0-9]|3[0-1]|0?[1-9]))");
+    if (std::regex_match(str, pattern))
+    {
+      return true;
+    }
+    return false;
+  }
+  int convert_date(const char *s)
+  {
+    // 设定格式为yyyy-mm-dd/yyyy-m-dd/yyyy-mm-d/yyyy-m-d
+    std::string str = s;
+    int len = str.length();
+    int num = 0;
+    int mul = 1;
+    for (int i = len - 1; i >= 0; i--)
+    {
+      if (s[i] != '-')
+      {
+        num += mul * (s[i] - '0');
+        mul *= 10;
+      }
+      else if (i == len - 2)
+      {
+        mul *= 10;
+      }
+      else if (i == len - 5)
+      {
+        if (mul == 1000)
+        {
+          mul *= 10;
+        }
+      }
+      else if (i == len - 4)
+      {
+        mul *= 10;
+      }
+    }
+    return num;
+  }
+  void value_init_string(Value *value, const char *v)
+  {
+    if (check_date_data(v))
+    {
+      std::cout << "成功 匹配 日期较严格格式" << std::endl;
+      // 需要详细检测是否合格日期的含义 闰年和2038年等
+      value->type = DATES;
+      // 转换为数字
+      int date_num = convert_date(v);
+      value->data = malloc(sizeof(date_num));
+      memcpy(value->data, &date_num, sizeof(date_num));
+      std::cout << "now the insert date in value->data is " << *(int *)(value->data) << std::endl;
+    }
+    else
+    {
+      std::cout << "没有成功 匹配日期较严格格式" << std::endl;
+      value->type = CHARS;
+      value->data = strdup(v);
+      std::cout << "now the insert char in value->data is " << *(char *)(value->data) << std::endl;
+    }
   }
 
   void condition_init(Condition *condition, CompOp comp,
@@ -396,6 +475,7 @@ extern "C"
     {
     case SCF_SELECT:
     {
+
       selects_destroy(&query->sstr.selection);
     }
     break;
