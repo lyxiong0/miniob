@@ -3339,3 +3339,928 @@ ThreadPools=SQLThre
 [2021-10-21 13:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
 [2021-10-21 13:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
 [2021-10-21 13:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:14:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:14:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:14:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:14:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:15:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:15:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:15:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:15:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:16:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:16:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:16:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:16:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:17:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:17:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:17:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:17:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:18:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:18:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:18:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:18:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:19:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:19:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:19:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:19:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:20:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:20:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:20:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:20:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:21:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:21:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:21:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:21:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:22:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:22:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:22:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:22:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:23:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:23:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:23:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:23:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:24:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:24:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:24:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:24:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:25:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:25:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:25:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:25:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:26:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:26:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:26:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:26:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:27:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:27:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:27:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:27:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:28:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:28:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:28:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:28:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:29:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:29:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:29:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:29:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:30:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:30:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:30:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:30:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:31:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:31:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:31:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:31:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:32:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:32:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:32:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:32:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:33:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:33:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:33:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:33:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:34:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:34:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:34:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:34:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:35:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:35:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:35:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:35:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:36:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:36:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:36:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:36:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:37:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:37:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:37:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:37:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:38:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:38:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:38:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:38:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:39:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:39:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:39:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:39:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:40:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:40:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:40:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:40:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:41:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:41:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:41:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:41:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:42:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:42:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:42:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:42:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:43:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:43:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:43:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:43:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:44:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:44:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:44:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:44:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:45:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:45:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:45:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:45:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:46:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:46:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:46:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:46:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:47:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:47:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:47:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:47:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:48:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:48:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:48:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:48:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:49:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:49:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:49:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:49:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:50:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:50:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:50:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:50:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:51:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:51:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:51:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:51:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:52:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:52:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:52:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:52:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:53:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:53:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:53:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:53:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:54:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:54:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:54:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:54:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:55:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:55:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:55:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:55:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:56:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:56:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:56:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:56:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:57:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:57:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:57:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:57:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:58:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:58:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:58:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:58:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:59:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:59:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:59:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:59:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:0:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:0:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:0:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:0:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:1:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:1:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:1:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:1:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:2:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:2:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:2:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:2:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:3:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:3:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:3:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:3:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:4:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:4:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:4:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:4:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:5:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:5:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:5:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:5:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:6:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:6:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:6:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:6:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:7:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:7:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:7:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:7:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:8:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:8:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:8:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:8:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:9:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:9:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:9:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:9:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:10:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:10:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:10:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:10:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:11:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:11:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:11:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:11:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:12:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:12:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:12:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:12:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:14:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:14:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:14:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:14:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:15:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:15:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:15:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:15:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:16:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:16:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:16:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:16:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:17:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:17:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:17:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:17:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:18:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:18:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:18:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:18:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:19:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:19:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:19:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:19:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+[DefaultStorageStage]
+BaseDir=./miniob
+SystemDb=sys
+ThreadId=IOThreads
+
+[DefaultThreads]
+count=3
+
+[ExecuteStage]
+NextStages=DefaultStorageStage,MemStorageStage
+ThreadId=SQLThreads
+
+[IOThreads]
+count=3
+
+[LOG]
+LOG_CONSOLE_LEVEL=4
+LOG_FILE_LEVEL=4
+LOG_FILE_NAME=observer.log
+
+[MemStorageStage]
+ThreadId=IOThreads
+
+[MetricsStage]
+NextStages=TimerStage
+
+[NET]
+CLIENT_ADDRESS=INADDR_ANY
+MAX_CONNECTION_NUM=8192
+PORT=6789
+
+[OptimizeStage]
+NextStages=ExecuteStage
+ThreadId=SQLThreads
+
+[ParseStage]
+NextStages=OptimizeStage
+ThreadId=SQLThreads
+
+[PlanCacheStage]
+NextStages=ExecuteStage,ParseStage
+ThreadId=SQLThreads
+
+[QueryCacheStage]
+NextStages=PlanCacheStage
+ThreadId=SQLThreads
+
+[ResolveStage]
+NextStages=QueryCacheStage
+ThreadId=SQLThreads
+
+[SEDA_BASE]
+EventHistory=false
+MaxEventHistoryNum=100
+STAGES=SessionStage,ExecuteStage,OptimizeStage,ParseStage,ResolveStage,PlanCacheStage,QueryCacheStage,DefaultStorageStage,MemStorageStage,TimerStage,MetricsStage
+ThreadPools=SQLThre
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  DEBUG: /root/miniob/deps/common/seda/seda_config.cpp parse 88]>>Seda config parse success
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 67]>>(Re)Starting State: Pid: 181131 Time: Thu Oct 21 14:20:11 2021
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_event_history 202]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-21 14:20:11 pid:181131 tid:7fcb95014700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7fcb95014700, threadname = SQLThreads
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb94813700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7fcb94813700, threadname = SQLThreads
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb8ffff700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7fcb8ffff700, threadname = SQLThreads
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb8f7fe700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7fcb8f7fe700, threadname = IOThreads
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb8effd700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7fcb8effd700, threadname = IOThreads
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb8e7fc700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7fcb8e7fc700, threadname = IOThreads
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb8dffb700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7fcb8dffb700, threadname = DefaultThreads
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb8d7fa700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7fcb8d7fa700, threadname = DefaultThreads
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb8cff9700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7fcb8cff9700, threadname = DefaultThreads
+
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage SessionStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage ExecuteStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage OptimizeStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage ParseStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage ResolveStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage PlanCacheStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage QueryCacheStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 93]>>Use sys as system db
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/default_handler.cpp init 56]>>Default handler init with ./miniob success
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  WARNNING: /root/miniob/src/observer/storage/default/default_handler.cpp create_db 83]>>Db already exists: sys
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=name type =1, attr_offset=4,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=time type =4, attr_offset=8,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/tt.data.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7fcb96828010
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/tt.data. file_id=0, hdr_frame=0x7fcb96828010
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: tt, file: tt.table
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=time type =4, attr_offset=4,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=name type =1, attr_offset=8,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/t3.data.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7fcb96829028
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/t3.data. file_id=1, hdr_frame=0x7fcb96829028
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: t3, file: t3.table
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=id type =2, attr_offset=4,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=name type =1, attr_offset=8,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=start type =4, attr_offset=12,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=end type =4, attr_offset=16,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/tt2.data.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7fcb9682a040
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/tt2.data. file_id=2, hdr_frame=0x7fcb9682a040
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: tt2, file: tt2.table
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=id type =2, attr_offset=4,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=name type =1, attr_offset=8,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=birth type =4, attr_offset=12,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/t2.data.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7fcb9682b058
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/t2.data. file_id=3, hdr_frame=0x7fcb9682b058
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: t2, file: t2.table
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=name type =1, attr_offset=4,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=time type =4, attr_offset=8,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/tt1.data.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7fcb9682c070
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/tt1.data. file_id=4, hdr_frame=0x7fcb9682c070
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: tt1, file: tt1.table
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=id type =2, attr_offset=4,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=birth type =4, attr_offset=8,attr_len=4
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/t1.data.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7fcb9682d088
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/t1.data. file_id=5, hdr_frame=0x7fcb9682d088
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: t1, file: t1.table
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 141]>>All table have been opened. num=6
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 120]>>Open system db success: sys
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage DefaultStorageStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage MemStorageStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 292]>>Not set thread_pool_id for TimerStage, use default threadpool DefaultThreads
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage TimerStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 292]>>Not set thread_pool_id for MetricsStage, use default threadpool DefaultThreads
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage MetricsStage use threadpool DefaultThreads.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :DefaultStorageStage.query
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.sql
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/init.cpp init 228]>>Successfully init utility
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.readsocket
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.writesocket
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  ERROR: /root/miniob/src/observer/net/server.cpp start_tcp_server 319]>>bind(): can not bind server socket, No such file or directory
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  PANIC: /root/miniob/src/observer/net/server.cpp serve 419]>>Failed to start network
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=t1
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=t2
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=tt2
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=tt
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=tt1
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=t3
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/db.cpp sync 165]>>Sync db over. db=sys
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 5:.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t1
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 3:.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t2
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 2:.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt2
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 0:./miniob/db/sys/tt.data.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 4:./miniob/db/sys/tt1.data.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt1
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 1:./miniob/db/sys/t3.data.
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t3
+[2021-10-21 14:20:11 pid:181131 tid:7fcb9685e200  INFO: /root/miniob/src/observer/storage/common/db.cpp ~Db 32]>>Db has been closed: sys
+[2021-10-21 14:20:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:20:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:20:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:20:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/main.cpp main 165]>>Server stopped
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=t1
+[2021-10-21 14:20:34 pid:167028 tid:7f79d6ffd700  INFO: /root/miniob/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 15
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=t2
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=tt2
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=tt
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=tt1
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=t3
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/db.cpp sync 165]>>Sync db over. db=sys
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 5:.
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t1
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 3:.
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t2
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 2:.
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt2
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 0:.
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 4:./miniob/db/sys/tt1.data.
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt1
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 1:./miniob/db/sys/t3.data.
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t3
+[2021-10-21 14:20:34 pid:167028 tid:7f7a02b97200  INFO: /root/miniob/src/observer/storage/common/db.cpp ~Db 32]>>Db has been closed: sys
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+[DefaultStorageStage]
+BaseDir=./miniob
+SystemDb=sys
+ThreadId=IOThreads
+
+[DefaultThreads]
+count=3
+
+[ExecuteStage]
+NextStages=DefaultStorageStage,MemStorageStage
+ThreadId=SQLThreads
+
+[IOThreads]
+count=3
+
+[LOG]
+LOG_CONSOLE_LEVEL=4
+LOG_FILE_LEVEL=4
+LOG_FILE_NAME=observer.log
+
+[MemStorageStage]
+ThreadId=IOThreads
+
+[MetricsStage]
+NextStages=TimerStage
+
+[NET]
+CLIENT_ADDRESS=INADDR_ANY
+MAX_CONNECTION_NUM=8192
+PORT=6789
+
+[OptimizeStage]
+NextStages=ExecuteStage
+ThreadId=SQLThreads
+
+[ParseStage]
+NextStages=OptimizeStage
+ThreadId=SQLThreads
+
+[PlanCacheStage]
+NextStages=ExecuteStage,ParseStage
+ThreadId=SQLThreads
+
+[QueryCacheStage]
+NextStages=PlanCacheStage
+ThreadId=SQLThreads
+
+[ResolveStage]
+NextStages=QueryCacheStage
+ThreadId=SQLThreads
+
+[SEDA_BASE]
+EventHistory=false
+MaxEventHistoryNum=100
+STAGES=SessionStage,ExecuteStage,OptimizeStage,ParseStage,ResolveStage,PlanCacheStage,QueryCacheStage,DefaultStorageStage,MemStorageStage,TimerStage,MetricsStage
+ThreadPools=SQLThre
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  DEBUG: /root/miniob/deps/common/seda/seda_config.cpp parse 88]>>Seda config parse success
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 67]>>(Re)Starting State: Pid: 181301 Time: Thu Oct 21 14:20:38 2021
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_event_history 202]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2d56d700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f4b2d56d700, threadname = SQLThreads
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2456b700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f4b2456b700, threadname = SQLThreads
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2cd6c700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f4b2cd6c700, threadname = SQLThreads
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b277fe700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f4b277fe700, threadname = IOThreads
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b27fff700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f4b27fff700, threadname = IOThreads
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b25ffb700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f4b25ffb700, threadname = DefaultThreads
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b26ffd700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f4b26ffd700, threadname = IOThreads
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage SessionStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b257fa700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f4b257fa700, threadname = DefaultThreads
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage ExecuteStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage OptimizeStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b267fc700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f4b267fc700, threadname = DefaultThreads
+
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage ParseStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage ResolveStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage PlanCacheStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage QueryCacheStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 93]>>Use sys as system db
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/default_handler.cpp init 56]>>Default handler init with ./miniob success
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  WARNNING: /root/miniob/src/observer/storage/default/default_handler.cpp create_db 83]>>Db already exists: sys
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=name type =1, attr_offset=4,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=time type =4, attr_offset=8,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/tt.data.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f4b2ed81010
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/tt.data. file_id=0, hdr_frame=0x7f4b2ed81010
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: tt, file: tt.table
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=time type =4, attr_offset=4,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=name type =1, attr_offset=8,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/t3.data.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f4b2ed82028
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/t3.data. file_id=1, hdr_frame=0x7f4b2ed82028
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: t3, file: t3.table
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=id type =2, attr_offset=4,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=name type =1, attr_offset=8,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=start type =4, attr_offset=12,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=end type =4, attr_offset=16,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/tt2.data.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f4b2ed83040
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/tt2.data. file_id=2, hdr_frame=0x7f4b2ed83040
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: tt2, file: tt2.table
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=id type =2, attr_offset=4,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=name type =1, attr_offset=8,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=birth type =4, attr_offset=12,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/t2.data.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f4b2ed84058
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/t2.data. file_id=3, hdr_frame=0x7f4b2ed84058
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: t2, file: t2.table
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=name type =1, attr_offset=4,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=time type =4, attr_offset=8,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/tt1.data.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f4b2ed85070
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/tt1.data. file_id=4, hdr_frame=0x7f4b2ed85070
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: tt1, file: tt1.table
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=id type =2, attr_offset=4,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 77]>>Init a field with name=birth type =4, attr_offset=8,attr_len=4
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/t1.data.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f4b2ed86088
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/t1.data. file_id=5, hdr_frame=0x7f4b2ed86088
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 138]>>Open table: t1, file: t1.table
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 141]>>All table have been opened. num=6
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 120]>>Open system db success: sys
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage DefaultStorageStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage MemStorageStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 292]>>Not set thread_pool_id for TimerStage, use default threadpool DefaultThreads
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage TimerStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 292]>>Not set thread_pool_id for MetricsStage, use default threadpool DefaultThreads
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage MetricsStage use threadpool DefaultThreads.
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :DefaultStorageStage.query
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.sql
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/init.cpp init 228]>>Successfully init utility
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.readsocket
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.writesocket
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/net/server.cpp start_tcp_server 330]>>Listen on port 6789
+[2021-10-21 14:20:38 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/net/server.cpp start_tcp_server 348]>>Observer start success
+[2021-10-21 14:20:47 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/net/server.cpp accept 276]>>Accepted connection from 127.0.0.1:6833
+
+[2021-10-21 14:20:54 pid:181301 tid:7f4b23d6a700  INFO: /root/miniob/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-21 14:20:54 pid:181301 tid:7f4b23d6a700  INFO: /root/miniob/src/observer/net/server.cpp shutdown 429]>>Server shutting down
+[2021-10-21 14:20:54 pid:181301 tid:7f4b23d6a700  INFO: /root/miniob/src/observer/net/server.cpp shutdown 449]>>Server quit
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/main.cpp main 165]>>Server stopped
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=t1
+[2021-10-21 14:20:57 pid:181301 tid:7f4b23569700  INFO: /root/miniob/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=t2
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=tt2
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=tt
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=tt1
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1061]>>Sync table over. table=t3
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/db.cpp sync 165]>>Sync db over. db=sys
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 5:.
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t1
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 3:.
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t2
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 2:.
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt2
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 0:.
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 4:./miniob/db/sys/tt1.data.
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt1
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 1:./miniob/db/sys/t3.data.
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t3
+[2021-10-21 14:20:57 pid:181301 tid:7f4b2edb7200  INFO: /root/miniob/src/observer/storage/common/db.cpp ~Db 32]>>Db has been closed: sys
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+[DefaultStorageStage]
+BaseDir=./miniob
+SystemDb=sys
+ThreadId=IOThreads
+
+[DefaultThreads]
+count=3
+
+[ExecuteStage]
+NextStages=DefaultStorageStage,MemStorageStage
+ThreadId=SQLThreads
+
+[IOThreads]
+count=3
+
+[LOG]
+LOG_CONSOLE_LEVEL=4
+LOG_FILE_LEVEL=4
+LOG_FILE_NAME=observer.log
+
+[MemStorageStage]
+ThreadId=IOThreads
+
+[MetricsStage]
+NextStages=TimerStage
+
+[NET]
+CLIENT_ADDRESS=INADDR_ANY
+MAX_CONNECTION_NUM=8192
+PORT=6789
+
+[OptimizeStage]
+NextStages=ExecuteStage
+ThreadId=SQLThreads
+
+[ParseStage]
+NextStages=OptimizeStage
+ThreadId=SQLThreads
+
+[PlanCacheStage]
+NextStages=ExecuteStage,ParseStage
+ThreadId=SQLThreads
+
+[QueryCacheStage]
+NextStages=PlanCacheStage
+ThreadId=SQLThreads
+
+[ResolveStage]
+NextStages=QueryCacheStage
+ThreadId=SQLThreads
+
+[SEDA_BASE]
+EventHistory=false
+MaxEventHistoryNum=100
+STAGES=SessionStage,ExecuteStage,OptimizeStage,ParseStage,ResolveStage,PlanCacheStage,QueryCacheStage,DefaultStorageStage,MemStorageStage,TimerStage,MetricsStage
+ThreadPools=SQLThre
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  DEBUG: /root/miniob/deps/common/seda/seda_config.cpp parse 88]>>Seda config parse success
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 67]>>(Re)Starting State: Pid: 183056 Time: Thu Oct 21 14:22:06 2021
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_event_history 202]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0aaa8700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f8c0aaa8700, threadname = SQLThreads
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0a2a7700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f8c0a2a7700, threadname = SQLThreads
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c09aa6700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f8c09aa6700, threadname = SQLThreads
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c03fff700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f8c03fff700, threadname = IOThreads
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c08aa4700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f8c08aa4700, threadname = IOThreads
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c092a5700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f8c092a5700, threadname = IOThreads
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f8c037fe700, threadname = DefaultThreads
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f8c02ffd700, threadname = DefaultThreads
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage SessionStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/seda/thread_pool.cpp run_thread 243]>>threadid = 7f8c027fc700, threadname = DefaultThreads
+
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage ExecuteStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage OptimizeStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage ParseStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage ResolveStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage PlanCacheStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage QueryCacheStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 93]>>Use sys as system db
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/default_handler.cpp init 56]>>Default handler init with ./miniob success
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  WARNNING: /root/miniob/src/observer/storage/default/default_handler.cpp create_db 83]>>Db already exists: sys
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=name type =1, attr_offset=4,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=time type =4, attr_offset=8,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/tt.data.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f8c0c2bc010
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/tt.data. file_id=0, hdr_frame=0x7f8c0c2bc010
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 157]>>Open table: tt, file: tt.table
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=time type =4, attr_offset=4,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=name type =1, attr_offset=8,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/t3.data.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f8c0c2bd028
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/t3.data. file_id=1, hdr_frame=0x7f8c0c2bd028
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 157]>>Open table: t3, file: t3.table
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=id type =2, attr_offset=4,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=name type =1, attr_offset=8,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=start type =4, attr_offset=12,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=end type =4, attr_offset=16,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/tt2.data.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f8c0c2be040
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/tt2.data. file_id=2, hdr_frame=0x7f8c0c2be040
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 157]>>Open table: tt2, file: tt2.table
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=id type =2, attr_offset=4,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=name type =1, attr_offset=8,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=birth type =4, attr_offset=12,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/t2.data.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f8c0c2bf058
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/t2.data. file_id=3, hdr_frame=0x7f8c0c2bf058
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 157]>>Open table: t2, file: t2.table
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=name type =1, attr_offset=4,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=time type =4, attr_offset=8,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/tt1.data.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f8c0c2c0070
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/tt1.data. file_id=4, hdr_frame=0x7f8c0c2c0070
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 157]>>Open table: tt1, file: tt1.table
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=__trx type =2, attr_offset=0,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=id type =2, attr_offset=4,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/field_meta.cpp init 78]>>Init a field with name=birth type =4, attr_offset=8,attr_len=4
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 202]>>Successfully open file ./miniob/db/sys/t1.data.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f8c0c2c1088
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp open_file 242]>>Successfully open ./miniob/db/sys/t1.data. file_id=5, hdr_frame=0x7f8c0c2c1088
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 157]>>Open table: t1, file: t1.table
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/db.cpp open_all_tables 160]>>All table have been opened. num=6
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/default_storage_stage.cpp set_properties 120]>>Open system db success: sys
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage DefaultStorageStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage MemStorageStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 292]>>Not set thread_pool_id for TimerStage, use default threadpool DefaultThreads
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage TimerStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp get_thread_pool 292]>>Not set thread_pool_id for MetricsStage, use default threadpool DefaultThreads
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/seda/seda_config.cpp init_stages 348]>>Stage MetricsStage use threadpool DefaultThreads.
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :DefaultStorageStage.query
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.sql
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/init.cpp init 228]>>Successfully init utility
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.readsocket
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.writesocket
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp start_tcp_server 330]>>Listen on port 6789
+[2021-10-21 14:22:6 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp start_tcp_server 348]>>Observer start success
+[2021-10-21 14:22:13 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp accept 276]>>Accepted connection from 127.0.0.1:37041
+
+[2021-10-21 14:22:17 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=14): show tables;
+
+[2021-10-21 14:22:28 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=20): select * from tt2;
+
+[2021-10-21 14:22:28 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/storage/common/table.cpp scan_record 435]>>没有使用scan_record_by_index in table.cpp 进行scan_record
+[2021-10-21 14:22:28 pid:183056 tid:7f8c037fe700  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f8c0c2c20a0
+[2021-10-21 14:22:53 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=44): select * from tt2 where start='2021-9-14';
+
+[2021-10-21 14:22:53 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp value_init_string 145]>>成功匹配日期格式
+[2021-10-21 14:22:53 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 170]>>condition_init function starts
+[2021-10-21 14:22:53 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 175]>>left_is_attr=true and attr.relation=(null) attr.attribute_name=start 
+[2021-10-21 14:22:53 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 192]>>right_is_attr=false and left_value.type=4 and its data=�d4�
+[2021-10-21 14:22:53 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/storage/common/condition_filter.cpp init 57]>>default condition filter init 完成 comp_op = 0
+[2021-10-21 14:22:53 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/storage/common/table.cpp scan_record 435]>>没有使用scan_record_by_index in table.cpp 进行scan_record
+[2021-10-21 14:23:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0166667
+[2021-10-21 14:23:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.05
+[2021-10-21 14:23:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:1,tps:0.05
+[2021-10-21 14:23:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.1
+[2021-10-21 14:24:6 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:24:6 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:24:6 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:24:6 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:24:45 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=20): select * from tt1;
+
+[2021-10-21 14:24:45 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/storage/common/table.cpp scan_record 435]>>没有使用scan_record_by_index in table.cpp 进行scan_record
+[2021-10-21 14:24:45 pid:183056 tid:7f8c02ffd700  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp allocate_block 560]>>Allocate block frame=0x7f8c0c2c30b8
+[2021-10-21 14:25:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:25:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0166667
+[2021-10-21 14:25:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0166667
+[2021-10-21 14:25:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0333333
+[2021-10-21 14:25:45 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=45): insert into tt1 values('xuxu','2021-9-14');
+
+[2021-10-21 14:25:45 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp value_init_string 145]>>成功匹配日期格式
+[2021-10-21 14:25:45 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/storage/common/table.cpp make_record 341]>>调用make record函数，将value值 xuxu 放进内存 record中结果为 xuxu
+[2021-10-21 14:25:45 pid:183056 tid:7f8c037fe700  ERROR: /root/miniob/src/observer/storage/default/default_storage_stage.cpp handle_event 210]>>append record: 1 - 2
+[2021-10-21 14:26:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0166667
+[2021-10-21 14:26:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0166667
+[2021-10-21 14:26:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:16,tps:0.0166667
+[2021-10-21 14:26:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0333333
+[2021-10-21 14:27:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:27:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:27:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:27:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:27:25 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=49): select * from tt1,tt2 where tt1.time=tt2.start;
+
+[2021-10-21 14:27:25 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 170]>>condition_init function starts
+[2021-10-21 14:27:25 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 175]>>left_is_attr=true and attr.relation=tt1 attr.attribute_name=time 
+[2021-10-21 14:27:25 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 187]>>right_is_attr=true and attr.relation=tt2 attr.attribute_name=start 
+[2021-10-21 14:27:25 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/storage/common/table.cpp scan_record 435]>>没有使用scan_record_by_index in table.cpp 进行scan_record
+[2021-10-21 14:27:25 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/storage/common/table.cpp scan_record 435]>>没有使用scan_record_by_index in table.cpp 进行scan_record
+[2021-10-21 14:28:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:28:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0166667
+[2021-10-21 14:28:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0166667
+[2021-10-21 14:28:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0333333
+[2021-10-21 14:29:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:29:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:29:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:29:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:30:6 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:30:6 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:30:6 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:30:6 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:31:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:31:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:31:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:31:6 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:32:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:32:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 14:32:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 14:32:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 14:32:13 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=20): select * from tt1;
+
+[2021-10-21 14:32:13 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/storage/common/table.cpp scan_record 435]>>没有使用scan_record_by_index in table.cpp 进行scan_record
+[2021-10-21 14:32:40 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=43): select * from tt1 where start<'2022-5-9';
+
+[2021-10-21 14:32:40 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp value_init_string 145]>>成功匹配日期格式
+[2021-10-21 14:32:40 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 170]>>condition_init function starts
+[2021-10-21 14:32:40 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 175]>>left_is_attr=true and attr.relation=(null) attr.attribute_name=start 
+[2021-10-21 14:32:40 pid:183056 tid:7f8c02ffd700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 192]>>right_is_attr=false and left_value.type=4 and its data=]�4�
+[2021-10-21 14:32:40 pid:183056 tid:7f8c02ffd700  WARNNING: /root/miniob/src/observer/storage/common/condition_filter.cpp init 75]>>No such field in condition. tt1.start
+[2021-10-21 14:33:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 14:33:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0333333
+[2021-10-21 14:33:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:1.5,tps:0.0333333
+[2021-10-21 14:33:6 pid:183056 tid:7f8c027fc700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0666667
+[2021-10-21 14:33:9 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp recv 170]>>receive command(size=42): select * from tt1 where time<'2022-5-9';
+
+[2021-10-21 14:33:9 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp value_init_string 145]>>成功匹配日期格式
+[2021-10-21 14:33:9 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 170]>>condition_init function starts
+[2021-10-21 14:33:9 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 175]>>left_is_attr=true and attr.relation=(null) attr.attribute_name=time 
+[2021-10-21 14:33:9 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/sql/parser/parse.cpp condition_init 192]>>right_is_attr=false and left_value.type=4 and its data=]�4�
+[2021-10-21 14:33:9 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/storage/common/condition_filter.cpp init 57]>>default condition filter init 完成 comp_op = 3
+[2021-10-21 14:33:9 pid:183056 tid:7f8c037fe700  INFO: /root/miniob/src/observer/storage/common/table.cpp scan_record 435]>>没有使用scan_record_by_index in table.cpp 进行scan_record
+[2021-10-21 14:33:22 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp recv 160]>>The peer has been closed 127.0.0.1:37041
+
+[2021-10-21 14:33:22 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/net/server.cpp close_connection 97]>>Close connection of 127.0.0.1:37041.
+[2021-10-21 14:33:25 pid:183056 tid:7f8c017fa700  INFO: /root/miniob/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-21 14:33:25 pid:183056 tid:7f8c017fa700  INFO: /root/miniob/src/observer/net/server.cpp shutdown 429]>>Server shutting down
+[2021-10-21 14:33:25 pid:183056 tid:7f8c017fa700  INFO: /root/miniob/src/observer/net/server.cpp shutdown 449]>>Server quit
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/main.cpp main 165]>>Server stopped
+[2021-10-21 14:33:26 pid:183056 tid:7f8c00ff9700  INFO: /root/miniob/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1075]>>Sync table over. table=t1
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1075]>>Sync table over. table=t2
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1075]>>Sync table over. table=tt2
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1075]>>Sync table over. table=tt
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  DEBUG: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp flush_block 548]>>Flush block. file desc=8, page num=1
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1075]>>Sync table over. table=tt1
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp sync 1075]>>Sync table over. table=t3
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/db.cpp sync 190]>>Sync db over. db=sys
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 5:.
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t1
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 3:.
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t2
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 2:.
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt2
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 0:./miniob/db/sys/tt.data.
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 4:./miniob/db/sys/tt1.data.
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: tt1
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/default/disk_buffer_pool.cpp close_file 268]>>Successfully close file 1:./miniob/db/sys/t3.data.
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/table.cpp ~Table 48]>>Table has been closed: t3
+[2021-10-21 14:33:26 pid:183056 tid:7f8c0c2f2200  INFO: /root/miniob/src/observer/storage/common/db.cpp ~Db 34]>>Db has been closed: sys

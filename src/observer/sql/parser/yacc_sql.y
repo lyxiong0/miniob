@@ -519,6 +519,7 @@ condition:
     ID comOp value 
 		{
 			RelAttr left_attr;
+			// $1 为属性名称
 			relation_attr_init(&left_attr, NULL, $1, NULL, 0);
 
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
@@ -602,6 +603,7 @@ condition:
     |ID DOT ID comOp value
 		{
 			RelAttr left_attr;
+			// $1为表名，$3为属性名
 			relation_attr_init(&left_attr, $1, $3, NULL, 0);
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 

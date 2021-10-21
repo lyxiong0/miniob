@@ -270,16 +270,16 @@ src/observer/CMakeFiles/observer.dir/sql/executor/execute_stage.cpp.o: \
  /usr/include/c++/8/cstring \
  /root/miniob/src/observer/./storage/default/default_handler.h \
  /root/miniob/src/observer/./storage/common/db.h \
- /root/miniob/src/observer/./storage/trx/trx.h \
- /usr/include/c++/8/unordered_set /usr/include/c++/8/bits/unordered_set.h \
- /usr/include/c++/8/mutex /usr/include/c++/8/chrono \
- /usr/include/c++/8/ratio /usr/include/c++/8/ctime \
- /usr/include/c++/8/bits/parse_numbers.h \
- /usr/include/c++/8/bits/std_mutex.h \
  /root/miniob/src/observer/./storage/common/record_manager.h \
  /root/miniob/src/observer/./storage/default/disk_buffer_pool.h \
  /usr/include/fcntl.h /usr/include/x86_64-linux-gnu/bits/fcntl.h \
  /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
  /usr/include/linux/falloc.h /usr/include/x86_64-linux-gnu/bits/stat.h \
  /usr/include/x86_64-linux-gnu/bits/fcntl2.h \
- /usr/include/x86_64-linux-gnu/sys/stat.h
+ /usr/include/x86_64-linux-gnu/sys/stat.h \
+ /root/miniob/src/observer/./storage/trx/trx.h \
+ /usr/include/c++/8/unordered_set /usr/include/c++/8/bits/unordered_set.h \
+ /usr/include/c++/8/mutex /usr/include/c++/8/chrono \
+ /usr/include/c++/8/ratio /usr/include/c++/8/ctime \
+ /usr/include/c++/8/bits/parse_numbers.h \
+ /usr/include/c++/8/bits/std_mutex.h

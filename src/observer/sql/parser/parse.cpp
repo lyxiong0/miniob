@@ -167,24 +167,29 @@ extern "C"
                       int left_is_attr, RelAttr *left_attr, Value *left_value,
                       int right_is_attr, RelAttr *right_attr, Value *right_value)
   {
+    LOG_INFO("condition_init function starts");
     condition->comp = comp;
     condition->left_is_attr = left_is_attr;
     if (left_is_attr)
     {
+      LOG_INFO("left_is_attr=true and attr.relation=%s attr.attribute_name=%s ",left_attr->relation_name,left_attr->attribute_name);
       condition->left_attr = *left_attr;
     }
     else
     {
+      LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data);
       condition->left_value = *left_value;
     }
 
     condition->right_is_attr = right_is_attr;
     if (right_is_attr)
     {
+      LOG_INFO("right_is_attr=true and attr.relation=%s attr.attribute_name=%s ",right_attr->relation_name,right_attr->attribute_name);
       condition->right_attr = *right_attr;
     }
     else
     {
+      LOG_INFO("right_is_attr=false and left_value.type=%d and its data=%s",right_value->type,(char *)right_value->data);
       condition->right_value = *right_value;
     }
   }
