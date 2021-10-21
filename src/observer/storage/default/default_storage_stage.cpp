@@ -187,18 +187,21 @@ void DefaultStorageStage::handle_event(StageEvent *event)
     {
       Record *record;
       rc = handler_->insert_record(current_trx, current_db, table_name, inserts.value_num[i], inserts.values[i], &record);
-      if (rc != RC::SUCCESS && i != 0)
+      if (rc != RC::SUCCESS)
       {
         LOG_ERROR("插入第%ld组失败", i);
         // 不能用rollback，因为可能会遇到连续输入两条insert，后一条失败的情况
         // 使用rollback会导致成功的insert语句也被回滚
-        // current_trx->rollback(); 
+        // current_trx->rollback();
         // 一个插入失败，则全部失败，处理面前可能成功的插入
-        Table *table = handler_->find_table(current_db, table_name);
-        int n = records.size();
-        LOG_ERROR("n = %d", n);
-        for (int j = 0; j < n; ++j) {
-          current_trx->delete_record(table, records[j]);
+        if (i != 0)
+        {
+          Table *table = handler_->find_table(current_db, table_name);
+          int n = records.size();
+          for (int j = 0; j < n; ++j)
+          {
+            current_trx->delete_record(table, records[j]);
+          }
         }
         break;
       }
