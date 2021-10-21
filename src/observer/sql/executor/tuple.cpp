@@ -298,8 +298,12 @@ void TupleRecordConverter::add_record(const char *record)
       }
         break;
       case CHARS: {
+        // 如果char类型后面还跟了其他类型 那么这里取值的时候会连同后面内容一起解释为字符串，
+        // 需要确定长度。
         const char *s = record + field_meta->offset();  // 现在当做Cstring来处理
-        tuple.add(s, strlen(s));
+        LOG_INFO("在select取char的时候取出char 类型 %s ",s);
+        // tuple.add(s, strlen(s));
+        tuple.add(s, sizeof(char)*4);  // field_len就设定的为4
       }
       break;
       case DATES: {

@@ -147,6 +147,7 @@ src/observer/CMakeFiles/observer_static.dir/storage/common/table.cpp.o: \
  /root/miniob/src/observer/./sql/parser/parse_defs.h \
  /root/miniob/src/observer/./storage/common/index_meta.h \
  /root/miniob/src/observer/../../deps/common/lang/serializable.h \
+ /usr/include/c++/8/cstring \
  /root/miniob/src/observer/../../deps/common/log/log.h \
  /usr/include/assert.h /usr/include/c++/8/fstream \
  /usr/include/c++/8/istream /usr/include/c++/8/ios \

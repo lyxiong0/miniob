@@ -221,4 +221,5 @@ src/observer/CMakeFiles/observer_static.dir/storage/common/db.cpp.o: \
  /root/miniob/src/observer/./storage/common/index_meta.h \
  /root/miniob/src/observer/../../deps/common/lang/serializable.h \
  /root/miniob/src/observer/./storage/common/table.h \
+ /usr/include/c++/8/cstring \
  /root/miniob/src/observer/./storage/common/meta_util.h

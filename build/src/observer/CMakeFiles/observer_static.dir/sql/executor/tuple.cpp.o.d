@@ -140,6 +140,9 @@ src/observer/CMakeFiles/observer_static.dir/sql/executor/tuple.cpp.o: \
  /usr/include/c++/8/backward/auto_ptr.h /usr/include/c++/8/vector \
  /usr/include/c++/8/bits/stl_vector.h \
  /usr/include/c++/8/bits/stl_bvector.h /usr/include/c++/8/bits/vector.tcc \
+ /usr/include/c++/8/unordered_map /usr/include/c++/8/bits/hashtable.h \
+ /usr/include/c++/8/bits/hashtable_policy.h \
+ /usr/include/c++/8/bits/unordered_map.h \
  /root/miniob/src/observer/./sql/parser/parse.h \
  /root/miniob/src/observer/./rc.h \
  /root/miniob/src/observer/./sql/parser/parse_defs.h \
@@ -168,6 +171,7 @@ src/observer/CMakeFiles/observer_static.dir/sql/executor/tuple.cpp.o: \
  /root/miniob/src/observer/./storage/common/field_meta.h \
  /root/miniob/src/observer/./storage/common/index_meta.h \
  /root/miniob/src/observer/../../deps/common/lang/serializable.h \
+ /usr/include/c++/8/cstring \
  /root/miniob/src/observer/../../deps/common/log/log.h \
  /usr/include/assert.h /usr/include/c++/8/fstream \
  /usr/include/c++/8/istream /usr/include/c++/8/bits/istream.tcc \

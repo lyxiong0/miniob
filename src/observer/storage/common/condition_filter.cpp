@@ -54,6 +54,7 @@ RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrT
   right_ = right;
   attr_type_ = attr_type;
   comp_op_ = comp_op;
+  LOG_INFO("default condition filter init 完成 comp_op = %d",comp_op_);
   return RC::SUCCESS;
 }
 

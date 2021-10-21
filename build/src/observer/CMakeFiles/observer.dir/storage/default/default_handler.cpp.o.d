@@ -228,5 +228,6 @@ src/observer/CMakeFiles/observer.dir/storage/default/default_handler.cpp.o: \
  /root/miniob/src/observer/./storage/common/field_meta.h \
  /root/miniob/src/observer/./storage/common/index_meta.h \
  /root/miniob/src/observer/../../deps/common/lang/serializable.h \
+ /usr/include/c++/8/cstring \
  /root/miniob/src/observer/./storage/common/condition_filter.h \
  /root/miniob/src/observer/./sql/parser/parse.h

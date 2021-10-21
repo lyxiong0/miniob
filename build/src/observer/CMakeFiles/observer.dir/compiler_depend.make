@@ -1329,6 +1329,12 @@ src/observer/CMakeFiles/observer.dir/init.cpp.o: ../src/observer/init.cpp \
   ../src/observer/sql/parser/parse.h \
   ../src/observer/rc.h \
   ../src/observer/sql/parser/parse_defs.h \
+  ../src/observer/sql/executor/tuple.h \
+  /usr/include/c++/8/unordered_map \
+  /usr/include/c++/8/bits/hashtable.h \
+  /usr/include/c++/8/bits/hashtable_policy.h \
+  /usr/include/c++/8/bits/unordered_map.h \
+  ../src/observer/sql/executor/value.h \
   ../src/observer/sql/optimizer/optimize_stage.h \
   ../src/observer/sql/parser/parse_stage.h \
   ../src/observer/sql/parser/resolve_stage.h \
@@ -2740,10 +2746,19 @@ src/observer/CMakeFiles/observer.dir/sql/executor/execute_stage.cpp.o: ../src/ob
   /usr/include/c++/8/bits/ostream.tcc \
   /usr/include/c++/8/bits/istream.tcc \
   /usr/include/c++/8/bits/sstream.tcc \
+  /usr/include/c++/8/algorithm \
+  /usr/include/c++/8/utility \
+  /usr/include/c++/8/bits/stl_relops.h \
+  /usr/include/c++/8/bits/stl_algo.h \
+  /usr/include/c++/8/bits/algorithmfwd.h \
+  /usr/include/c++/8/bits/stl_heap.h \
+  /usr/include/c++/8/bits/stl_tempbuf.h \
+  /usr/include/c++/8/bits/stl_construct.h \
+  /usr/include/c++/8/bits/uniform_int_dist.h \
+  /usr/include/c++/8/limits \
   ../src/observer/sql/executor/execute_stage.h \
   ../deps/common/seda/stage.h \
   /usr/include/c++/8/deque \
-  /usr/include/c++/8/bits/stl_construct.h \
   /usr/include/c++/8/bits/stl_uninitialized.h \
   /usr/include/c++/8/bits/stl_deque.h \
   /usr/include/c++/8/bits/deque.tcc \
@@ -2760,13 +2775,10 @@ src/observer/CMakeFiles/observer.dir/sql/executor/execute_stage.cpp.o: ../src/ob
   /usr/include/c++/8/bits/fstream.tcc \
   /usr/include/c++/8/iostream \
   /usr/include/c++/8/memory \
-  /usr/include/c++/8/bits/stl_tempbuf.h \
   /usr/include/c++/8/bits/stl_raw_storage_iter.h \
   /usr/include/c++/8/ext/concurrence.h \
   /usr/include/c++/8/bits/uses_allocator.h \
   /usr/include/c++/8/bits/unique_ptr.h \
-  /usr/include/c++/8/utility \
-  /usr/include/c++/8/bits/stl_relops.h \
   /usr/include/c++/8/tuple \
   /usr/include/c++/8/array \
   /usr/include/c++/8/bits/invoke.h \
@@ -2806,11 +2818,17 @@ src/observer/CMakeFiles/observer.dir/sql/executor/execute_stage.cpp.o: ../src/ob
   ../src/observer/sql/parser/parse.h \
   ../src/observer/rc.h \
   ../src/observer/sql/parser/parse_defs.h \
-  ../deps/common/io/io.h \
+  ../src/observer/sql/executor/tuple.h \
   /usr/include/c++/8/vector \
   /usr/include/c++/8/bits/stl_vector.h \
   /usr/include/c++/8/bits/stl_bvector.h \
   /usr/include/c++/8/bits/vector.tcc \
+  /usr/include/c++/8/unordered_map \
+  /usr/include/c++/8/bits/hashtable.h \
+  /usr/include/c++/8/bits/hashtable_policy.h \
+  /usr/include/c++/8/bits/unordered_map.h \
+  ../src/observer/sql/executor/value.h \
+  ../deps/common/io/io.h \
   ../deps/common/seda/timer_stage.h \
   /usr/include/x86_64-linux-gnu/sys/time.h \
   ../deps/common/seda/callback.h \
@@ -2882,26 +2900,20 @@ src/observer/CMakeFiles/observer.dir/sql/executor/execute_stage.cpp.o: ../src/ob
   ../src/observer/event/execution_plan_event.h \
   ../src/observer/sql/executor/execution_node.h \
   ../src/observer/storage/common/condition_filter.h \
-  ../src/observer/sql/executor/tuple.h \
-  ../src/observer/sql/executor/value.h \
   ../src/observer/storage/common/table.h \
   ../src/observer/storage/common/table_meta.h \
   ../src/observer/storage/common/field_meta.h \
   ../src/observer/storage/common/index_meta.h \
   ../deps/common/lang/serializable.h \
+  /usr/include/c++/8/cstring \
   ../src/observer/storage/default/default_handler.h \
   ../src/observer/storage/common/db.h \
-  /usr/include/c++/8/unordered_map \
-  /usr/include/c++/8/bits/hashtable.h \
-  /usr/include/c++/8/bits/hashtable_policy.h \
-  /usr/include/c++/8/bits/unordered_map.h \
   ../src/observer/storage/trx/trx.h \
   /usr/include/c++/8/unordered_set \
   /usr/include/c++/8/bits/unordered_set.h \
   /usr/include/c++/8/mutex \
   /usr/include/c++/8/chrono \
   /usr/include/c++/8/ratio \
-  /usr/include/c++/8/limits \
   /usr/include/c++/8/ctime \
   /usr/include/c++/8/bits/parse_numbers.h \
   /usr/include/c++/8/bits/std_mutex.h \
@@ -2968,16 +2980,20 @@ src/observer/CMakeFiles/observer.dir/sql/executor/execution_node.cpp.o: ../src/o
   /usr/include/c++/8/bits/functional_hash.h \
   /usr/include/c++/8/bits/range_access.h \
   /usr/include/c++/8/bits/vector.tcc \
-  ../src/observer/storage/common/condition_filter.h \
-  ../src/observer/rc.h \
-  ../src/observer/sql/parser/parse.h \
-  ../src/observer/sql/parser/parse_defs.h \
-  ../src/observer/sql/executor/tuple.h \
-  /usr/include/c++/8/memory \
-  /usr/include/c++/8/bits/stl_tempbuf.h \
-  /usr/include/c++/8/bits/stl_raw_storage_iter.h \
-  /usr/include/c++/8/iosfwd \
+  /usr/include/c++/8/unordered_map \
+  /usr/include/c++/8/ext/aligned_buffer.h \
+  /usr/include/c++/8/bits/stl_function.h \
+  /usr/include/c++/8/backward/binders.h \
+  /usr/include/c++/8/bits/hashtable.h \
+  /usr/include/c++/8/bits/hashtable_policy.h \
+  /usr/include/c++/8/tuple \
+  /usr/include/c++/8/utility \
+  /usr/include/c++/8/bits/stl_relops.h \
+  /usr/include/c++/8/array \
+  /usr/include/c++/8/stdexcept \
+  /usr/include/c++/8/string \
   /usr/include/c++/8/bits/stringfwd.h \
+  /usr/include/c++/8/bits/char_traits.h \
   /usr/include/c++/8/bits/postypes.h \
   /usr/include/c++/8/cwchar \
   /usr/include/wchar.h \
@@ -2994,17 +3010,33 @@ src/observer/CMakeFiles/observer.dir/sql/executor/execution_node.cpp.o: ../src/o
   /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
   /usr/include/x86_64-linux-gnu/bits/wchar2.h \
+  /usr/include/c++/8/cstdint \
+  /usr/lib/gcc/x86_64-linux-gnu/8/include/stdint.h \
+  /usr/include/stdint.h \
+  /usr/include/x86_64-linux-gnu/bits/types.h \
+  /usr/include/x86_64-linux-gnu/bits/typesizes.h \
+  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
+  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
+  /usr/include/c++/8/bits/localefwd.h \
+  /usr/include/x86_64-linux-gnu/c++/8/bits/c++locale.h \
+  /usr/include/c++/8/clocale \
+  /usr/include/locale.h \
+  /usr/include/x86_64-linux-gnu/bits/locale.h \
+  /usr/include/c++/8/iosfwd \
+  /usr/include/c++/8/cctype \
+  /usr/include/ctype.h \
+  /usr/include/endian.h \
+  /usr/include/x86_64-linux-gnu/bits/endian.h \
+  /usr/include/x86_64-linux-gnu/bits/byteswap.h \
+  /usr/include/x86_64-linux-gnu/bits/byteswap-16.h \
+  /usr/include/x86_64-linux-gnu/bits/uintn-identity.h \
+  /usr/include/c++/8/bits/ostream_insert.h \
+  /usr/include/c++/8/bits/cxxabi_forced.h \
+  /usr/include/c++/8/bits/basic_string.h \
   /usr/include/c++/8/ext/atomicity.h \
   /usr/include/x86_64-linux-gnu/c++/8/bits/gthr.h \
   /usr/include/x86_64-linux-gnu/c++/8/bits/gthr-default.h \
   /usr/include/pthread.h \
-  /usr/include/endian.h \
-  /usr/include/x86_64-linux-gnu/bits/endian.h \
-  /usr/include/x86_64-linux-gnu/bits/byteswap.h \
-  /usr/include/x86_64-linux-gnu/bits/types.h \
-  /usr/include/x86_64-linux-gnu/bits/typesizes.h \
-  /usr/include/x86_64-linux-gnu/bits/byteswap-16.h \
-  /usr/include/x86_64-linux-gnu/bits/uintn-identity.h \
   /usr/include/sched.h \
   /usr/include/x86_64-linux-gnu/bits/types/time_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h \
@@ -3024,33 +3056,6 @@ src/observer/CMakeFiles/observer.dir/sql/executor/execution_node.cpp.o: ../src/o
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h \
   /usr/include/x86_64-linux-gnu/bits/setjmp.h \
   /usr/include/x86_64-linux-gnu/c++/8/bits/atomic_word.h \
-  /usr/include/c++/8/ext/concurrence.h \
-  /usr/include/c++/8/bits/stl_function.h \
-  /usr/include/c++/8/backward/binders.h \
-  /usr/include/c++/8/bits/uses_allocator.h \
-  /usr/include/c++/8/bits/unique_ptr.h \
-  /usr/include/c++/8/utility \
-  /usr/include/c++/8/bits/stl_relops.h \
-  /usr/include/c++/8/tuple \
-  /usr/include/c++/8/array \
-  /usr/include/c++/8/stdexcept \
-  /usr/include/c++/8/string \
-  /usr/include/c++/8/bits/char_traits.h \
-  /usr/include/c++/8/cstdint \
-  /usr/lib/gcc/x86_64-linux-gnu/8/include/stdint.h \
-  /usr/include/stdint.h \
-  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
-  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
-  /usr/include/c++/8/bits/localefwd.h \
-  /usr/include/x86_64-linux-gnu/c++/8/bits/c++locale.h \
-  /usr/include/c++/8/clocale \
-  /usr/include/locale.h \
-  /usr/include/x86_64-linux-gnu/bits/locale.h \
-  /usr/include/c++/8/cctype \
-  /usr/include/ctype.h \
-  /usr/include/c++/8/bits/ostream_insert.h \
-  /usr/include/c++/8/bits/cxxabi_forced.h \
-  /usr/include/c++/8/bits/basic_string.h \
   /usr/include/c++/8/ext/string_conversions.h \
   /usr/include/c++/8/cstdlib \
   /usr/include/stdlib.h \
@@ -3085,12 +3090,23 @@ src/observer/CMakeFiles/observer.dir/sql/executor/execution_node.cpp.o: ../src/o
   /usr/include/asm-generic/errno.h \
   /usr/include/asm-generic/errno-base.h \
   /usr/include/c++/8/bits/basic_string.tcc \
+  /usr/include/c++/8/bits/uses_allocator.h \
   /usr/include/c++/8/bits/invoke.h \
+  /usr/include/c++/8/bits/unordered_map.h \
+  ../src/observer/storage/common/condition_filter.h \
+  ../src/observer/rc.h \
+  ../src/observer/sql/parser/parse.h \
+  ../src/observer/sql/parser/parse_defs.h \
+  ../src/observer/sql/executor/tuple.h \
+  /usr/include/c++/8/memory \
+  /usr/include/c++/8/bits/stl_tempbuf.h \
+  /usr/include/c++/8/bits/stl_raw_storage_iter.h \
+  /usr/include/c++/8/ext/concurrence.h \
+  /usr/include/c++/8/bits/unique_ptr.h \
   /usr/include/c++/8/bits/shared_ptr.h \
   /usr/include/c++/8/bits/shared_ptr_base.h \
   /usr/include/c++/8/bits/allocated_ptr.h \
   /usr/include/c++/8/bits/refwrap.h \
-  /usr/include/c++/8/ext/aligned_buffer.h \
   /usr/include/c++/8/bits/shared_ptr_atomic.h \
   /usr/include/c++/8/bits/atomic_base.h \
   /usr/include/c++/8/bits/atomic_lockfree_defines.h \
@@ -3125,6 +3141,7 @@ src/observer/CMakeFiles/observer.dir/sql/executor/execution_node.cpp.o: ../src/o
   ../src/observer/storage/common/field_meta.h \
   ../src/observer/storage/common/index_meta.h \
   ../deps/common/lang/serializable.h \
+  /usr/include/c++/8/cstring \
   ../deps/common/log/log.h \
   /usr/include/assert.h \
   /usr/include/c++/8/fstream \
@@ -3331,6 +3348,10 @@ src/observer/CMakeFiles/observer.dir/sql/executor/tuple.cpp.o: ../src/observer/s
   /usr/include/c++/8/bits/stl_vector.h \
   /usr/include/c++/8/bits/stl_bvector.h \
   /usr/include/c++/8/bits/vector.tcc \
+  /usr/include/c++/8/unordered_map \
+  /usr/include/c++/8/bits/hashtable.h \
+  /usr/include/c++/8/bits/hashtable_policy.h \
+  /usr/include/c++/8/bits/unordered_map.h \
   ../src/observer/sql/parser/parse.h \
   ../src/observer/rc.h \
   ../src/observer/sql/parser/parse_defs.h \
@@ -3364,6 +3385,7 @@ src/observer/CMakeFiles/observer.dir/sql/executor/tuple.cpp.o: ../src/observer/s
   ../src/observer/storage/common/field_meta.h \
   ../src/observer/storage/common/index_meta.h \
   ../deps/common/lang/serializable.h \
+  /usr/include/c++/8/cstring \
   ../deps/common/log/log.h \
   /usr/include/assert.h \
   /usr/include/c++/8/fstream \
@@ -4687,8 +4709,7 @@ src/observer/CMakeFiles/observer.dir/sql/parser/yacc_sql.tab.c.o: ../src/observe
   /usr/include/x86_64-linux-gnu/bits/confname.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
-  /usr/include/x86_64-linux-gnu/bits/unistd.h \
-  ../src/observer/sql/parser/yacc_sql.tab.h
+  /usr/include/x86_64-linux-gnu/bits/unistd.h
 
 src/observer/CMakeFiles/observer.dir/sql/plan_cache/plan_cache_stage.cpp.o: ../src/observer/sql/plan_cache/plan_cache_stage.cpp \
   /usr/include/stdc-predef.h \
@@ -5984,7 +6005,8 @@ src/observer/CMakeFiles/observer.dir/storage/common/condition_filter.cpp.o: ../s
   ../src/observer/storage/common/table_meta.h \
   ../src/observer/storage/common/field_meta.h \
   ../src/observer/storage/common/index_meta.h \
-  ../deps/common/lang/serializable.h
+  ../deps/common/lang/serializable.h \
+  /usr/include/c++/8/cstring
 
 src/observer/CMakeFiles/observer.dir/storage/common/db.cpp.o: ../src/observer/storage/common/db.cpp \
   /usr/include/stdc-predef.h \
@@ -6261,6 +6283,7 @@ src/observer/CMakeFiles/observer.dir/storage/common/db.cpp.o: ../src/observer/st
   ../src/observer/storage/common/index_meta.h \
   ../deps/common/lang/serializable.h \
   ../src/observer/storage/common/table.h \
+  /usr/include/c++/8/cstring \
   ../src/observer/storage/common/meta_util.h
 
 src/observer/CMakeFiles/observer.dir/storage/common/field_meta.cpp.o: ../src/observer/storage/common/field_meta.cpp \
@@ -7749,6 +7772,7 @@ src/observer/CMakeFiles/observer.dir/storage/common/table.cpp.o: ../src/observer
   ../src/observer/sql/parser/parse_defs.h \
   ../src/observer/storage/common/index_meta.h \
   ../deps/common/lang/serializable.h \
+  /usr/include/c++/8/cstring \
   ../deps/common/log/log.h \
   /usr/include/assert.h \
   /usr/include/c++/8/fstream \
@@ -8446,6 +8470,7 @@ src/observer/CMakeFiles/observer.dir/storage/default/default_handler.cpp.o: ../s
   ../src/observer/storage/common/field_meta.h \
   ../src/observer/storage/common/index_meta.h \
   ../deps/common/lang/serializable.h \
+  /usr/include/c++/8/cstring \
   ../src/observer/storage/common/condition_filter.h \
   ../src/observer/sql/parser/parse.h
 
@@ -8762,6 +8787,7 @@ src/observer/CMakeFiles/observer.dir/storage/default/default_storage_stage.cpp.o
   ../src/observer/storage/common/field_meta.h \
   ../src/observer/storage/common/index_meta.h \
   ../deps/common/lang/serializable.h \
+  /usr/include/c++/8/cstring \
   ../src/observer/storage/trx/trx.h \
   /usr/include/c++/8/unordered_set \
   /usr/include/c++/8/bits/unordered_set.h \
@@ -9574,6 +9600,7 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
   ../src/observer/storage/common/field_meta.h \
   ../src/observer/storage/common/index_meta.h \
   ../deps/common/lang/serializable.h \
+  /usr/include/c++/8/cstring \
   ../deps/common/log/log.h \
   /usr/include/assert.h \
   /usr/include/c++/8/fstream \
@@ -9712,8 +9739,6 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 
 /usr/include/c++/8/bits/regex_constants.h:
 
-/usr/include/c++/8/cstring:
-
 ../src/observer/storage/common/index.h:
 
 /usr/include/c++/8/bits/stl_stack.h:
@@ -9730,12 +9755,6 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 
 /usr/include/c++/8/bitset:
 
-/usr/include/c++/8/bits/stl_heap.h:
-
-/usr/include/c++/8/bits/stl_algo.h:
-
-/usr/include/c++/8/algorithm:
-
 ../src/observer/sql/parser/parse.cpp:
 
 ../src/observer/sql/parser/lex.yy.c:
@@ -9746,11 +9765,17 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 
 ../src/observer/storage/common/db.h:
 
+/usr/include/c++/8/cstring:
+
 ../src/observer/storage/common/index_meta.h:
 
 ../src/observer/storage/common/field_meta.h:
 
 ../src/observer/storage/common/table_meta.h:
+
+../src/observer/storage/common/condition_filter.h:
+
+../deps/common/io/io.h:
 
 /usr/include/c++/8/iostream:
 
@@ -9785,6 +9810,8 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 /usr/include/c++/8/cstdio:
 
 ../deps/common/seda/init.h:
+
+/usr/include/c++/8/algorithm:
 
 /usr/include/c++/8/bits/uses_allocator.h:
 
@@ -9855,6 +9882,8 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 /usr/include/c++/8/bits/std_function.h:
 
 /usr/include/c++/8/cstdlib:
+
+/usr/include/c++/8/bits/stl_algo.h:
 
 /usr/include/c++/8/chrono:
 
@@ -10055,6 +10084,10 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 /usr/include/endian.h:
 
 /usr/include/x86_64-linux-gnu/asm/socket.h:
+
+../src/observer/sql/executor/execution_node.h:
+
+/usr/include/features.h:
 
 /usr/include/asm-generic/sockios.h:
 
@@ -10520,8 +10553,6 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 
 ../deps/common/os/path.h:
 
-../deps/common/io/io.h:
-
 ../deps/common/os/signal.h:
 
 /usr/include/c++/8/bits/hashtable.h:
@@ -10558,6 +10589,18 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 
 /usr/include/c++/8/bits/random.h:
 
+../src/observer/sql/executor/tuple.h:
+
+/usr/include/c++/8/fstream:
+
+/usr/include/c++/8/bits/uniform_int_dist.h:
+
+/usr/include/c++/8/bits/unordered_map.h:
+
+../src/observer/sql/parser/parse_stage.h:
+
+../src/observer/sql/executor/value.h:
+
 ../src/observer/sql/optimizer/optimize_stage.h:
 
 ../src/observer/storage/mem/mem_storage_stage.h:
@@ -10573,10 +10616,6 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 /usr/include/c++/8/initializer_list:
 
 ../src/observer/net/server.h:
-
-/usr/include/features.h:
-
-../src/observer/sql/executor/execution_node.h:
 
 ../src/observer/event/execution_plan_event.h:
 
@@ -10606,12 +10645,6 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 
 ../src/observer/session/session.h:
 
-/usr/include/c++/8/fstream:
-
-/usr/include/c++/8/bits/uniform_int_dist.h:
-
-/usr/include/c++/8/bits/unordered_map.h:
-
 /usr/include/x86_64-linux-gnu/sys/ucontext.h:
 
 /usr/include/c++/8/mutex:
@@ -10628,10 +10661,4 @@ src/observer/CMakeFiles/observer.dir/storage/trx/trx.cpp.o: ../src/observer/stor
 
 ../src/observer/sql/executor/execute_stage.cpp:
 
-../src/observer/storage/common/condition_filter.h:
-
-../src/observer/sql/executor/tuple.h:
-
-../src/observer/sql/parser/parse_stage.h:
-
-../src/observer/sql/executor/value.h:
+/usr/include/c++/8/bits/stl_heap.h:

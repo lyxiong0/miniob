@@ -61,15 +61,6 @@ extern "C"
     relation_attr->attribute_name = nullptr;
     relation_attr->window_function_name = nullptr;
   }
-  relation_attr->attribute_name = strdup(attribute_name);
-}
-
-void relation_attr_destroy(RelAttr *relation_attr) {
-  free(relation_attr->relation_name);
-  free(relation_attr->attribute_name);
-  relation_attr->relation_name = nullptr;
-  relation_attr->attribute_name = nullptr;
-}
 
   void value_init_integer(Value *value, int v)
   {
@@ -91,24 +82,11 @@ void relation_attr_destroy(RelAttr *relation_attr) {
     free(value->data);
     value->data = nullptr;
   }
-
-  // 用于匹配date类型
-  bool match_date_format(const char *s)
-  {
-    std::string str = s;
-    std::regex format_("^(\d{4})-(\d{1,2})-(\d{1,2})");
-    // std::cout<<"匹配结果是 "<<std::regex_match(str,pattern)<<std::endl;
-    if (std::regex_match(str, format_))
-    {
-      return true;
-    }
-    return false;
-  }
-
+// check date 格式
   bool check_date_data(const char *s)
   {
     std::string str = s;
-    std::regex pattern("((1[0-9]{3}|20[0-2][0-9]|203[0-7])-(0?[1-9]|1[0-2])-([1-2][0-9]|3[0-1]|0?[1-9]))|(2038-(0?[1-2])-([1-2][0-9]|3[0-1]|0?[1-9]))");
+    std::regex pattern("((19[7-9][0-9]|20[0-2][0-9]|203[0-7])-(((0?[13578]|1[02])-([12][0-9]|3[01]|0?[1-9]))|((0?[469]|11)-([12][0-9]|30|0?[1-9]))|(0?2-([1][0-9]|2[0-8]|0?[1-9]))))|(19(8[048]|[79][26])-0?2-29)|(2038-((0?1-([1-2][0-9]|3[0-1]|0?[1-9]))|(0?2-(1[0-9]|2[0-8]|0?[1-9]))))");
     if (std::regex_match(str, pattern))
     {
       return true;
@@ -153,21 +131,20 @@ void relation_attr_destroy(RelAttr *relation_attr) {
   {
     if (check_date_data(v))
     {
-      std::cout << "成功 匹配 日期较严格格式" << std::endl;
-      // 需要详细检测是否合格日期的含义 闰年和2038年等
+      LOG_INFO("成功匹配日期格式");
       value->type = DATES;
       // 转换为数字
       int date_num = convert_date(v);
       value->data = malloc(sizeof(date_num));
       memcpy(value->data, &date_num, sizeof(date_num));
-      std::cout << "now the insert date in value->data is " << *(int *)(value->data) << std::endl;
+      // std::cout << "now the insert date in value->data is " << *(int *)(value->data) << std::endl;
     }
     else
     {
-      std::cout << "没有成功 匹配日期较严格格式" << std::endl;
+      LOG_INFO("没有成功匹配日期格式");
       value->type = CHARS;
       value->data = strdup(v);
-      std::cout << "now the insert char in value->data is " << *(char *)(value->data) << std::endl;
+      // std::cout << "now the insert char in value->data is " << *(char *)(value->data) << std::endl;
     }
   }
 

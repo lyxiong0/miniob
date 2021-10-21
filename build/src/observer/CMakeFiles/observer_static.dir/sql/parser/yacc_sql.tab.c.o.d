@@ -69,5 +69,4 @@ src/observer/CMakeFiles/observer_static.dir/sql/parser/yacc_sql.tab.c.o: \
  /usr/include/x86_64-linux-gnu/bits/confname.h \
  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
- /usr/include/x86_64-linux-gnu/bits/unistd.h \
- /root/miniob/src/observer/sql/parser/yacc_sql.tab.h
+ /usr/include/x86_64-linux-gnu/bits/unistd.h
