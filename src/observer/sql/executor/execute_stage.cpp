@@ -242,6 +242,93 @@ void end_trx_if_need(Session *session, Trx *trx, bool all_right)
   }
 }
 
+// 求两个TupleSet的笛卡尔积
+TupleSet cartesian_product(const TupleSet& setA, const TupleSet& setB, bool hasCondition, const Condition& cond){
+    TupleSet ret;
+    TupleSchema schema;
+    schema.append(setA.get_schema());
+    schema.append(setB.get_schema());
+    ret.set_schema(schema);
+
+    if (hasCondition) {
+        const char* left_rel_name = cond.left_attr.relation_name;
+        const char* left_attr_name = cond.left_attr.attribute_name;
+        const char* right_rel_name = cond.right_attr.relation_name;
+        const char* right_attr_name = cond.right_attr.attribute_name;
+        if ((0 == strcmp(setA.get_schema().field(0).table_name(), left_rel_name)) &&
+            (0 == strcmp(setB.get_schema().field(0).table_name(), right_rel_name))) {
+                size_t left_index = 0;
+                size_t right_index = 0;
+                // 找出列在对应schema中的位置
+                while (left_index < setA.get_schema().fields().size()) {
+                    if (0 == strcmp(setA.get_schema().field(left_index).field_name(), left_attr_name)) {
+                        break;
+                    }
+                    left_index++;
+                }
+                while (right_index < setB.get_schema().fields().size()) {
+                    if (0 == strcmp(setB.get_schema().field(right_index).field_name(), right_attr_name)) {
+                        break;
+                    }
+                    right_index++;
+                }
+                for(const auto& tuple_a : setA.tuples()) {
+                    for (const auto& tuple_b : setB.tuples()) {
+                        TupleValue* value_a = tuple_a.get_pointer(left_index).get();
+                        TupleValue* value_b = tuple_b.get_pointer(right_index).get();
+                        bool compare_result = false;
+                        switch (cond.comp) {
+                        case EQUAL_TO:
+                            compare_result = (value_a->compare(*value_b) == 0);
+                            break;
+                        case LESS_EQUAL:
+                            compare_result = (value_a->compare(*value_b) <= 0);
+                            break;
+                        case NOT_EQUAL:
+                            compare_result = (value_a->compare(*value_b) != 0);
+                            break;
+                        case LESS_THAN:
+                            compare_result = (value_a->compare(*value_b) < 0);
+                            break;
+                        case GREAT_EQUAL:
+                            compare_result = (value_a->compare(*value_b) >= 0);
+                            break;
+                        case GREAT_THAN:
+                            compare_result = (value_a->compare(*value_b) > 0);
+                            break;
+                        default:
+                            break;
+                        }
+                        if (compare_result) { // 满足条件则加入结果Tuple
+                            Tuple tmp;
+                            for (auto value : tuple_a.values()) {
+                                tmp.add(value);
+                            }
+                            for (auto value : tuple_b.values()) {
+                                tmp.add(value);
+                            }
+                            ret.add(std::move(tmp));
+                        }
+                    }
+                }
+        }
+    }  else {
+        for(const auto& tuple_a : setA.tuples()) {
+            for (const auto& tuple_b : setB.tuples()) {
+                Tuple tmp;
+                for (auto value : tuple_a.values()) {
+                    tmp.add(value);
+                }
+                for (auto value : tuple_b.values()) {
+                    tmp.add(value);
+                }
+                ret.add(std::move(tmp));
+            }
+        }
+    }
+    return ret;
+}
+
 // 这里没有对输入的某些信息做合法性校验，比如查询的列名、where条件中的列名等，没有做必要的合法性校验
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
 RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_event)
@@ -266,6 +353,9 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     rc = create_selection_executor(trx, selects, db, table_name, *select_node, *attr_function, *order_info);
     if (rc != RC::SUCCESS)
     {
+      if (rc == RC::SCHEMA_TABLE_NOT_EXIST || rc == RC::SCHEMA_FIELD_MISSING) {
+        session_event->set_response("FAILURE\n");
+      }
       delete select_node;
       for (SelectExeNode *&tmp_node : select_nodes)
       {
@@ -309,17 +399,34 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   }
 
   std::stringstream ss;
-  // if (tuple_sets.size() > 1)
-  // {
-  //   // TODO(): 任务6 多表查询
-  //   // 本次查询了多张表，需要做join操作
-  //   // 生成tuple_sets
-  // }
-  // else
-  // {
-  //   // 当前只查询一张表，直接返回结果即可
-  //   tuple_sets.front().print(ss);
-  // }
+  if (tuple_sets.size() > 1)// 本次查询了多张表，需要做join操作
+  {  //e.g. select t1.id, t2.name from t1, t2 where t1.id=t2.id;
+
+    // 首先要从where子句的Condition中找出两边都是属性的Condition
+    Condition cond;
+    bool hasCondition = false;
+      for (size_t i = 0; i < selects.condition_num; i++) {
+        const Condition &condition = selects.conditions[i];
+        if (condition.left_is_attr == 1 && condition.right_is_attr == 1) {
+            cond = condition; //先假设只有一个这样的condition
+            hasCondition = true;
+        }
+      }
+    // 然后要根据这个condition找出对应的两个表的TupleSet
+    // 并根据condition的谓词过滤出满足条件的构造Tuple
+    int len = tuple_sets.size();
+    TupleSet tuple_set(std::move(tuple_sets[len - 1]));
+    for (int i = len - 2; i >= 0; i--) {
+        tuple_set = cartesian_product(tuple_set, tuple_sets[i], hasCondition, cond);
+    }
+    // tuple_set.get_schema().print(ss);
+    tuple_set.print(ss);
+  }
+  else
+  {
+    // 当前只查询一张表，直接返回结果即可
+    tuple_sets.front().print(ss);
+  }
 
   ////////////////////////////聚合函数开始/////////////////////////////
   std::vector<TupleSet> results;
