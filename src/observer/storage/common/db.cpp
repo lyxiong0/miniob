@@ -25,21 +25,26 @@ See the Mulan PSL v2 for more details. */
 #include "storage/common/table.h"
 #include "storage/common/meta_util.h"
 
-Db::~Db() {
-  for (auto &iter : opened_tables_) {
+Db::~Db()
+{
+  for (auto &iter : opened_tables_)
+  {
     delete iter.second;
   }
   LOG_INFO("Db has been closed: %s", name_.c_str());
 }
 
-RC Db::init(const char *name, const char *dbpath) {
+RC Db::init(const char *name, const char *dbpath)
+{
 
-  if (nullptr == name || common::is_blank(name)) {
+  if (nullptr == name || common::is_blank(name))
+  {
     LOG_WARN("Name cannot be empty");
     return RC::INVALID_ARGUMENT;
   }
 
-  if (!common::is_directory(dbpath)) {
+  if (!common::is_directory(dbpath))
+  {
     LOG_ERROR("Path is not a directory: %s", dbpath);
     return RC::GENERIC_ERROR;
   }
@@ -50,18 +55,21 @@ RC Db::init(const char *name, const char *dbpath) {
   return open_all_tables();
 }
 
-RC Db::create_table(const char *table_name, int attribute_count, const AttrInfo *attributes) {
+RC Db::create_table(const char *table_name, int attribute_count, const AttrInfo *attributes)
+{
   RC rc = RC::SUCCESS;
   // check table_name
   // 检查是否有重名table
-  if (opened_tables_.count(table_name) != 0) {
+  if (opened_tables_.count(table_name) != 0)
+  {
     return RC::SCHEMA_TABLE_EXIST;
   }
 
   std::string table_file_path = table_meta_file(path_.c_str(), table_name); // 文件路径可以移到Table模块
   Table *table = new Table();
   rc = table->create(table_file_path.c_str(), table_name, path_.c_str(), attribute_count, attributes);
-  if (rc != RC::SUCCESS) {
+  if (rc != RC::SUCCESS)
+  {
     delete table;
     return rc;
   }
@@ -71,18 +79,22 @@ RC Db::create_table(const char *table_name, int attribute_count, const AttrInfo 
   return RC::SUCCESS;
 }
 
-RC Db::drop_table(const char *table_name) {
-    RC rc = RC::SUCCESS;
+RC Db::drop_table(const char *table_name)
+{
+  LOG_ERROR("into drop");
+  RC rc = RC::SUCCESS;
 
-    // 表不存在
-    if (opened_tables_.count(table_name) == 0) {
-        return RC::SCHEMA_TABLE_NOT_EXIST;
-    }
+  // 表不存在
+  if (opened_tables_.count(table_name) == 0)
+  {
+    return RC::SCHEMA_TABLE_NOT_EXIST;
+  }
 
   // 删除table_meta文件
-    std::string table_file_path = table_meta_file(path_.c_str(), table_name);
-    LOG_ERROR("%s", table_file_path.c_str());
-  if (::remove(table_file_path.c_str()) != 0) {
+  std::string table_file_path = table_meta_file(path_.c_str(), table_name);
+  LOG_ERROR("%s", table_file_path.c_str());
+  if (::remove(table_file_path.c_str()) != 0)
+  {
     LOG_ERROR("Failed to remove table file: %s", table_file_path.c_str());
     return RC::IOERR;
   }
@@ -90,47 +102,54 @@ RC Db::drop_table(const char *table_name) {
   // 删除data文件
   std::string datafile_path = path_ + "/" + table_name + TABLE_DATA_SUFFIX;
   LOG_ERROR("%s", datafile_path.c_str());
-  if (::remove(datafile_path.c_str()) != 0) {
+  if (::remove(datafile_path.c_str()) != 0)
+  {
     LOG_ERROR("Failed to remove table file: %s", datafile_path.c_str());
     return RC::IOERR;
   }
-    opened_tables_.erase(table_name);
-    
-    LOG_INFO("Create table success. table name=%s", table_name);
-    return RC::SUCCESS;
+  opened_tables_.erase(table_name);
 
+  LOG_INFO("Create table success. table name=%s", table_name);
+  return RC::SUCCESS;
 }
 
-Table *Db::find_table(const char *table_name) const {
+Table *Db::find_table(const char *table_name) const
+{
   std::unordered_map<std::string, Table *>::const_iterator iter = opened_tables_.find(table_name);
-  if (iter != opened_tables_.end()) {
+  if (iter != opened_tables_.end())
+  {
     return iter->second;
   }
   return nullptr;
 }
 
-RC Db::open_all_tables() {
+RC Db::open_all_tables()
+{
   std::vector<std::string> table_meta_files;
   int ret = common::list_file(path_.c_str(), TABLE_META_FILE_PATTERN, table_meta_files);
-  if (ret < 0) {
+  if (ret < 0)
+  {
     LOG_ERROR("Failed to list table meta files under %s.", path_.c_str());
     return RC::IOERR;
   }
 
   RC rc = RC::SUCCESS;
-  for (const std::string &filename : table_meta_files) {
+  for (const std::string &filename : table_meta_files)
+  {
     Table *table = new Table();
     rc = table->open(filename.c_str(), path_.c_str());
-    if (rc != RC::SUCCESS) {
+    if (rc != RC::SUCCESS)
+    {
       delete table;
       LOG_ERROR("Failed to open table. filename=%s", filename.c_str());
       return rc;
     }
 
-    if (opened_tables_.count(table->name()) != 0) {
+    if (opened_tables_.count(table->name()) != 0)
+    {
       delete table;
-      LOG_ERROR("Duplicate table with difference file name. table=%s, the other filename=%s", 
-        table->name(), filename.c_str());
+      LOG_ERROR("Duplicate table with difference file name. table=%s, the other filename=%s",
+                table->name(), filename.c_str());
       return RC::GENERIC_ERROR;
     }
 
@@ -142,22 +161,28 @@ RC Db::open_all_tables() {
   return rc;
 }
 
-const char *Db::name() const {
+const char *Db::name() const
+{
   return name_.c_str();
 }
 
-void Db::all_tables(std::vector<std::string> &table_names) const {
-  for (const auto &table_item: opened_tables_) {
+void Db::all_tables(std::vector<std::string> &table_names) const
+{
+  for (const auto &table_item : opened_tables_)
+  {
     table_names.emplace_back(table_item.first);
   }
 }
 
-RC Db::sync() {
+RC Db::sync()
+{
   RC rc = RC::SUCCESS;
-  for (const auto &table_pair: opened_tables_) {
+  for (const auto &table_pair : opened_tables_)
+  {
     Table *table = table_pair.second;
     rc = table->sync();
-    if (rc != RC::SUCCESS) {
+    if (rc != RC::SUCCESS)
+    {
       LOG_ERROR("Failed to flush table. table=%s.%s, rc=%d:%s", name_.c_str(), table->name(), rc, strrc(rc));
       return rc;
     }

@@ -3327,3 +3327,15 @@ ThreadPools=SQLThre
 [2021-10-21 13:10:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
 [2021-10-21 13:10:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
 [2021-10-21 13:10:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:11:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:11:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:11:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:11:27 pid:167028 tid:7f79fe347700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:12:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:12:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:12:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:12:27 pid:167028 tid:7f79fdb46700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 13:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 13:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 13:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 13:13:27 pid:167028 tid:7f79fd345700  INFO: /root/miniob/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0

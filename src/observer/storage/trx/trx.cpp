@@ -72,6 +72,8 @@ RC Trx::update_record(Table *table, Record *record, char *new_record_data)
     }
     else if (old_oper->type() == Operation::Type::UPDATE)
     {
+      // 每次更新都会删除上次更新的记录
+      // 即整个事务最多一次update
       // 每次更新都会删除上次更新/插入的记录
       // 即整个事务最多一次update或insert
       delete_operation(table, record->rid);
@@ -107,33 +109,37 @@ RC Trx::insert_record(Table *table, Record *record)
 
 RC Trx::delete_record(Table *table, Record *record)
 {
+  LOG_ERROR("delete_record record: %d - %d", record->rid.page_num, record->rid.slot_num);
   RC rc = RC::SUCCESS;
   start_if_not_started();
   Operation *old_oper = find_operation(table, record->rid);
   // 原代码
-  // if (old_oper != nullptr)
-  // {
-  //   if (old_oper->type() != Operation::Type::DELETE)
-  //   {
-  //     // 上次操作是插入或更新，删除即为撤销
-  //     delete_operation(table, record->rid);
-  //     return RC::SUCCESS;
-  //   }
-  //   else
-  //   {
-  //     return RC::GENERIC_ERROR;
-  //   }
-  // }
-
   if (old_oper != nullptr)
   {
-    if (old_oper->type() == Operation::Type::DELETE)
+    LOG_ERROR("here");
+    if (old_oper->type() != Operation::Type::DELETE)
+    {
+      // 上次操作是插入或更新，删除即为撤销
+      LOG_ERROR("find!");
+      delete_operation(table, record->rid);
+      return RC::SUCCESS;
+    }
+    else
     {
       return RC::GENERIC_ERROR;
     }
-    // 上次操作是插入或更新，删除即为撤销
-    delete_operation(table, record->rid);
   }
+
+  // if (old_oper != nullptr)
+  // {
+  //   LOG_DEBUG("here");
+  //   if (old_oper->type() == Operation::Type::DELETE)
+  //   {
+  //     return RC::GENERIC_ERROR;
+  //   }
+  //   // 上次操作是插入或更新，删除即为撤销
+  //   delete_operation(table, record->rid);
+  // }
 
   set_record_trx_id(table, *record, trx_id_, true);
   insert_operation(table, Operation::Type::DELETE, record->rid);
@@ -192,7 +198,9 @@ void Trx::delete_operation(Table *table, const RID &rid)
   }
 
   Operation tmp(Operation::Type::UNDEFINED, rid);
+  int origin_size = table_operations_iter->second.size();
   table_operations_iter->second.erase(tmp);
+  int delete_size = table_operations_iter->second.size();
 }
 
 RC Trx::commit()

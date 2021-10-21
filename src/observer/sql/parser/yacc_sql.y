@@ -110,6 +110,8 @@ ParserContext *get_context(yyscan_t scanner)
         LOAD
         DATA
         INFILE
+		NULLABLE
+		NOT
         EQ
         LT
         GT
@@ -138,12 +140,14 @@ ParserContext *get_context(yyscan_t scanner)
 %token <string> STRING_V
 %token <string> COUNT 
 %token <string> OTHER_FUNCTION_TYPE
+%token <string> NULL_T
 //非终结符
 
 %type <number> type;
 %type <condition1> condition;
 %type <value1> value;
 %type <number> number;
+%type <number> opt_null;
 
 %%
 
@@ -256,10 +260,10 @@ attr_def_list:
     ;
     
 attr_def:
-    ID_get type LBRACE number RBRACE 
+    ID_get type LBRACE number RBRACE opt_null
 		{
 			AttrInfo attribute;
-			attr_info_init(&attribute, CONTEXT->id, $2, $4);
+			attr_info_init(&attribute, CONTEXT->id, $2, $4, $6);
 			create_table_append_attribute(&CONTEXT->ssql->sstr.create_table, &attribute);
 			// CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].name =(char*)malloc(sizeof(char));
 			// strcpy(CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].name, CONTEXT->id); 
@@ -267,10 +271,10 @@ attr_def:
 			// CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].length = $4;
 			CONTEXT->value_length++;
 		}
-    |ID_get type
+    |ID_get type opt_null
 		{
 			AttrInfo attribute;
-			attr_info_init(&attribute, CONTEXT->id, $2, 4);
+			attr_info_init(&attribute, CONTEXT->id, $2, 4, $3);
 			create_table_append_attribute(&CONTEXT->ssql->sstr.create_table, &attribute);
 			// CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].name=(char*)malloc(sizeof(char));
 			// strcpy(CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].name, CONTEXT->id); 
@@ -279,6 +283,19 @@ attr_def:
 			CONTEXT->value_length++;
 		}
     ;
+
+opt_null:
+	/*empty*/ {
+		$$ = ISFALSE; // 默认允许null
+	}
+	| NOT NULL_T {
+		$$ = ISFALSE;
+	}
+	| NULLABLE {
+		$$ = ISTRUE;
+	}
+	;
+
 number:
 		NUMBER {$$ = $1;}
 		;
@@ -351,13 +368,17 @@ value_list:
 value:
     NUMBER{	
   		value_init_integer(&CONTEXT->values[CONTEXT->value_length++], $1);
-		}
+	}
     |FLOAT{
   		value_init_float(&CONTEXT->values[CONTEXT->value_length++], $1);
-		}
+	}
+	|NULL_T {
+		// null不需要加双引号，当作字符串插入
+		printf("初始化null值");
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1);
+	}
     |SSS {
-			// $1 = substr($1,1,strlen($1)-2);
-			$1 = substr($1,1,strlen($1)-2);
+		$1 = substr($1,1,strlen($1)-2);
 		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1);
 		}
     ;

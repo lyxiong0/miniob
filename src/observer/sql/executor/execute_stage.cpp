@@ -35,7 +35,7 @@ See the Mulan PSL v2 for more details. */
 
 using namespace common;
 
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, AttrFunction &attr_function, OrderInfo &order_info);
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, AttrFunction &attr_function);
 
 RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results);
 
@@ -242,6 +242,112 @@ void end_trx_if_need(Session *session, Trx *trx, bool all_right)
   }
 }
 
+// 求两个TupleSet的笛卡尔积
+TupleSet cartesian_product(const TupleSet &setA, const TupleSet &setB, bool hasCondition, const Condition &cond)
+{
+  TupleSet ret;
+  TupleSchema schema;
+  schema.append(setA.get_schema());
+  schema.append(setB.get_schema());
+  ret.set_schema(schema);
+
+  if (hasCondition)
+  {
+    const char *left_rel_name = cond.left_attr.relation_name;
+    const char *left_attr_name = cond.left_attr.attribute_name;
+    const char *right_rel_name = cond.right_attr.relation_name;
+    const char *right_attr_name = cond.right_attr.attribute_name;
+    if ((0 == strcmp(setA.get_schema().field(0).table_name(), left_rel_name)) &&
+        (0 == strcmp(setB.get_schema().field(0).table_name(), right_rel_name)))
+    {
+      size_t left_index = 0;
+      size_t right_index = 0;
+      // 找出列在对应schema中的位置
+      while (left_index < setA.get_schema().fields().size())
+      {
+        if (0 == strcmp(setA.get_schema().field(left_index).field_name(), left_attr_name))
+        {
+          break;
+        }
+        left_index++;
+      }
+      while (right_index < setB.get_schema().fields().size())
+      {
+        if (0 == strcmp(setB.get_schema().field(right_index).field_name(), right_attr_name))
+        {
+          break;
+        }
+        right_index++;
+      }
+      for (const auto &tuple_a : setA.tuples())
+      {
+        for (const auto &tuple_b : setB.tuples())
+        {
+          TupleValue *value_a = tuple_a.get_pointer(left_index).get();
+          TupleValue *value_b = tuple_b.get_pointer(right_index).get();
+          bool compare_result = false;
+          switch (cond.comp)
+          {
+          case EQUAL_TO:
+            compare_result = (value_a->compare(*value_b) == 0);
+            break;
+          case LESS_EQUAL:
+            compare_result = (value_a->compare(*value_b) <= 0);
+            break;
+          case NOT_EQUAL:
+            compare_result = (value_a->compare(*value_b) != 0);
+            break;
+          case LESS_THAN:
+            compare_result = (value_a->compare(*value_b) < 0);
+            break;
+          case GREAT_EQUAL:
+            compare_result = (value_a->compare(*value_b) >= 0);
+            break;
+          case GREAT_THAN:
+            compare_result = (value_a->compare(*value_b) > 0);
+            break;
+          default:
+            break;
+          }
+          if (compare_result)
+          { // 满足条件则加入结果Tuple
+            Tuple tmp;
+            for (auto value : tuple_a.values())
+            {
+              tmp.add(value);
+            }
+            for (auto value : tuple_b.values())
+            {
+              tmp.add(value);
+            }
+            ret.add(std::move(tmp));
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+    for (const auto &tuple_a : setA.tuples())
+    {
+      for (const auto &tuple_b : setB.tuples())
+      {
+        Tuple tmp;
+        for (auto value : tuple_a.values())
+        {
+          tmp.add(value);
+        }
+        for (auto value : tuple_b.values())
+        {
+          tmp.add(value);
+        }
+        ret.add(std::move(tmp));
+      }
+    }
+  }
+  return ret;
+}
+
 // 这里没有对输入的某些信息做合法性校验，比如查询的列名、where条件中的列名等，没有做必要的合法性校验
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
 RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_event)
@@ -252,21 +358,24 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   const Selects &selects = sql->sstr.selection;
   // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
   std::vector<SelectExeNode *> select_nodes;
-  std::vector<AttrFunction *> attr_functions; // 储存每个表的类型
-  std::vector<OrderInfo *> order_infos;
+  // std::vector<AttrFunction *> attr_functions; // 储存每个表的类型
+  AttrFunction *attr_function = new AttrFunction;
+  // std::vector<OrderInfo *> order_infos;
 
   for (size_t i = 0; i < selects.relation_num; i++)
   {
     // 遍历所有表
     const char *table_name = selects.relations[i];
-    LOG_INFO("table_name: %s", table_name);
     SelectExeNode *select_node = new SelectExeNode;
-    AttrFunction *attr_function = new AttrFunction;
-    OrderInfo *order_info = new OrderInfo;
+    // AttrFunction *attr_function = new AttrFunction;
 
-    rc = create_selection_executor(trx, selects, db, table_name, *select_node, *attr_function, *order_info);
+    rc = create_selection_executor(trx, selects, db, table_name, *select_node, *attr_function);
     if (rc != RC::SUCCESS)
     {
+      if (rc == RC::SCHEMA_TABLE_NOT_EXIST || rc == RC::SCHEMA_FIELD_MISSING)
+      {
+        session_event->set_response("FAILURE\n");
+      }
       delete select_node;
       for (SelectExeNode *&tmp_node : select_nodes)
       {
@@ -277,8 +386,8 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     }
 
     select_nodes.push_back(select_node);
-    attr_functions.push_back(attr_function);
-    order_infos.push_back(order_info);
+    // attr_functions.push_back(attr_function);
+    // order_infos.push_back(order_info);
   }
 
   if (select_nodes.empty())
@@ -287,6 +396,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     end_trx_if_need(session, trx, false);
     return RC::SQL_SYNTAX;
   }
+
   std::vector<TupleSet> tuple_sets;
   for (SelectExeNode *&node : select_nodes)
   {
@@ -310,53 +420,89 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   }
 
   std::stringstream ss;
-  // if (tuple_sets.size() > 1)
-  // {
-  //   // TODO(): 任务6 多表查询
-  //   // 本次查询了多张表，需要做join操作
-  //   // 生成tuple_sets
-  // }
-  // else
-  // {
-  //   // 当前只查询一张表，直接返回结果即可
-  //   tuple_sets.front().print(ss);
-  // }
+  TupleSet result;
+  if (tuple_sets.size() > 1) // 本次查询了多张表，需要做join操作
+  {                          // e.g. select t1.id, t2.name from t1, t2 where t1.id=t2.id;
 
-  ////////////////////////////聚合函数开始/////////////////////////////
-  std::vector<TupleSet> results;
-  size_t n = tuple_sets.size();
-
-  for (size_t i = 0; i < n; ++i)
-  {
-    RC rc = do_aggregation(&tuple_sets[i], attr_functions[i], results);
-    if (rc != RC::SUCCESS)
+    // 首先要从where子句的Condition中找出两边都是属性的Condition
+    Condition cond;
+    bool hasCondition = false;
+    for (size_t i = 0; i < selects.condition_num; i++)
     {
-      return rc;
+      const Condition &condition = selects.conditions[i];
+      if (condition.left_is_attr == 1 && condition.right_is_attr == 1)
+      {
+        cond = condition; //先假设只有一个这样的condition
+        hasCondition = true;
+      }
     }
-  }
-
-  // ////////////////////////////聚合函数结束/////////////////////////////
-
-  if (results.size() != 0)
-  {
-    results.front().print(ss);
+    // 然后要根据这个condition找出对应的两个表的TupleSet
+    // 并根据condition的谓词过滤出满足条件的构造Tuple
+    int len = tuple_sets.size();
+    result = std::move(tuple_sets[len - 1]);
+    for (int i = len - 2; i >= 0; i--)
+    {
+      result = cartesian_product(result, tuple_sets[i], hasCondition, cond);
+    }
   }
   else
   {
-    // tuple_sets.front().print(ss);
+    // 当前只查询一张表，直接返回结果即可
+    result = std::move(tuple_sets.front());
+  }
 
+  ////////////////////////////聚合函数开始/////////////////////////////
+  // 不管是单表还是多表，到聚合这一步都应该只剩一个TupleSet
+  std::vector<TupleSet> results;
+
+  rc = do_aggregation(&result, attr_function, results);
+  if (rc != RC::SUCCESS)
+  {
+    if (rc == RC::SCHEMA_TABLE_NOT_EXIST || rc == RC::SCHEMA_FIELD_MISSING)
+    {
+      session_event->set_response("FAILURE\n");
+    }
+    for (SelectExeNode *&tmp_node : select_nodes)
+    {
+      delete tmp_node;
+    }
+    end_trx_if_need(session, trx, false);
+    return rc;
+  }
+  ////////////////////////////聚合函数结束/////////////////////////////
+
+  if (results.size() != 0)
+  {
+    result = std::move(results[0]);
+    results.clear();
+  }
+  else
+  {
     // 当前没有group by，先假设聚合和排序是矛盾的，仍然用tuples_sets进行快速排序
     ///////////////////////////////////排序开始////////////////////////////////
-    for (size_t i = 0; i < n; ++i)
+    // 提取排序信息
+    OrderInfo *order_info = new OrderInfo;
+
+    for (int i = selects.order_num - 1; i >= 0; i--)
     {
-      if (order_infos[i]->get_size() > 0)
+      const RelAttr &attr = selects.order_attrs[i];
+      const TupleSchema &schema = result.get_schema();
+      // 确定该属性与这张表有关
+      int index = schema.index_of_field(attr.relation_name, attr.attribute_name);
+      if (index != -1)
       {
-        // 遍历每个TupleSet（即每个表的结果）
-        quick_sort(&tuple_sets[i], 0, tuple_sets[i].size() - 1, order_infos[i]);
+        order_info->add(attr.attribute_name, index, attr.is_desc == 1);
       }
     }
-    tuple_sets.front().print(ss);
+
+    if (order_info->get_size() > 0 && result.size() > 0)
+    {
+      // 遍历每个TupleSet（即每个表的结果）
+      quick_sort(&result, 0, result.size() - 1, order_info);
+    }
   }
+
+  result.print(ss);
 
   for (SelectExeNode *&tmp_node : select_nodes)
   {
@@ -440,11 +586,12 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
 {
   TupleSchema tmp_scheme;
   Tuple tmp_tuple;
-  const char *table_name = tuple_set->get_schema().field(0).table_name();
 
   // COUNT(*)处理
-  if (attr_function->GetIsCount() == true)
+  if (attr_function->get_is_count() == true)
   {
+    const char *table_name = tuple_set->get_schema().field(0).table_name();
+
     tmp_scheme.add_if_not_exists(AttrType::INTS, table_name, std::string("COUNT(*)").c_str());
     tmp_tuple.add((int)tuple_set->tuples().size());
     // tmp_scheme.print(std::cout);
@@ -452,17 +599,19 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
 
   // 遍历所有带函数的属性
   RC rc = RC::SUCCESS;
-  for (int j = 0; j < attr_function->GetSize(); ++j)
+  for (int j = attr_function->get_size() - 1; j >= 0; --j)
   {
-    auto attr_name = attr_function->GetAttrName(j);
-    auto func_type = attr_function->GetFunctionType(j);
-    const char *add_scheme_name = attr_function->ToString(j).c_str();
+    auto attr_name = attr_function->get_attr_name(j);
+    auto func_type = attr_function->get_function_type(j);
+    const char *add_scheme_name = attr_function->to_string(j).c_str();
+    const char *table_name = attr_function->get_table_name(j);
     int index = tuple_set->get_schema().index_of_field(table_name, attr_name);
     // const TupleField &field = tuple_set->get_schema().field(index);
     auto type = tuple_set->get_schema().field(index).type();
 
     if (func_type == FuncType::NOFUNC)
     {
+      // 其实这个if应该永远不会执行
       LOG_ERROR("未定义的聚合函数");
       rc = RC::GENERIC_ERROR;
       return rc;
@@ -629,7 +778,7 @@ static RC schema_add_field(Table *table, const char *field_name, TupleSchema &sc
   return RC::SUCCESS;
 }
 
-FuncType JudgeFunctionType(char *window_function_name)
+FuncType judge_function_type(char *window_function_name)
 {
   if (window_function_name == nullptr)
   {
@@ -665,7 +814,7 @@ FuncType JudgeFunctionType(char *window_function_name)
 }
 
 // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, AttrFunction &attr_function, OrderInfo &order_info)
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, AttrFunction &attr_function)
 {
   // 列出跟这张表关联的Attr
   // 1. 找到表
@@ -706,7 +855,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     }
   }
 
-  // 处理函数
+  // 处理聚合函数
   for (int i = selects.attr_num - 1; i >= 0; i--)
   {
     const RelAttr &attr = selects.attributes[i];
@@ -714,13 +863,13 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     // 确定该属性与这张表有关
     if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name))
     {
-      FuncType function_type = JudgeFunctionType(attr.window_function_name);
+      FuncType function_type = judge_function_type(attr.window_function_name);
 
       if (0 == strcmp("*", attr.attribute_name))
       {
         if (function_type == FuncType::COUNT)
         {
-          attr_function.SetIsCount(true);
+          attr_function.set_is_count(true);
         }
       }
       else
@@ -728,7 +877,8 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         // 聚合函数判断
         if (function_type != FuncType::NOFUNC)
         {
-          attr_function.AddFunctionType(std::string(attr.attribute_name), function_type);
+          LOG_ERROR("add - attr.attribute_name = %s, table_name = %s", attr.attribute_name, attr.relation_name);
+          attr_function.add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
         }
       }
     }
@@ -759,21 +909,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         return rc;
       }
       condition_filters.push_back(condition_filter);
-    }
-  }
-
-  // 提取排序信息
-  for (int i = selects.order_num - 1; i >= 0; i--)
-  {
-    const RelAttr &attr = selects.order_attrs[i];
-
-    // 确定该属性与这张表有关
-    if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name))
-    {
-      order_info.add_attr_name(attr.attribute_name);
-      order_info.add_is_desc(attr.is_desc == 1);
-      // TODO: 这里效率可能很低，在哪里获取index更合适一点？
-      order_info.add_index(schema.index_of_field(table_name, attr.attribute_name));
     }
   }
 

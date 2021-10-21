@@ -181,15 +181,35 @@ void DefaultStorageStage::handle_event(StageEvent *event)
     const Inserts &inserts = sql->sstr.insertion;
     const char *table_name = inserts.relation_name;
     RC rc = RC::SUCCESS;
+    std::vector<Record> records;
 
     for (size_t i = 0; i < inserts.group_num; ++i)
     {
-      rc = handler_->insert_record(current_trx, current_db, table_name, inserts.value_num[i], inserts.values[i]);
-      if (rc != RC::SUCCESS) {
+      Record *record;
+      rc = handler_->insert_record(current_trx, current_db, table_name, inserts.value_num[i], inserts.values[i], &record);
+      if (rc != RC::SUCCESS)
+      {
         LOG_ERROR("插入第%ld组失败", i);
-        current_trx->rollback(); // 一个插入失败，则全部失败
+        // 不能用rollback，因为可能会遇到连续输入两条insert，后一条失败的情况
+        // 使用rollback会导致成功的insert语句也被回滚
+        // current_trx->rollback();
+        // 一个插入失败，则全部失败，处理面前可能成功的插入
+        if (i != 0)
+        {
+          Table *table = handler_->find_table(current_db, table_name);
+          int n = records.size();
+          LOG_ERROR("n = %d", n);
+          for (int j = 0; j < n; ++j)
+          {
+            // table->delete_record(current_trx, &records[j]);
+            table->delete_record(nullptr, &records[j]);
+          }
+        }
         break;
       }
+      LOG_ERROR("append record: %d - %d", record->rid.page_num, record->rid.slot_num);
+
+      records.push_back(*record);
     }
     snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
   }
@@ -230,7 +250,13 @@ void DefaultStorageStage::handle_event(StageEvent *event)
     snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
   }
   break;
-
+  case SCF_DROP_TABLE:
+  { // drop table
+    const DropTable &drop_table = sql->sstr.drop_table;
+    rc = handler_->drop_table(current_db, drop_table.relation_name);
+    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+  }
+  break;
   case SCF_SHOW_TABLES:
   {
     Db *db = handler_->find_db(current_db);

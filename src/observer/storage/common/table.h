@@ -32,6 +32,7 @@ class Trx;
 
 class Table
 {
+  friend class DefaultStorageStage;
 public:
   Table();
   ~Table();
@@ -55,7 +56,7 @@ public:
    */
   RC open(const char *meta_file, const char *base_dir);
 
-  RC insert_record(Trx *trx, int value_num, const Value *values);
+  RC insert_record(Trx *trx, int value_num, const Value *values, Record **ret_record = nullptr);
 
   /**
    * @brief 该函数用于更新表中所有满足指定条件的元组，
@@ -124,6 +125,7 @@ private:
   int file_id_;
   RecordFileHandler *record_handler_; /// 记录操作
   std::vector<Index *> indexes_;
+  
 };
 
 #endif // __OBSERVER_STORAGE_COMMON_TABLE_H__
