@@ -115,6 +115,7 @@ void SessionStage::callback_event(StageEvent *event, CallbackContext *context) {
   int len = sev->get_response_len();
   if (len <= 0 || response == nullptr) {
     response = "No data\n";
+    // response = "FAILURE\n";
     len = strlen(response) + 1;
   }
   Server::send(sev->get_client(), response, len);

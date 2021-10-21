@@ -198,7 +198,6 @@ void DefaultStorageStage::handle_event(StageEvent *event)
         {
           Table *table = handler_->find_table(current_db, table_name);
           int n = records.size();
-          LOG_ERROR("n = %d", n);
           for (int j = 0; j < n; ++j)
           {
             // table->delete_record(current_trx, &records[j]);

@@ -224,7 +224,6 @@ extern "C"
     } else {
       attr_info->is_nullable = 0;
     }
-    LOG_ERROR("is_null = %d", attr_info->is_nullable);
   }
   void attr_info_destroy(AttrInfo *attr_info)
   {

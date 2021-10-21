@@ -109,18 +109,16 @@ RC Trx::insert_record(Table *table, Record *record)
 
 RC Trx::delete_record(Table *table, Record *record)
 {
-  LOG_ERROR("delete_record record: %d - %d", record->rid.page_num, record->rid.slot_num);
+  ("delete_record record: %d - %d", record->rid.page_num, record->rid.slot_num);
   RC rc = RC::SUCCESS;
   start_if_not_started();
   Operation *old_oper = find_operation(table, record->rid);
   // 原代码
   if (old_oper != nullptr)
   {
-    LOG_ERROR("here");
     if (old_oper->type() != Operation::Type::DELETE)
     {
       // 上次操作是插入或更新，删除即为撤销
-      LOG_ERROR("find!");
       delete_operation(table, record->rid);
       return RC::SUCCESS;
     }

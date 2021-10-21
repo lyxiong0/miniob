@@ -886,7 +886,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         // 聚合函数判断
         if (function_type != FuncType::NOFUNC)
         {
-          LOG_ERROR("add - attr.attribute_name = %s, table_name = %s", attr.attribute_name, attr.relation_name);
           attr_function.add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
         }
       }

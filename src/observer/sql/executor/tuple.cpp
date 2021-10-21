@@ -290,7 +290,6 @@ void TupleRecordConverter::add_record(const char *record)
     const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
     if (strcmp(s, "null") == 0)
     {
-      LOG_ERROR("select null值");
       tuple.add(s, strlen(s));
     }
     else
