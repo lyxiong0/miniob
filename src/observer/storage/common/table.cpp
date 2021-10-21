@@ -390,7 +390,7 @@ static RC scan_record_reader_adapter(Record *record, void *context)
 }
 
 RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *context, void (*record_reader)(const char *data, void *context))
-{
+{ //当前scan_record 调用下面的scan_record函数
   RecordReaderScanAdapter adapter(record_reader, context);
   return scan_record(trx, filter, limit, (void *)&adapter, scan_record_reader_adapter);
 }
@@ -437,6 +437,7 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
   {
     if (trx == nullptr || trx->is_visible(this, &record))
     {
+      // 将record添加进tupleset
       rc = record_reader(&record, context);
       if (rc != RC::SUCCESS)
       {
