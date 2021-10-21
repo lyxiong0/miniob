@@ -399,6 +399,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   }
 
   std::stringstream ss;
+  TupleSet result;
   if (tuple_sets.size() > 1)// 本次查询了多张表，需要做join操作
   {  //e.g. select t1.id, t2.name from t1, t2 where t1.id=t2.id;
 
@@ -420,49 +421,52 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
         tuple_set = cartesian_product(tuple_set, tuple_sets[i], hasCondition, cond);
     }
     // tuple_set.get_schema().print(ss);
+
     tuple_set.print(ss);
+    // result = std::move(tuple_set);
   }
   else
   {
     // 当前只查询一张表，直接返回结果即可
     tuple_sets.front().print(ss);
+    //result = std::move(tuple_sets.front());
   }
 
-  ////////////////////////////聚合函数开始/////////////////////////////
-  std::vector<TupleSet> results;
-  size_t n = tuple_sets.size();
+  // ////////////////////////////聚合函数开始/////////////////////////////
+  // std::vector<TupleSet> results;
+  // size_t n = tuple_sets.size();
 
-  for (size_t i = 0; i < n; ++i)
-  {
-    RC rc = do_aggregation(&tuple_sets[i], attr_functions[i], results);
-    if (rc != RC::SUCCESS)
-    {
-      return rc;
-    }
-  }
+  // for (size_t i = 0; i < n; ++i)
+  // {
+  //   RC rc = do_aggregation(&tuple_sets[i], attr_functions[i], results);
+  //   if (rc != RC::SUCCESS)
+  //   {
+  //     return rc;
+  //   }
+  // }
 
-  // ////////////////////////////聚合函数结束/////////////////////////////
+  // // ////////////////////////////聚合函数结束/////////////////////////////
 
-  if (results.size() != 0)
-  {
-    results.front().print(ss);
-  }
-  else
-  {
-    // tuple_sets.front().print(ss);
+  // if (results.size() != 0)
+  // {
+  //   results.front().print(ss);
+  // }
+  // else
+  // {
+  //   // tuple_sets.front().print(ss);
 
-    // 当前没有group by，先假设聚合和排序是矛盾的，仍然用tuples_sets进行快速排序
-    ///////////////////////////////////排序开始////////////////////////////////
-    for (size_t i = 0; i < n; ++i)
-    {
-      if (order_infos[i]->get_size() > 0)
-      {
-        // 遍历每个TupleSet（即每个表的结果）
-        quick_sort(&tuple_sets[i], 0, tuple_sets[i].size() - 1, order_infos[i]);
-      }
-    }
-    tuple_sets.front().print(ss);
-  }
+  //   // 当前没有group by，先假设聚合和排序是矛盾的，仍然用tuples_sets进行快速排序
+  //   ///////////////////////////////////排序开始////////////////////////////////
+  //   for (size_t i = 0; i < n; ++i)
+  //   {
+  //     if (order_infos[i]->get_size() > 0)
+  //     {
+  //       // 遍历每个TupleSet（即每个表的结果）
+  //       quick_sort(&tuple_sets[i], 0, tuple_sets[i].size() - 1, order_infos[i]);
+  //     }
+  //   }
+  //   tuple_sets.front().print(ss);
+  // }
 
   for (SelectExeNode *&tmp_node : select_nodes)
   {
@@ -549,7 +553,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
   const char *table_name = tuple_set->get_schema().field(0).table_name();
 
   // COUNT(*)处理
-  if (attr_function->GetIsCount() == true)
+  if (attr_function->get_is_count() == true)
   {
     tmp_scheme.add_if_not_exists(AttrType::INTS, table_name, std::string("COUNT(*)").c_str());
     tmp_tuple.add((int)tuple_set->tuples().size());
@@ -558,11 +562,11 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
 
   // 遍历所有带函数的属性
   RC rc = RC::SUCCESS;
-  for (int j = attr_function->GetSize() - 1; j >= 0; --j)
+  for (int j = attr_function->get_size() - 1; j >= 0; --j)
   {
-    auto attr_name = attr_function->GetAttrName(j);
-    auto func_type = attr_function->GetFunctionType(j);
-    const char *add_scheme_name = attr_function->ToString(j).c_str();
+    auto attr_name = attr_function->get_attr_name(j);
+    auto func_type = attr_function->get_function_type(j);
+    const char *add_scheme_name = attr_function->to_string(j).c_str();
     int index = tuple_set->get_schema().index_of_field(table_name, attr_name);
     // const TupleField &field = tuple_set->get_schema().field(index);
     auto type = tuple_set->get_schema().field(index).type();
@@ -735,7 +739,7 @@ static RC schema_add_field(Table *table, const char *field_name, TupleSchema &sc
   return RC::SUCCESS;
 }
 
-FuncType JudgeFunctionType(char *window_function_name)
+FuncType judge_function_type(char *window_function_name)
 {
   if (window_function_name == nullptr)
   {
@@ -820,13 +824,13 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     // 确定该属性与这张表有关
     if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name))
     {
-      FuncType function_type = JudgeFunctionType(attr.window_function_name);
+      FuncType function_type = judge_function_type(attr.window_function_name);
 
       if (0 == strcmp("*", attr.attribute_name))
       {
         if (function_type == FuncType::COUNT)
         {
-          attr_function.SetIsCount(true);
+          attr_function.set_is_count(true);
         }
       }
       else
@@ -834,7 +838,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         // 聚合函数判断
         if (function_type != FuncType::NOFUNC)
         {
-          attr_function.AddFunctionType(std::string(attr.attribute_name), function_type);
+          attr_function.add_function_type(std::string(attr.attribute_name), function_type);
         }
       }
     }

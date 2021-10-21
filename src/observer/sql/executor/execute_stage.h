@@ -28,17 +28,17 @@ class SessionEvent;
 class AttrFunction
 {
 public:
-  void AddFunctionType(const std::string &attr_name, FuncType function_type)
+  void add_function_type(const std::string &attr_name, FuncType function_type)
   {
     attr_function_type_.emplace_back(attr_name, function_type);
   }
 
-  void SetIsCount(bool is_count)
+  void set_is_count(bool is_count)
   {
     is_count_ = is_count;
   }
 
-  std::string ToString(int i)
+  std::string to_string(int i)
   {
     FuncType type = attr_function_type_[i].second;
     std::string attr = attr_function_type_[i].first;
@@ -75,35 +75,34 @@ public:
     return s;
   }
 
-  FuncType GetFunctionType(int i)
+  FuncType get_function_type(int i)
   {
     return attr_function_type_[i].second;
   }
 
-  const char *GetAttrName(int i)
+  const char *get_attr_name(int i)
   {
     return attr_function_type_[i].first.c_str();
   }
 
-  int GetSize()
+  int get_size()
   {
     return attr_function_type_.size();
   }
 
-  bool GetIsCount()
+  bool get_is_count()
   {
     return is_count_;
   }
 
-  const std::pair<std::string, FuncType> &GetAttrFunctionType(int i)
+  const std::pair<std::string, FuncType> &get_attr_function_type(int i)
   {
     return attr_function_type_[i];
   }
 
 private:
   bool is_count_ = false; // 是否执行count函数
-  // 存储<属性名，函数类型>
-  std::vector<std::pair<std::string, FuncType>> attr_function_type_;
+  std::vector<std::pair<std::string, FuncType>> attr_function_type_; // 存储<属性名，函数类型>
 };
 
 class OrderInfo
