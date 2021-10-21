@@ -219,8 +219,17 @@ void ExecuteStage::handle_request(common::StageEvent *event)
     exe_event->done_immediate();
   }
   break;
+  case SCF_ERROR:
+  {
+    const char *response = "FAILURE\n";
+    session_event->set_response(response);
+    exe_event->done_immediate();
+  }
+  break;
   default:
   {
+    const char *response = "FAILURE\n";
+    session_event->set_response(response);
     exe_event->done_immediate();
     LOG_ERROR("Unsupported command=%d\n", sql->flag);
   }

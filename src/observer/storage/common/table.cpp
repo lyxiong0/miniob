@@ -324,6 +324,15 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
                 field->name(), field->type(), value.type);
       return RC::SCHEMA_FIELD_TYPE_MISMATCH;
     }
+
+    if (value.type == AttrType::CHARS) {
+      // CHARS值需要判断长度
+      char *s = (char *)value.data;
+      if (strlen(s) > field->len()) {
+        LOG_ERROR("待插入CHARS类型值过长");
+        return RC::SCHEMA_FIELD_MISSING;
+      }
+    }
   }
 
   // 复制所有字段的值
