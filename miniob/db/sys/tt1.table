@@ -1,0 +1,28 @@
+{
+	"fields" : 
+	[
+		{
+			"len" : 4,
+			"name" : "__trx",
+			"offset" : 0,
+			"type" : "ints",
+			"visible" : false
+		},
+		{
+			"len" : 4,
+			"name" : "name",
+			"offset" : 4,
+			"type" : "chars",
+			"visible" : true
+		},
+		{
+			"len" : 4,
+			"name" : "time",
+			"offset" : 8,
+			"type" : "dates",
+			"visible" : true
+		}
+	],
+	"indexes" : null,
+	"table_name" : "tt1"
+}

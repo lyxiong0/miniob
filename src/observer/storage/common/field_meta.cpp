@@ -75,8 +75,7 @@ RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int at
   visible_ = visible;
   nullable_ = nullable;
 
-  LOG_INFO("Init a field with name=%s", name);
-  // desc(std::cout);
+  LOG_INFO("Init a field with name=%s type =%d, attr_offset=%d,attr_len=%d", name,attr_type,attr_offset,attr_len);
   return RC::SUCCESS;
 }
 

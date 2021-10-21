@@ -17,12 +17,12 @@
 		},
 		{
 			"len" : 4,
-			"name" : "age",
+			"name" : "birth",
 			"offset" : 8,
-			"type" : "ints",
+			"type" : "dates",
 			"visible" : true
 		}
 	],
 	"indexes" : null,
-	"table_name" : "t"
+	"table_name" : "t1"
 }

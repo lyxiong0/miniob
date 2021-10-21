@@ -343,7 +343,12 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
   {
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &value = values[i];
+    
     memcpy(record + field->offset(), value.data, field->len());
+    // 用于char 乱码问题追踪测试   如果是char则存储中只会放入4字节内容
+    if(value.type==1){
+      LOG_INFO("调用make record函数，将value值 %s 放进内存 record中结果为 %s",value.data,record+field->offset());
+    }
   }
 
   record_out = record;
@@ -407,7 +412,7 @@ static RC scan_record_reader_adapter(Record *record, void *context)
 }
 
 RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *context, void (*record_reader)(const char *data, void *context))
-{
+{ //当前scan_record 调用下面的scan_record函数
   RecordReaderScanAdapter adapter(record_reader, context);
   return scan_record(trx, filter, limit, (void *)&adapter, scan_record_reader_adapter);
 }
@@ -433,9 +438,10 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
   IndexScanner *index_scanner = find_index_for_scan(filter);
   if (index_scanner != nullptr)
   {
+    LOG_INFO("使用scan_record_by_index in table.cpp 进行scan_record");
     return scan_record_by_index(trx, index_scanner, filter, limit, context, record_reader);
   }
-
+  LOG_INFO("没有使用scan_record_by_index in table.cpp 进行scan_record");
   // filter == nullptr时，scanner会扫描所有元组
   RC rc = RC::SUCCESS;
   RecordFileScanner scanner;
@@ -453,6 +459,7 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
   {
     if (trx == nullptr || trx->is_visible(this, &record))
     {
+      // 将record添加进tupleset
       rc = record_reader(&record, context);
       if (rc != RC::SUCCESS)
       {
