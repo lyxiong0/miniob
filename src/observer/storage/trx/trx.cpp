@@ -72,6 +72,8 @@ RC Trx::update_record(Table *table, Record *record, char *new_record_data)
     }
     else if (old_oper->type() == Operation::Type::UPDATE)
     {
+      // 每次更新都会删除上次更新的记录
+      // 即整个事务最多一次update
       // 每次更新都会删除上次更新/插入的记录
       // 即整个事务最多一次update或insert
       delete_operation(table, record->rid);

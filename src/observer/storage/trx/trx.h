@@ -70,7 +70,6 @@ private:
   SlotNum slot_num_;
   char *new_record_data_;
 };
-
 class OperationHasher
 {
 public:
