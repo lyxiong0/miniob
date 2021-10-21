@@ -181,7 +181,7 @@ void DefaultStorageStage::handle_event(StageEvent *event)
     const Inserts &inserts = sql->sstr.insertion;
     const char *table_name = inserts.relation_name;
     RC rc = RC::SUCCESS;
-    std::vector<Record *> records;
+    std::vector<Record> records;
 
     for (size_t i = 0; i < inserts.group_num; ++i)
     {
@@ -198,14 +198,18 @@ void DefaultStorageStage::handle_event(StageEvent *event)
         {
           Table *table = handler_->find_table(current_db, table_name);
           int n = records.size();
+          LOG_ERROR("n = %d", n);
           for (int j = 0; j < n; ++j)
           {
-            current_trx->delete_record(table, records[j]);
+            // table->delete_record(current_trx, &records[j]);
+            table->delete_record(nullptr, &records[j]);
           }
         }
         break;
       }
-      records.push_back(record);
+      LOG_ERROR("append record: %d - %d", record->rid.page_num, record->rid.slot_num);
+
+      records.push_back(*record);
     }
     snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
   }

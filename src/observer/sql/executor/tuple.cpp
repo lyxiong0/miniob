@@ -313,7 +313,12 @@ void TupleRecordConverter::add_record(const char *record)
       {
         const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
         // LOG_ERROR("%s", s);
-        tuple.add(s, strlen(s));
+        // tuple.add(s, strlen(s));
+        if (strlen(s) > 4) {
+          tuple.add(s, sizeof(char) * 4);
+        } else {
+          tuple.add(s, strlen(s));
+        }
       }
       break;
       case DATES:

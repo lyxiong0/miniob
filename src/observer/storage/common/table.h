@@ -32,6 +32,7 @@ class Trx;
 
 class Table
 {
+  friend class DefaultStorageStage;
 public:
   Table();
   ~Table();
