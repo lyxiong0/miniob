@@ -288,7 +288,6 @@ void TupleRecordConverter::add_record(const char *record)
     assert(field_meta != nullptr);
     // 不管什么类型都有可能插入null
     const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
-    LOG_ERROR("now s = %s", s);
     if (strcmp(s, "null") == 0)
     {
       LOG_ERROR("select null值");

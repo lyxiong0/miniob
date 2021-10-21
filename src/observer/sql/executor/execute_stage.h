@@ -28,9 +28,10 @@ class SessionEvent;
 class AttrFunction
 {
 public:
-  void add_function_type(const std::string &attr_name, FuncType function_type)
+  void add_function_type(const std::string &attr_name, FuncType function_type, const char *table_name)
   {
     attr_function_type_.emplace_back(attr_name, function_type);
+    table_names_.emplace_back(table_name);
   }
 
   void set_is_count(bool is_count)
@@ -42,34 +43,41 @@ public:
   {
     FuncType type = attr_function_type_[i].second;
     std::string attr = attr_function_type_[i].first;
+    std::string table_name = table_names_[i];
     std::string s;
 
     switch (type)
     {
     case FuncType::COUNT:
     {
-      s = std::string("COUNT(") + attr + std::string(")");
-      break;
+      s = std::string("COUNT(");
     }
+    break;
+
     case FuncType::AVG:
     {
-      s = std::string("AVG(") + attr + std::string(")");
-      break;
+      s = std::string("AVG(");
     }
+    break;
+
     case FuncType::MAX:
     {
-      s = std::string("MAX(") + attr + std::string(")");
-      break;
+      s = std::string("MAX(");
     }
+    break;
+
     case FuncType::MIN:
     {
-      s = std::string("MIN(") + attr + std::string(")");
-      break;
+      s = std::string("MIN(");
     }
+    break;
+
     default:
-      s = std::string("UNDEFINED(") + attr + std::string(")");
+      s = std::string("UNDEFINED(");
       break;
     }
+
+    s = s + table_name + std::string(".") + attr + std::string(")");
 
     // return s.c_str();
     return s;
@@ -78,6 +86,11 @@ public:
   FuncType get_function_type(int i)
   {
     return attr_function_type_[i].second;
+  }
+
+  const char *get_table_name(int i)
+  {
+    return table_names_[i];
   }
 
   const char *get_attr_name(int i)
@@ -101,25 +114,18 @@ public:
   }
 
 private:
-  bool is_count_ = false; // 是否执行count函数
+  bool is_count_ = false;                                            // 是否执行count函数
   std::vector<std::pair<std::string, FuncType>> attr_function_type_; // 存储<属性名，函数类型>
+  std::vector<const char *> table_names_;                            // 存储对应的table名
 };
 
 class OrderInfo
 {
 public:
-  void add_is_desc(bool is_desc)
+  void add(const char *attr_name, int idx, bool is_desc)
   {
     is_desc_.emplace_back(is_desc);
-  }
-
-  void add_attr_name(const char *attr_name)
-  {
     attr_name_.emplace_back(attr_name);
-  }
-
-  void add_index(int idx)
-  {
     index_.emplace_back(idx);
   }
 
@@ -137,18 +143,6 @@ public:
   {
     return index_[i];
   }
-
-  // void from_table(const Table *table)
-  // {
-  //   const char *table_name = table->name();
-  //   const TableMeta &table_meta = table->table_meta();
-  //   const int field_num = table_meta.field_num();
-
-  //   for (int i = 0; i < field_num; i++)
-  //   {
-  //     index_.emplace_back(i);
-  //   }
-  // }
 
 private:
   // 包含一个表的排序信息
