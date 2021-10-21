@@ -257,7 +257,8 @@ RC Table::insert_record(Trx *trx, Record *record)
   }
   return rc;
 }
-RC Table::insert_record(Trx *trx, int value_num, const Value *values)
+
+RC Table::insert_record(Trx *trx, int value_num, const Value *values, Record **ret_record)
 {
   if (value_num <= 0 || nullptr == values)
   {
@@ -277,6 +278,10 @@ RC Table::insert_record(Trx *trx, int value_num, const Value *values)
   record.data = record_data;
   // record.valid = true;
   rc = insert_record(trx, &record);
+  if (ret_record != nullptr)
+  {
+    *ret_record = &record;
+  }
   delete[] record_data;
   return rc;
 }
@@ -302,10 +307,18 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
   const int normal_field_start_index = table_meta_.sys_field_num();
   for (int i = 0; i < value_num; i++)
   {
-    // TODO(xiong): 任务4 检查date字段
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &value = values[i];
-    if (field->type() != value.type)
+
+    if (value.type == AttrType::NULLS)
+    {
+      // field->desc(std::cout);
+      if (!field->nullable())
+      {
+        LOG_ERROR("该列不允许插入null值");
+        return RC::SCHEMA_FIELD_NAME_ILLEGAL;
+      }
+    } else if (field->type() != value.type)
     {
       LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
                 field->name(), field->type(), value.type);

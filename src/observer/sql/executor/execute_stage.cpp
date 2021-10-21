@@ -259,7 +259,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   {
     // 遍历所有表
     const char *table_name = selects.relations[i];
-    LOG_INFO("table_name: %s", table_name);
     SelectExeNode *select_node = new SelectExeNode;
     AttrFunction *attr_function = new AttrFunction;
     OrderInfo *order_info = new OrderInfo;
@@ -452,7 +451,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
 
   // 遍历所有带函数的属性
   RC rc = RC::SUCCESS;
-  for (int j = 0; j < attr_function->GetSize(); ++j)
+  for (int j = attr_function->GetSize() - 1; j >= 0; --j)
   {
     auto attr_name = attr_function->GetAttrName(j);
     auto func_type = attr_function->GetFunctionType(j);

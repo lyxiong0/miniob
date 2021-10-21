@@ -208,7 +208,6 @@ void TupleSet::print(std::ostream &os) const
 
   schema_.print(os);
 
-  LOG_DEBUG("here");
   for (const Tuple &item : tuples_)
   {
     const std::vector<std::shared_ptr<TupleValue>> &values = item.values();
@@ -256,23 +255,24 @@ const std::vector<Tuple> &TupleSet::tuples() const
 /////////////////////////////////////////////////////////////////////////////
 TupleRecordConverter::TupleRecordConverter(Table *table, TupleSet &tuple_set) : table_(table), tuple_set_(tuple_set)
 {
-
 }
 
-
-std::string num2date(int n){
+std::string num2date(int n)
+{
   char str1[10];
-  sprintf(str1, "%d" , n);
+  sprintf(str1, "%d", n);
   char str[10];
 
-  for(int i=0,j=0;i<10;i++){
-    if(i==4||i==7){
-      str[i]='-';
+  for (int i = 0, j = 0; i < 10; i++)
+  {
+    if (i == 4 || i == 7)
+    {
+      str[i] = '-';
       i++;
     }
-    str[i]=str1[j++];
+    str[i] = str1[j++];
   }
-  
+
   std::string s = str;
   return s;
 }
@@ -286,30 +286,48 @@ void TupleRecordConverter::add_record(const char *record)
   {
     const FieldMeta *field_meta = table_meta.field(field.field_name());
     assert(field_meta != nullptr);
-    switch (field_meta->type()) {
-      case INTS: {
-        int value = *(int*)(record + field_meta->offset());
+    // 不管什么类型都有可能插入null
+    const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
+    LOG_ERROR("now s = %s", s);
+    if (strcmp(s, "null") == 0)
+    {
+      LOG_ERROR("select null值");
+      tuple.add(s, strlen(s));
+    }
+    else
+    {
+      switch (field_meta->type())
+      {
+      case INTS:
+      {
+        int value = *(int *)(record + field_meta->offset());
         tuple.add(value);
       }
       break;
-      case FLOATS: {
+      case FLOATS:
+      {
         float value = *(float *)(record + field_meta->offset());
         tuple.add(value);
       }
-        break;
-      case CHARS: {
-        const char *s = record + field_meta->offset();  // 现在当做Cstring来处理
+      break;
+      case CHARS:
+      {
+        const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
+        // LOG_ERROR("%s", s);
         tuple.add(s, strlen(s));
       }
       break;
-      case DATES: {
-        int value = *(int*)(record + field_meta->offset());
-        const char *s = num2date(value).data();                           
-        tuple.add(s,strlen(s));
+      case DATES:
+      {
+        int value = *(int *)(record + field_meta->offset());
+        const char *s = num2date(value).data();
+        tuple.add(s, strlen(s));
       }
       break;
-      default: {
+      default:
+      {
         LOG_PANIC("Unsupported field type. type=%d", field_meta->type());
+      }
       }
     }
   }

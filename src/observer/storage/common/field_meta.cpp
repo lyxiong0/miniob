@@ -53,7 +53,7 @@ AttrType attr_type_from_string(const char *s) {
 FieldMeta::FieldMeta() : attr_type_(AttrType::UNDEFINED), attr_offset_(-1), attr_len_(0), visible_(false) {
 }
 
-RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible) {
+RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, bool nullable) {
   // 检查字段名参数
   // std::cout<<"init FieldMeta that attr_type is "<<attr_type<<std::endl;
   if (nullptr == name || '\0' == name[0]) {
@@ -73,8 +73,10 @@ RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int at
   attr_len_ = attr_len;
   attr_offset_ = attr_offset;
   visible_ = visible;
+  nullable_ = nullable;
 
   LOG_INFO("Init a field with name=%s", name);
+  // desc(std::cout);
   return RC::SUCCESS;
 }
 
@@ -98,11 +100,16 @@ bool FieldMeta::visible() const {
   return visible_;
 }
 
+bool FieldMeta::nullable() const {
+  return nullable_;
+}
+
 void FieldMeta::desc(std::ostream &os) const {
   os << "field name=" << name_
      << ", type=" << attr_type_to_string(attr_type_)
      << ", len=" << attr_len_
-     << ", visible=" << (visible_ ? "yes" : "no");
+     << ", visible=" << (visible_ ? "yes" : "no")
+     << ", nullable=" << (nullable_ ? "yes" : "no");
 }
 
 void FieldMeta::to_json(Json::Value &json_value) const {

@@ -139,12 +139,23 @@ extern "C"
     }
     return num;
   }
+
+  bool match_null(const char * s) {
+    std::string str = s;
+    std::regex format_("^[Nn][Uu][Ll][Ll]$");
+    
+    if (std::regex_match(str, format_)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
   
   void value_init_string(Value *value, const char *v)
   {
     if (check_date_data(v))
     {
-      std::cout << "成功 匹配 日期较严格格式" << std::endl;
+      std::cout << "成功 匹配日期较严格格式" << std::endl;
       // 需要详细检测是否合格日期的含义 闰年和2038年等
       value->type = DATES;
       // 转换为数字
@@ -152,13 +163,17 @@ extern "C"
       value->data = malloc(sizeof(date_num));
       memcpy(value->data, &date_num, sizeof(date_num));
       std::cout << "now the insert date in value->data is " << *(int *)(value->data) << std::endl;
-    }
-    else
+    } else if (match_null(v)) {
+      std::cout << "满足null格式" << std::endl; 
+      value->type = NULLS;
+      value->data = strdup(v);
+    } else
     {
-      std::cout << "没有成功 匹配日期较严格格式" << std::endl;
+      std::cout << "没有成功 匹配日期较严格格式" << std::endl;      
+      
       value->type = CHARS;
       value->data = strdup(v);
-      std::cout << "now the insert char in value->data is " << *(char *)(value->data) << std::endl;
+      std::cout << "now the insert char in value->data is " << (char *)(value->data) << std::endl;
     }
   }
 
@@ -207,11 +222,18 @@ extern "C"
     }
   }
 
-  void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length)
+  void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, TrueOrFalse is_nullable)
   {
     attr_info->name = strdup(name);
     attr_info->type = type;
     attr_info->length = length;
+    
+    if (is_nullable == ISTRUE) {
+      attr_info->is_nullable = 1;
+    } else {
+      attr_info->is_nullable = 0;
+    }
+    LOG_ERROR("is_null = %d", attr_info->is_nullable);
   }
   void attr_info_destroy(AttrInfo *attr_info)
   {
