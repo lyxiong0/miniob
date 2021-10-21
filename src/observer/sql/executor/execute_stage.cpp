@@ -319,6 +319,9 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     // 这个函数里检查了from子句中的表是否存在
     rc = create_selection_executor(trx, selects, db, table_name, *select_node);
     if (rc != RC::SUCCESS) {
+      if (rc == RC::SCHEMA_TABLE_NOT_EXIST || rc == RC::SCHEMA_FIELD_MISSING) {
+        session_event->set_response("FAILURE\n");
+      }
       delete select_node;
       for (SelectExeNode *& tmp_node: select_nodes) {
         delete tmp_node;
