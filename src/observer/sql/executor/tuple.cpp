@@ -305,7 +305,18 @@ void TupleRecordConverter::add_record(const char *record)
       case FLOATS:
       {
         float value = *(float *)(record + field_meta->offset());
-        tuple.add(value);
+        float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));
+        if (value > -1e-6 && value < 1e-6)
+        {
+          LOG_ERROR("here");
+          tuple.add(value_other);
+        }
+        else
+        {
+          tuple.add(value);
+        }
+        LOG_ERROR("value = %f", value);
+        LOG_ERROR("value_o = %f", value_other);
       }
       break;
       case CHARS:

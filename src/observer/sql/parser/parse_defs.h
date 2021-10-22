@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 #define __OBSERVER_SQL_PARSER_PARSE_DEFS_H__
 
 #include <stddef.h>
+#include <memory.h>
 
 #define MAX_NUM 20
 #define MAX_REL_NAME 20

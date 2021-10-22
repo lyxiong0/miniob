@@ -206,7 +206,6 @@ void DefaultStorageStage::handle_event(StageEvent *event)
         }
         break;
       }
-      LOG_ERROR("append record: %d - %d", record->rid.page_num, record->rid.slot_num);
 
       records.push_back(*record);
     }
