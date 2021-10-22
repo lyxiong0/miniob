@@ -21,6 +21,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/executor/tuple.h"
 
 #include <cctype>
+#include <iomanip>
 #include <unordered_map>
 
 class SessionEvent;

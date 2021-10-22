@@ -219,8 +219,17 @@ void ExecuteStage::handle_request(common::StageEvent *event)
     exe_event->done_immediate();
   }
   break;
+  case SCF_ERROR:
+  {
+    const char *response = "FAILURE\n";
+    session_event->set_response(response);
+    exe_event->done_immediate();
+  }
+  break;
   default:
   {
+    const char *response = "FAILURE\n";
+    session_event->set_response(response);
     exe_event->done_immediate();
     LOG_ERROR("Unsupported command=%d\n", sql->flag);
   }
@@ -372,10 +381,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     rc = create_selection_executor(trx, selects, db, table_name, *select_node, *attr_function);
     if (rc != RC::SUCCESS)
     {
-      if (rc == RC::SCHEMA_TABLE_NOT_EXIST || rc == RC::SCHEMA_FIELD_MISSING)
-      {
-        session_event->set_response("FAILURE\n");
-      }
+      session_event->set_response("FAILURE\n");
       delete select_node;
       for (SelectExeNode *&tmp_node : select_nodes)
       {
@@ -393,6 +399,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   if (select_nodes.empty())
   {
     LOG_ERROR("No table given");
+    session_event->set_response("FAILURE\n");
     end_trx_if_need(session, trx, false);
     return RC::SQL_SYNTAX;
   }
@@ -877,7 +884,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         // 聚合函数判断
         if (function_type != FuncType::NOFUNC)
         {
-          LOG_ERROR("add - attr.attribute_name = %s, table_name = %s", attr.attribute_name, attr.relation_name);
           attr_function.add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
         }
       }

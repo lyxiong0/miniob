@@ -290,7 +290,6 @@ void TupleRecordConverter::add_record(const char *record)
     const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
     if (strcmp(s, "null") == 0)
     {
-      LOG_ERROR("select null值");
       tuple.add(s, strlen(s));
     }
     else
@@ -306,7 +305,18 @@ void TupleRecordConverter::add_record(const char *record)
       case FLOATS:
       {
         float value = *(float *)(record + field_meta->offset());
-        tuple.add(value);
+        float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));
+        if (value > -1e-6 && value < 1e-6)
+        {
+          LOG_ERROR("here");
+          tuple.add(value_other);
+        }
+        else
+        {
+          tuple.add(value);
+        }
+        LOG_ERROR("value = %f", value);
+        LOG_ERROR("value_o = %f", value_other);
       }
       break;
       case CHARS:
@@ -314,11 +324,7 @@ void TupleRecordConverter::add_record(const char *record)
         const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
         // LOG_ERROR("%s", s);
         // tuple.add(s, strlen(s));
-        if (strlen(s) > 4) {
-          tuple.add(s, sizeof(char) * 4);
-        } else {
-          tuple.add(s, strlen(s));
-        }
+        tuple.add(s, strlen(s));
       }
       break;
       case DATES:

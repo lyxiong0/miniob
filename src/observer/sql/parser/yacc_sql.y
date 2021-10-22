@@ -152,7 +152,7 @@ ParserContext *get_context(yyscan_t scanner)
 %%
 
 commands:		//commands or sqls. parser starts here.
-    /* empty */
+    /* empty */ 
     | commands command
     ;
 

@@ -304,11 +304,19 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
     return RC::SCHEMA_FIELD_MISSING;
   }
 
+  Value new_value;
   const int normal_field_start_index = table_meta_.sys_field_num();
   for (int i = 0; i < value_num; i++)
   {
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &value = values[i];
+
+    if (value.type == AttrType::INTS && field->type() == AttrType::FLOATS)
+    {
+      // 允许int类型给float类型赋值，例如17 -> 17.00
+
+      continue;
+    }
 
     if (value.type == AttrType::NULLS)
     {
@@ -318,11 +326,23 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
         LOG_ERROR("该列不允许插入null值");
         return RC::SCHEMA_FIELD_NAME_ILLEGAL;
       }
-    } else if (field->type() != value.type)
+    }
+    else if (field->type() != value.type)
     {
       LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
                 field->name(), field->type(), value.type);
       return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+    }
+
+    if (value.type == AttrType::CHARS)
+    {
+      // CHARS值需要判断长度
+      char *s = (char *)value.data;
+      if (strlen(s) > field->len())
+      {
+        LOG_ERROR("待插入CHARS类型值过长");
+        return RC::SCHEMA_FIELD_MISSING;
+      }
     }
   }
 
@@ -334,12 +354,12 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
   {
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &value = values[i];
-    
+
     memcpy(record + field->offset(), value.data, field->len());
     // 用于char 乱码问题追踪测试   如果是char则存储中只会放入4字节内容
-    if(value.type==1){
-      LOG_INFO("调用make record函数，将value值 %s 放进内存 record中结果为 %s",value.data,record+field->offset());
-    }
+    // if(value.type==1){
+    //   LOG_INFO("调用make record函数，将value值 %s 放进内存 record中结果为 %s",value.data,record+field->offset());
+    // }
   }
 
   record_out = record;
@@ -429,10 +449,8 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
   IndexScanner *index_scanner = find_index_for_scan(filter);
   if (index_scanner != nullptr)
   {
-    LOG_INFO("使用scan_record_by_index in table.cpp 进行scan_record");
     return scan_record_by_index(trx, index_scanner, filter, limit, context, record_reader);
   }
-  LOG_INFO("没有使用scan_record_by_index in table.cpp 进行scan_record");
   // filter == nullptr时，scanner会扫描所有元组
   RC rc = RC::SUCCESS;
   RecordFileScanner scanner;

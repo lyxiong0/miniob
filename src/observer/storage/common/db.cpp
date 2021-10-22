@@ -81,7 +81,6 @@ RC Db::create_table(const char *table_name, int attribute_count, const AttrInfo 
 
 RC Db::drop_table(const char *table_name)
 {
-  LOG_ERROR("into drop");
   RC rc = RC::SUCCESS;
 
   // 表不存在
@@ -92,7 +91,6 @@ RC Db::drop_table(const char *table_name)
 
   // 删除table_meta文件
   std::string table_file_path = table_meta_file(path_.c_str(), table_name);
-  LOG_ERROR("%s", table_file_path.c_str());
   if (::remove(table_file_path.c_str()) != 0)
   {
     LOG_ERROR("Failed to remove table file: %s", table_file_path.c_str());
@@ -101,7 +99,6 @@ RC Db::drop_table(const char *table_name)
 
   // 删除data文件
   std::string datafile_path = path_ + "/" + table_name + TABLE_DATA_SUFFIX;
-  LOG_ERROR("%s", datafile_path.c_str());
   if (::remove(datafile_path.c_str()) != 0)
   {
     LOG_ERROR("Failed to remove table file: %s", datafile_path.c_str());
@@ -109,7 +106,6 @@ RC Db::drop_table(const char *table_name)
   }
   opened_tables_.erase(table_name);
 
-  LOG_INFO("Create table success. table name=%s", table_name);
   return RC::SUCCESS;
 }
 
