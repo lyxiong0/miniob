@@ -10,15 +10,22 @@
 		},
 		{
 			"len" : 4,
-			"name" : "name",
+			"name" : "id",
 			"offset" : 4,
+			"type" : "ints",
+			"visible" : true
+		},
+		{
+			"len" : 4,
+			"name" : "name",
+			"offset" : 8,
 			"type" : "chars",
 			"visible" : true
 		},
 		{
 			"len" : 4,
-			"name" : "time",
-			"offset" : 8,
+			"name" : "enroll",
+			"offset" : 12,
 			"type" : "dates",
 			"visible" : true
 		}
