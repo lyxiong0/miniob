@@ -240,6 +240,7 @@ bool check_date_data(const char *s)
   {
     attr_info->name = strdup(name);
     attr_info->type = type;
+    
     attr_info->length = length;
     
     if (is_nullable == ISTRUE) {

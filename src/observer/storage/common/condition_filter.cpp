@@ -167,7 +167,8 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   case CHARS:
   { // 字符串都是定长的，直接比较
     // 按照C字符串风格来定
-    cmp_result = strcmp(left_value, right_value);
+    // LOG_INFO("THE left_value length = %d right_value length = %d in defaultconditionfilter",strlen(left_value),strlen(right_value));
+    cmp_result = strncmp(left_value, right_value, left_.attr_length);
   }
   break;
   case INTS:
