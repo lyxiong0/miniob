@@ -108,7 +108,7 @@ int TupleSchema::index_of_field(const char *table_name, const char *field_name) 
   return -1;
 }
 
-void TupleSchema::print(std::ostream &os) const {
+void TupleSchema::print(std::ostream &os, bool multitable) const {
   if (fields_.empty()) {
     os << "No schema";
     return;
@@ -122,13 +122,15 @@ void TupleSchema::print(std::ostream &os) const {
 
   for (std::vector<TupleField>::const_iterator iter = fields_.begin(), end = --fields_.end();
        iter != end; ++iter) {
-    if (table_names.size() > 1) {
+    // 多张表才会打印表名，一张表只打印列名
+    LOG_INFO("multitable is true");
+    if (table_names.size() > 1 || multitable) {
       os << iter->table_name() << ".";
     }
     os << iter->field_name() << " | ";
   }
 
-  if (table_names.size() > 1) {
+  if (table_names.size() > 1 || multitable) {
     os << fields_.back().table_name() << ".";
   }
   os << fields_.back().field_name() << std::endl;
@@ -162,13 +164,13 @@ void TupleSet::clear() {
   schema_.clear();
 }
 
-void TupleSet::print(std::ostream &os) const {
+void TupleSet::print(std::ostream &os, bool multitable) const {
   if (schema_.fields().empty()) {
     LOG_WARN("Got empty schema");
     return;
   }
 
-  schema_.print(os);
+  schema_.print(os, multitable);
 
   for (const Tuple &item : tuples_) {
     const std::vector<std::shared_ptr<TupleValue>> &values = item.values();
