@@ -83,7 +83,17 @@ extern "C"
     value->data = nullptr;
   }
 // check date 格式
-  bool check_date_data(const char *s)
+bool check_date_format(const char *s)
+  {
+    std::string str = s;
+    std::regex pattern("^\\d{4}-\\d{1,2}-\\d{1,2}");
+    if (std::regex_match(str, pattern))
+    {
+      return true;
+    }
+    return false;
+  }
+bool check_date_data(const char *s)
   {
     std::string str = s;
     std::regex pattern("((19[7-9][0-9]|20[0-2][0-9]|203[0-7])-(((0?[13578]|1[02])-([12][0-9]|3[01]|0?[1-9]))|((0?[469]|11)-([12][0-9]|30|0?[1-9]))|(0?2-([1][0-9]|2[0-8]|0?[1-9]))))|(19(8[048]|[79][26])-0?2-29)|(2038-((0?1-([1-2][0-9]|3[0-1]|0?[1-9]))|(0?2-(1[0-9]|2[0-8]|0?[1-9]))))");
@@ -156,7 +166,6 @@ extern "C"
     } else
     {
       std::cout << "没有成功匹配日期格式" << std::endl;      
-      
       value->type = CHARS;
       value->data = strdup(v);
       // std::cout << "now the insert char in value->data is " << (char *)(value->data) << std::endl;
@@ -169,28 +178,42 @@ extern "C"
   {
     LOG_INFO("condition_init function starts");
     condition->comp = comp;
+    condition->is_valid=true;
     condition->left_is_attr = left_is_attr;
     if (left_is_attr)
     {
-      LOG_INFO("left_is_attr=true and attr.relation=%s attr.attribute_name=%s ",left_attr->relation_name,left_attr->attribute_name);
+      //LOG_INFO("left_is_attr=true and attr.relation=%s attr.attribute_name=%s ",left_attr->relation_name,left_attr->attribute_name);
       condition->left_attr = *left_attr;
     }
     else
     {
-      LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data);
-      condition->left_value = *left_value;
+      // check the date format
+      //LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data);
+      if(check_date_format((char *)left_value->data) && !check_date_data((char *)left_value->data)){
+        // fail to pass date format check should return FAILURE
+        //LOG_INFO("condition is invalid cause do not pass the date data check");
+        condition->is_valid=false;
+      }else{
+        condition->left_value = *left_value;
+      }
     }
 
     condition->right_is_attr = right_is_attr;
     if (right_is_attr)
     {
-      LOG_INFO("right_is_attr=true and attr.relation=%s attr.attribute_name=%s ",right_attr->relation_name,right_attr->attribute_name);
+      //LOG_INFO("right_is_attr=true and attr.relation=%s attr.attribute_name=%s ",right_attr->relation_name,right_attr->attribute_name);
       condition->right_attr = *right_attr;
     }
     else
     {
-      LOG_INFO("right_is_attr=false and left_value.type=%d and its data=%s",right_value->type,(char *)right_value->data);
-      condition->right_value = *right_value;
+      //LOG_INFO("right_is_attr=false and right_value.type=%d and its data=%s",right_value->type,(char *)right_value->data);
+      if(check_date_format((char *)right_value->data) && !check_date_data((char *)right_value->data)){
+        // fail to pass date format check should return FAILURE
+        //LOG_INFO("condition is invalid cause do not pass the date data check");
+        condition->is_valid=false;
+      }else{
+        condition->right_value = *right_value;
+      }
     }
   }
   void condition_destroy(Condition *condition)
@@ -244,13 +267,19 @@ extern "C"
   {
     selects->order_attrs[selects->order_num++] = *rel_attr;
   }
-
-  void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num)
+  // void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num)
+  void selects_append_conditions(Query *sql, Condition conditions[], size_t condition_num)
   {
+    Selects *selects = &sql->sstr.selection;
     assert(condition_num <= sizeof(selects->conditions) / sizeof(selects->conditions[0]));
     for (size_t i = 0; i < condition_num; i++)
     {
-      selects->conditions[i] = conditions[i];
+      if(conditions[i].is_valid){
+        selects->conditions[i] = conditions[i];
+      }else{
+        sql->flag=SCF_ERROR;
+        break;
+      }
     }
     selects->condition_num = condition_num;
   }
@@ -575,9 +604,12 @@ extern "C" int sql_parse(const char *st, Query *sqls);
 RC parse(const char *st, Query *sqln)
 {
   sql_parse(st, sqln);
-
-  if (sqln->flag == SCF_ERROR)
+  //LOG_INFO(" the parse result sqln->flag is %d",sqln->flag);
+  if (sqln->flag == SCF_ERROR){
+    LOG_INFO(" the parse function return SQL_SYNTAX");
     return SQL_SYNTAX;
-  else
+  }else{
+    LOG_INFO(" the parse function return SUCCESS");
     return SUCCESS;
+  }
 }

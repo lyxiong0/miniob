@@ -407,14 +407,16 @@ update:			/*  update 语句的语法解析树*/
 select:				/*  select 语句的语法解析树*/
     SELECT select_attr FROM ID rel_list where order_by SEMICOLON
 	{
+			CONTEXT->ssql->flag=SCF_SELECT;//"select";
+
 			// CONTEXT->ssql->sstr.selection.relations[CONTEXT->from_length++]=$4;
 			selects_append_relation(&CONTEXT->ssql->sstr.selection, $4);
 
-			selects_append_conditions(&CONTEXT->ssql->sstr.selection, CONTEXT->conditions, CONTEXT->condition_length);
-
-			CONTEXT->ssql->flag=SCF_SELECT;//"select";
+			//selects_append_conditions(&CONTEXT->ssql->sstr.selection, CONTEXT->conditions, CONTEXT->condition_length);
+			selects_append_conditions(CONTEXT->ssql, CONTEXT->conditions, CONTEXT->condition_length);
+			
 			// CONTEXT->ssql->sstr.selection.attr_num = CONTEXT->select_length;
-
+			
 			//临时变量清零
 			CONTEXT->condition_length=0;
 			CONTEXT->from_length=0;
