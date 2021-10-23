@@ -460,6 +460,7 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
   IndexScanner *index_scanner = find_index_for_scan(filter);
   if (index_scanner != nullptr)
   {
+    LOG_INFO(" scan_record_by_index ");
     return scan_record_by_index(trx, index_scanner, filter, limit, context, record_reader);
   }
   // filter == nullptr时，scanner会扫描所有元组
@@ -538,7 +539,6 @@ RC Table::scan_record_by_index(Trx *trx, IndexScanner *scanner, ConditionFilter 
         break;
       }
     }
-
     record_count++;
   }
 

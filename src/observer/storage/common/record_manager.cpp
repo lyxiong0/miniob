@@ -455,7 +455,6 @@ RC RecordFileHandler::get_record(const RID *rid, Record *rec) {
               rid->page_num, file_id_);
     return ret;
   }
-
   return page_handler.get_record(rid, rec);
 }
 
