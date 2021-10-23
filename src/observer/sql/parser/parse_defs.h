@@ -17,6 +17,7 @@ See the Mulan PSL v2 for more details. */
 
 #include <stddef.h>
 #include <memory.h>
+#include <stdbool.h>
 
 #define MAX_NUM 20
 #define MAX_REL_NAME 20
@@ -72,6 +73,7 @@ typedef struct _Value
 
 typedef struct _Condition
 {
+  bool is_valid;      // added for check if date value is valid
   int left_is_attr;   // TRUE if left-hand side is an attribute
                       // 1时，操作符左边是属性名，0时，是属性值
   Value left_value;   // left-hand side value if left_is_attr = FALSE
@@ -243,7 +245,8 @@ extern "C"
   void selects_init(Selects *selects, ...);
   void selects_append_attribute(Selects *selects, RelAttr *rel_attr);
   void selects_append_relation(Selects *selects, const char *relation_name);
-  void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
+  // void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
+  void selects_append_conditions(Query *sql, Condition conditions[], size_t condition_num);
   void selects_append_order(Selects *selects, RelAttr *rel_attr);
   void selects_destroy(Selects *selects);
 
