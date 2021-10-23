@@ -59,6 +59,7 @@ Trx::~Trx()
 
 RC Trx::update_record(Table *table, Record *record, char *new_record_data)
 {
+  LOG_ERROR("Start update");
   start_if_not_started();
   Operation *old_oper = find_operation(table, record->rid);
 
@@ -84,6 +85,7 @@ RC Trx::update_record(Table *table, Record *record, char *new_record_data)
   reocrd_data_map_[digest_(record->rid)] = new_record_data;
   set_record_trx_id(table, *record, trx_id_, false);
   insert_operation(table, Operation::Type::UPDATE, record->rid);
+  LOG_ERROR("finish update");
   return RC::SUCCESS;
 }
 
@@ -130,7 +132,6 @@ RC Trx::delete_record(Table *table, Record *record)
 
   // if (old_oper != nullptr)
   // {
-  //   LOG_DEBUG("here");
   //   if (old_oper->type() == Operation::Type::DELETE)
   //   {
   //     return RC::GENERIC_ERROR;

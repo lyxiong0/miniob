@@ -35,9 +35,11 @@ See the Mulan PSL v2 for more details. */
 
 using namespace common;
 
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, AttrFunction &attr_function);
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
 
 RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results);
+
+FuncType judge_function_type(char *window_function_name);
 
 void quick_sort(TupleSet *tuple_set, int l, int r, OrderInfo *order_info);
 
@@ -266,12 +268,20 @@ TupleSet cartesian_product(const TupleSet &setA, const TupleSet &setB, bool hasC
     const char *left_attr_name = cond.left_attr.attribute_name;
     const char *right_rel_name = cond.right_attr.relation_name;
     const char *right_attr_name = cond.right_attr.attribute_name;
+
     if ((0 == strcmp(setA.get_schema().field(0).table_name(), left_rel_name)) &&
         (0 == strcmp(setB.get_schema().field(0).table_name(), right_rel_name)))
     {
-      size_t left_index = 0;
-      size_t right_index = 0;
       // 找出列在对应schema中的位置
+      int left_index = 0;
+      int right_index = 0;
+      // int left_index = setA.get_schema().index_of_field(left_rel_name, left_attr_name);
+      // int right_index = setA.get_schema().index_of_field(right_rel_name, right_attr_name);
+      // if (left_index == -1 || right_index == -1) {
+      //   LOG_ERROR("无法找到left_attr_name = %s, right_attr_name = %s", left_attr_name, right_attr_name);
+      //   return ret;
+      // }
+      // LOG_INFO("找到left_attr_name = %s, right_attr_name = %s", left_attr_name, right_attr_name);
       while (left_index < setA.get_schema().fields().size())
       {
         if (0 == strcmp(setA.get_schema().field(left_index).field_name(), left_attr_name))
@@ -288,6 +298,14 @@ TupleSet cartesian_product(const TupleSet &setA, const TupleSet &setB, bool hasC
         }
         right_index++;
       }
+
+      if (left_index == setA.get_schema().fields().size() || right_index == setB.get_schema().fields().size())
+      {
+        LOG_ERROR("无法找到left_attr_name = %s, right_attr_name = %s", left_attr_name, right_attr_name);
+        return ret;
+      }
+      LOG_INFO("找到left_attr_name = %s, right_attr_name = %s", left_attr_name, right_attr_name);
+
       for (const auto &tuple_a : setA.tuples())
       {
         for (const auto &tuple_b : setB.tuples())
@@ -367,18 +385,14 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   const Selects &selects = sql->sstr.selection;
   // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
   std::vector<SelectExeNode *> select_nodes;
-  // std::vector<AttrFunction *> attr_functions; // 储存每个表的类型
-  AttrFunction *attr_function = new AttrFunction;
-  // std::vector<OrderInfo *> order_infos;
 
   for (size_t i = 0; i < selects.relation_num; i++)
   {
     // 遍历所有表
     const char *table_name = selects.relations[i];
     SelectExeNode *select_node = new SelectExeNode;
-    // AttrFunction *attr_function = new AttrFunction;
 
-    rc = create_selection_executor(trx, selects, db, table_name, *select_node, *attr_function);
+    rc = create_selection_executor(trx, selects, db, table_name, *select_node);
     if (rc != RC::SUCCESS)
     {
       session_event->set_response("FAILURE\n");
@@ -392,8 +406,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     }
 
     select_nodes.push_back(select_node);
-    // attr_functions.push_back(attr_function);
-    // order_infos.push_back(order_info);
   }
 
   if (select_nodes.empty())
@@ -462,13 +474,26 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   // 不管是单表还是多表，到聚合这一步都应该只剩一个TupleSet
   std::vector<TupleSet> results;
 
+  // 处理聚合函数
+  AttrFunction *attr_function = new AttrFunction;
+  for (int i = selects.attr_num - 1; i >= 0; i--)
+  {
+    const RelAttr &attr = selects.attributes[i];
+
+    // 确定该属性与这张表有关
+    if (attr.window_function_name != nullptr)
+    {
+      // 注意这里attr.relation_name可能为nullptr
+      FuncType function_type = judge_function_type(attr.window_function_name);
+      attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
+    }
+  }
+
   rc = do_aggregation(&result, attr_function, results);
+
   if (rc != RC::SUCCESS)
   {
-    if (rc == RC::SCHEMA_TABLE_NOT_EXIST || rc == RC::SCHEMA_FIELD_MISSING)
-    {
-      session_event->set_response("FAILURE\n");
-    }
+    session_event->set_response("FAILURE\n");
     for (SelectExeNode *&tmp_node : select_nodes)
     {
       delete tmp_node;
@@ -594,27 +619,48 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
   TupleSchema tmp_scheme;
   Tuple tmp_tuple;
 
-  // COUNT(*)处理
-  if (attr_function->get_is_count() == true)
-  {
-    const char *table_name = tuple_set->get_schema().field(0).table_name();
-
-    tmp_scheme.add_if_not_exists(AttrType::INTS, table_name, std::string("COUNT(*)").c_str());
-    tmp_tuple.add((int)tuple_set->tuples().size());
-    // tmp_scheme.print(std::cout);
-  }
-
   // 遍历所有带函数的属性
   RC rc = RC::SUCCESS;
   for (int j = attr_function->get_size() - 1; j >= 0; --j)
   {
-    auto attr_name = attr_function->get_attr_name(j);
-    auto func_type = attr_function->get_function_type(j);
-    const char *add_scheme_name = attr_function->to_string(j).c_str();
     const char *table_name = attr_function->get_table_name(j);
-    int index = tuple_set->get_schema().index_of_field(table_name, attr_name);
+    const char *attr_name = attr_function->get_attr_name(j);
+    auto func_type = attr_function->get_function_type(j);
+    // 获取 func_type( 字符串
+    std::string add_scheme_name = attr_function->to_string(j);
+
+    if (strcmp(attr_name, "*") == 0)
+    {
+      // 处理COUNT(*)
+      tmp_scheme.add_if_not_exists(AttrType::INTS, "", add_scheme_name.c_str());
+      tmp_tuple.add((int)tuple_set->tuples().size());
+      continue;
+    }
+
+    int index = -1;
+    AttrType type = AttrType::UNDEFINED;
+    if (table_name != nullptr)
+    {
+      index = tuple_set->get_schema().index_of_field(table_name, attr_name);
+      type = tuple_set->get_schema().field(index).type();
+    }
+    else
+    {
+      // 手动搜寻
+      const TupleSchema &schema = tuple_set->get_schema();
+      int n = schema.fields().size();
+      for (int i = 0; i < n; ++i)
+      {
+        if (strcmp(schema.field(i).field_name(), attr_name) == 0)
+        {
+          index = i;
+          type = schema.field(i).type();
+          break;
+        }
+      }
+    }
     // const TupleField &field = tuple_set->get_schema().field(index);
-    auto type = tuple_set->get_schema().field(index).type();
+    LOG_ERROR("here");
 
     if (func_type == FuncType::NOFUNC)
     {
@@ -625,12 +671,13 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     }
 
     // 增加tuple
+    AttrType add_type = AttrType::UNDEFINED;
     switch (func_type)
     {
     case FuncType::COUNT:
     {
       // 增加Scheme
-      tmp_scheme.add_if_not_exists(AttrType::INTS, table_name, add_scheme_name);
+      add_type = AttrType::INTS;
 
       // TODO: 考虑NULL值
       tmp_tuple.add((int)tuple_set->tuples().size());
@@ -638,14 +685,15 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     }
     case FuncType::AVG:
     {
-      if (type == AttrType::CHARS || type == DATES)
+      if (type == AttrType::CHARS || type == AttrType::DATES)
       {
         // CHARS和DATES不应该计算平均值
         rc = RC::GENERIC_ERROR;
         break;
       }
       // 增加Scheme
-      tmp_scheme.add_if_not_exists(AttrType::FLOATS, table_name, add_scheme_name);
+      // tmp_scheme.add_if_not_exists(AttrType::FLOATS, add_scheme_name.c_str(), add_attr_name.c_str());
+      add_type = AttrType::FLOATS;
 
       int size = (int)tuple_set->tuples().size();
       float ans = 0;
@@ -684,7 +732,8 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       }
 
       // 增加Scheme
-      tmp_scheme.add_if_not_exists(type, table_name, add_scheme_name);
+      // tmp_scheme.add_if_not_exists(type, add_scheme_name.c_str(), add_attr_name.c_str());
+      add_type = type;
 
       if (type == AttrType::FLOATS)
       {
@@ -699,9 +748,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
                       std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
       }
-      // else if (type == AttrType::DATES) {
-      //   tmp_tuple.add();
-      // }
 
       break;
     }
@@ -721,7 +767,8 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       }
 
       // 增加Scheme
-      tmp_scheme.add_if_not_exists(type, table_name, add_scheme_name);
+      // tmp_scheme.add_if_not_exists(type, add_scheme_name.c_str(), add_attr_name.c_str());
+      add_type = type;
 
       if (type == AttrType::FLOATS)
       {
@@ -736,15 +783,14 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
                       std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
       }
-      // else if (type == AttrType::DATES) {
-      //   tmp_tuple.add();
-      // }
 
       break;
     }
     default:
       break;
     }
+
+    tmp_scheme.add_if_not_exists(add_type, "", add_scheme_name.c_str());
 
     if (rc != RC::SUCCESS)
     {
@@ -821,7 +867,7 @@ FuncType judge_function_type(char *window_function_name)
 }
 
 // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, AttrFunction &attr_function)
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node)
 {
   // 列出跟这张表关联的Attr
   // 1. 找到表
@@ -857,34 +903,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         if (rc != RC::SUCCESS)
         {
           return rc;
-        }
-      }
-    }
-  }
-
-  // 处理聚合函数
-  for (int i = selects.attr_num - 1; i >= 0; i--)
-  {
-    const RelAttr &attr = selects.attributes[i];
-
-    // 确定该属性与这张表有关
-    if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name))
-    {
-      FuncType function_type = judge_function_type(attr.window_function_name);
-
-      if (0 == strcmp("*", attr.attribute_name))
-      {
-        if (function_type == FuncType::COUNT)
-        {
-          attr_function.set_is_count(true);
-        }
-      }
-      else
-      {
-        // 聚合函数判断
-        if (function_type != FuncType::NOFUNC)
-        {
-          attr_function.add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
         }
       }
     }

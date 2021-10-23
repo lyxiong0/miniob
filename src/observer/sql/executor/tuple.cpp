@@ -308,23 +308,22 @@ void TupleRecordConverter::add_record(const char *record)
         float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));
         if (value > -1e-6 && value < 1e-6)
         {
-          LOG_ERROR("here");
           tuple.add(value_other);
         }
         else
         {
           tuple.add(value);
         }
-        LOG_ERROR("value = %f", value);
-        LOG_ERROR("value_o = %f", value_other);
       }
       break;
       case CHARS:
       {
+        //TODO: 这里不知道为什么会出现strlen(s)超过field_meta->len()的情况
+        // insert的时候已经检查过长度strlen(s)没问题
         const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
-        // LOG_ERROR("%s", s);
+        int len = field_meta->len() < strlen(s) ? field_meta->len() : strlen(s);
         // tuple.add(s, strlen(s));
-        tuple.add(s, strlen(s));
+        tuple.add(s, len);
       }
       break;
       case DATES:

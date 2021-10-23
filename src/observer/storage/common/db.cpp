@@ -66,6 +66,7 @@ RC Db::create_table(const char *table_name, int attribute_count, const AttrInfo 
   }
 
   std::string table_file_path = table_meta_file(path_.c_str(), table_name); // 文件路径可以移到Table模块
+  std::cout << table_file_path << std::endl;
   Table *table = new Table();
   rc = table->create(table_file_path.c_str(), table_name, path_.c_str(), attribute_count, attributes);
   if (rc != RC::SUCCESS)
@@ -82,15 +83,33 @@ RC Db::create_table(const char *table_name, int attribute_count, const AttrInfo 
 RC Db::drop_table(const char *table_name)
 {
   RC rc = RC::SUCCESS;
+  Table *table = find_table(table_name);
 
   // 表不存在
-  if (opened_tables_.count(table_name) == 0)
+  if (table == nullptr)
   {
     return RC::SCHEMA_TABLE_NOT_EXIST;
   }
 
+  // 删除index文件
+  std::vector<const char *> index_names = table->get_index_names();
+  int n = index_names.size();
+  for (int i = 0; i < n; ++i)
+  {
+    LOG_ERROR("start");
+    const char * index_name = index_names[i];
+    std::string indexfile_path = path_ + "/" + table_name + "-" + index_name + TABLE_INDEX_SUFFIX;
+    std::cout << indexfile_path << std::endl;
+    if (::remove(indexfile_path.c_str()) != 0)
+    {
+      LOG_ERROR("Failed to remove table file: %s", indexfile_path.c_str());
+      return RC::IOERR;
+    }
+  }
+
   // 删除table_meta文件
   std::string table_file_path = table_meta_file(path_.c_str(), table_name);
+  std::cout << table_file_path << std::endl;
   if (::remove(table_file_path.c_str()) != 0)
   {
     LOG_ERROR("Failed to remove table file: %s", table_file_path.c_str());
@@ -105,6 +124,8 @@ RC Db::drop_table(const char *table_name)
     return RC::IOERR;
   }
   opened_tables_.erase(table_name);
+
+  delete table; // 释放表
 
   return RC::SUCCESS;
 }

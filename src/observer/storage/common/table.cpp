@@ -106,6 +106,7 @@ RC Table::create(const char *path, const char *name, const char *base_dir, int a
   fs.close();
 
   std::string data_file = std::string(base_dir) + "/" + name + TABLE_DATA_SUFFIX;
+  std::cout << data_file << std::endl;
   data_buffer_pool_ = theGlobalDiskBufferPool();
   rc = data_buffer_pool_->create_file(data_file.c_str());
   if (rc != RC::SUCCESS)
@@ -296,6 +297,45 @@ const TableMeta &Table::table_meta() const
   return table_meta_;
 }
 
+RC Table::is_legal(const Value &value, const FieldMeta *field)
+{
+  if (value.type == AttrType::INTS && field->type() == AttrType::FLOATS)
+  {
+    // 允许int类型给float类型赋值，例如17 -> 17.00
+    return RC::SUCCESS;
+  }
+
+  if (value.type == AttrType::NULLS)
+  {
+    // field->desc(std::cout);
+    if (!field->nullable())
+    {
+      LOG_ERROR("该列不允许插入null值");
+      return RC::SCHEMA_FIELD_NAME_ILLEGAL;
+    }
+  }
+  else if (field->type() != value.type)
+  {
+    LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
+              field->name(), field->type(), value.type);
+    return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+  }
+
+  if (value.type == AttrType::CHARS)
+  {
+    // CHARS值需要判断长度
+    char *s = (char *)value.data;
+    LOG_ERROR("s = %s, len = %d, field_len = %d", s, strlen(s), field->len());
+    if (strlen(s) > field->len())
+    {
+      LOG_ERROR("待插入CHARS类型值过长");
+      return RC::SCHEMA_FIELD_MISSING;
+    }
+  }
+
+  return RC::SUCCESS;
+}
+
 RC Table::make_record(int value_num, const Value *values, char *&record_out)
 {
   // 检查字段类型是否一致
@@ -311,38 +351,9 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &value = values[i];
 
-    if (value.type == AttrType::INTS && field->type() == AttrType::FLOATS)
-    {
-      // 允许int类型给float类型赋值，例如17 -> 17.00
-
-      continue;
-    }
-
-    if (value.type == AttrType::NULLS)
-    {
-      // field->desc(std::cout);
-      if (!field->nullable())
-      {
-        LOG_ERROR("该列不允许插入null值");
-        return RC::SCHEMA_FIELD_NAME_ILLEGAL;
-      }
-    }
-    else if (field->type() != value.type)
-    {
-      LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
-                field->name(), field->type(), value.type);
-      return RC::SCHEMA_FIELD_TYPE_MISMATCH;
-    }
-
-    if (value.type == AttrType::CHARS)
-    {
-      // CHARS值需要判断长度
-      char *s = (char *)value.data;
-      if (strlen(s) > field->len())
-      {
-        LOG_ERROR("待插入CHARS类型值过长");
-        return RC::SCHEMA_FIELD_MISSING;
-      }
+    RC rc = is_legal(value, field);
+    if (rc != RC::SUCCESS) {
+      return rc;
     }
   }
 
@@ -557,6 +568,18 @@ static RC insert_index_record_reader_adapter(Record *record, void *context)
   return inserter.insert_index(record);
 }
 
+std::vector<const char *> Table::get_index_names()
+{
+  std::vector<const char *> res;
+  for (auto idx : indexes_)
+  {
+    LOG_ERROR("index_name = %s", idx->index_meta().name());
+    res.push_back(idx->index_meta().name());
+  }
+
+  return res;
+}
+
 RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_name)
 {
   if (index_name == nullptr || common::is_blank(index_name) ||
@@ -740,9 +763,9 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
     return RC::SCHEMA_FIELD_NOT_EXIST;
   }
 
-  // TODO(xiong): 事务处理
-  if (trx != nullptr)
-  // if (false)
+  RC rc = RC::SUCCESS;
+  // if (trx != nullptr)
+  if (false)
   {
     // 更新record
     // 深拷贝record->data
@@ -751,23 +774,33 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
     memcpy(new_record_data + field_meta->offset(), value->data, field_meta->len());
 
     // 更新事务
-    RC rc = trx->update_record(this, record, new_record_data);
+    rc = trx->update_record(this, record, new_record_data);
     if (rc != RC::SUCCESS)
     {
       return rc;
     }
   }
 
+  Index *index = find_index(attribute_name);
+
   // 删除索引index
-  RC rc = delete_entry_of_indexes(record->data, record->rid, false); // 重复代码 refer to commit_delete
-  if (rc != RC::SUCCESS)
+  if (index != nullptr)
   {
-    LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
-              record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
-    return rc;
+    // RC rc = delete_entry_of_indexes(record->data, record->rid, false); // 重复代码 refer to commit_delete
+    rc = index->delete_entry(record->data, &record->rid);
+    if (rc != RC::SUCCESS)
+    {
+      LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
+                record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
+      return rc;
+    }
   }
 
   // 更新record
+  rc = is_legal(*value, field_meta);
+  if (rc != RC::SUCCESS) {
+    return rc;
+  }
   memcpy(record->data + field_meta->offset(), value->data, field_meta->len());
   rc = record_handler_->update_record(record);
   if (rc != RC::SUCCESS)
@@ -777,23 +810,27 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
   }
 
   // 插入index
-  rc = insert_entry_of_indexes(record->data, record->rid);
-  if (rc != RC::SUCCESS)
+  if (index != nullptr)
   {
-    LOG_ERROR("insert_entry_of_indexes fail");
-    RC rc2 = delete_entry_of_indexes(record->data, record->rid, true);
-    if (rc2 != RC::SUCCESS)
+    // rc = insert_entry_of_indexes(record->data, record->rid);
+    rc = index->insert_entry(record->data, &record->rid);
+    if (rc != RC::SUCCESS)
     {
-      LOG_PANIC("Failed to rollback index data when insert index entries failed. table name=%s, rc=%d:%s",
-                name(), rc2, strrc(rc2));
+      LOG_ERROR("insert_entry_of_indexes fail");
+      RC rc2 = delete_entry_of_indexes(record->data, record->rid, true);
+      if (rc2 != RC::SUCCESS)
+      {
+        LOG_PANIC("Failed to rollback index data when insert index entries failed. table name=%s, rc=%d:%s",
+                  name(), rc2, strrc(rc2));
+      }
+      rc2 = record_handler_->delete_record(&record->rid);
+      if (rc2 != RC::SUCCESS)
+      {
+        LOG_PANIC("Failed to rollback record data when insert index entries failed. table name=%s, rc=%d:%s",
+                  name(), rc2, strrc(rc2));
+      }
+      return rc;
     }
-    rc2 = record_handler_->delete_record(&record->rid);
-    if (rc2 != RC::SUCCESS)
-    {
-      LOG_PANIC("Failed to rollback record data when insert index entries failed. table name=%s, rc=%d:%s",
-                name(), rc2, strrc(rc2));
-    }
-    return rc;
   }
   return rc;
 }

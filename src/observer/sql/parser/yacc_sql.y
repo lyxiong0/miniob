@@ -438,6 +438,11 @@ select_attr:
 			relation_attr_init(&attr, $1, $3, NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
+	| ID DOT STAR attr_list { // select t1.age
+			RelAttr attr;
+			relation_attr_init(&attr, $1, "*", NULL, 0);
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+		}
 	| window_function function_list {
 		// 放到window_function里执行
 	}
@@ -478,6 +483,12 @@ window_function:
 		relation_attr_init(&attr, $3, $5, $1, 0);
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
+	| COUNT LBRACE ID DOT STAR RBRACE 
+	{
+		RelAttr attr;
+		relation_attr_init(&attr, $3, "*", $1, 0);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
 	| OTHER_FUNCTION_TYPE LBRACE ID RBRACE 
 	{
 		RelAttr attr;
@@ -488,6 +499,12 @@ window_function:
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, $3, $5, $1, 0);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| OTHER_FUNCTION_TYPE LBRACE ID DOT STAR RBRACE 
+	{
+		RelAttr attr;
+		relation_attr_init(&attr, $3, "*", $1, 0);
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
 	;

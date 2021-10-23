@@ -31,56 +31,54 @@ class AttrFunction
 public:
   void add_function_type(const std::string &attr_name, FuncType function_type, const char *table_name)
   {
+    
     attr_function_type_.emplace_back(attr_name, function_type);
     table_names_.emplace_back(table_name);
-  }
-
-  void set_is_count(bool is_count)
-  {
-    is_count_ = is_count;
   }
 
   std::string to_string(int i)
   {
     FuncType type = attr_function_type_[i].second;
     std::string attr = attr_function_type_[i].first;
-    std::string table_name = table_names_[i];
     std::string s;
 
     switch (type)
     {
     case FuncType::COUNT:
     {
-      s = std::string("COUNT(");
+      s = std::string("count(");
     }
     break;
 
     case FuncType::AVG:
     {
-      s = std::string("AVG(");
+      s = std::string("avg(");
     }
     break;
 
     case FuncType::MAX:
     {
-      s = std::string("MAX(");
+      s = std::string("max(");
     }
     break;
 
     case FuncType::MIN:
     {
-      s = std::string("MIN(");
+      s = std::string("min(");
     }
     break;
 
     default:
-      s = std::string("UNDEFINED(");
+      s = std::string("undefined(");
       break;
     }
 
-    s = s + table_name + std::string(".") + attr + std::string(")");
+    if (table_names_[i] != nullptr) {
+      s = s + std::string(table_names_[i]) + std::string(".");
+    }
 
-    // return s.c_str();
+    s = s + attr + std::string(")");
+
     return s;
   }
 
@@ -104,18 +102,7 @@ public:
     return attr_function_type_.size();
   }
 
-  bool get_is_count()
-  {
-    return is_count_;
-  }
-
-  const std::pair<std::string, FuncType> &get_attr_function_type(int i)
-  {
-    return attr_function_type_[i];
-  }
-
 private:
-  bool is_count_ = false;                                            // 是否执行count函数
   std::vector<std::pair<std::string, FuncType>> attr_function_type_; // 存储<属性名，函数类型>
   std::vector<const char *> table_names_;                            // 存储对应的table名
 };
