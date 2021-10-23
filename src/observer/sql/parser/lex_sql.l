@@ -39,7 +39,7 @@ QUOTE            [\'\"]
 
 ";"                 	 				           RETURN_TOKEN(SEMICOLON);
 {DOT}                 					         RETURN_TOKEN(DOT);
-"*"                   					         RETURN_TOKEN(STAR);
+"*"                   					         yylval->string=strdup(yytext); RETURN_TOKEN(STAR);
 [Ee][Xx][Ii][Tt]						             RETURN_TOKEN(EXIT);
 [Hh][Ee][Ll][Pp]                    	   RETURN_TOKEN(HELP);
 [Dd][Ee][Ss][Cc]                         RETURN_TOKEN(DESC);

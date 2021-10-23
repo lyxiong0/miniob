@@ -475,31 +475,35 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   std::vector<TupleSet> results;
 
   // 处理聚合函数
-  AttrFunction *attr_function = new AttrFunction;
-  for (int i = selects.attr_num - 1; i >= 0; i--)
+  if (result.size() > 0)
   {
-    const RelAttr &attr = selects.attributes[i];
-
-    // 确定该属性与这张表有关
-    if (attr.window_function_name != nullptr)
+    // 上一步有结果才进行聚合
+    AttrFunction *attr_function = new AttrFunction;
+    for (int i = selects.attr_num - 1; i >= 0; i--)
     {
-      // 注意这里attr.relation_name可能为nullptr
-      FuncType function_type = judge_function_type(attr.window_function_name);
-      attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
+      const RelAttr &attr = selects.attributes[i];
+
+      // 确定该属性与这张表有关
+      if (attr.window_function_name != nullptr)
+      {
+        // 注意这里attr.relation_name可能为nullptr
+        FuncType function_type = judge_function_type(attr.window_function_name);
+        attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
+      }
     }
-  }
 
-  rc = do_aggregation(&result, attr_function, results);
+    rc = do_aggregation(&result, attr_function, results);
 
-  if (rc != RC::SUCCESS)
-  {
-    session_event->set_response("FAILURE\n");
-    for (SelectExeNode *&tmp_node : select_nodes)
+    if (rc != RC::SUCCESS)
     {
-      delete tmp_node;
+      session_event->set_response("FAILURE\n");
+      for (SelectExeNode *&tmp_node : select_nodes)
+      {
+        delete tmp_node;
+      }
+      end_trx_if_need(session, trx, false);
+      return rc;
     }
-    end_trx_if_need(session, trx, false);
-    return rc;
   }
   ////////////////////////////聚合函数结束/////////////////////////////
 
@@ -888,8 +892,8 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     // 确定该属性与这张表有关
     if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name))
     {
-      // 对应select */ select count(*)的情况
-      if (0 == strcmp("*", attr.attribute_name))
+      // 对应select *的情况
+      if (0 == strcmp("*", attr.attribute_name) || isdigit(attr.attribute_name[0]) || attr.attribute_name[0] == '-')
       {
         // 找到对应的表
         // 列出这张表所有字段

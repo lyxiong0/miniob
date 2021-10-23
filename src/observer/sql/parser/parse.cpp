@@ -38,6 +38,7 @@ extern "C"
     }
 
     relation_attr->attribute_name = strdup(attribute_name);
+      LOG_ERROR("%s", attribute_name);
 
     if (window_function_name != nullptr)
     {
@@ -75,14 +76,14 @@ extern "C"
     value->data = malloc(sizeof(v));
     memcpy(value->data, &v, sizeof(v));
   }
-  
+
   void value_destroy(Value *value)
   {
     value->type = UNDEFINED;
     free(value->data);
     value->data = nullptr;
   }
-// check date 格式
+  // check date 格式
   bool check_date_data(const char *s)
   {
     std::string str = s;
@@ -127,17 +128,21 @@ extern "C"
     return num;
   }
 
-  bool match_null(const char * s) {
+  bool match_null(const char *s)
+  {
     std::string str = s;
     std::regex format_("^[Nn][Uu][Ll][Ll]$");
-    
-    if (std::regex_match(str, format_)) {
+
+    if (std::regex_match(str, format_))
+    {
       return true;
-    } else {
+    }
+    else
+    {
       return false;
     }
   }
-  
+
   void value_init_string(Value *value, const char *v)
   {
     if (check_date_data(v))
@@ -149,14 +154,17 @@ extern "C"
       value->data = malloc(sizeof(date_num));
       memcpy(value->data, &date_num, sizeof(date_num));
       // std::cout << "now the insert date in value->data is " << *(int *)(value->data) << std::endl;
-    } else if (match_null(v)) {
-      std::cout << "满足null格式" << std::endl; 
+    }
+    else if (match_null(v))
+    {
+      std::cout << "满足null格式" << std::endl;
       value->type = NULLS;
       value->data = strdup(v);
-    } else
+    }
+    else
     {
-      std::cout << "没有成功匹配日期格式" << std::endl;      
-      
+      std::cout << "没有成功匹配日期格式" << std::endl;
+
       value->type = CHARS;
       value->data = strdup(v);
       // std::cout << "now the insert char in value->data is " << (char *)(value->data) << std::endl;
@@ -172,24 +180,24 @@ extern "C"
     condition->left_is_attr = left_is_attr;
     if (left_is_attr)
     {
-      LOG_INFO("left_is_attr=true and attr.relation=%s attr.attribute_name=%s ",left_attr->relation_name,left_attr->attribute_name);
+      LOG_INFO("left_is_attr=true and attr.relation=%s attr.attribute_name=%s ", left_attr->relation_name, left_attr->attribute_name);
       condition->left_attr = *left_attr;
     }
     else
     {
-      LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data);
+      LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s", left_value->type, (char *)left_value->data);
       condition->left_value = *left_value;
     }
 
     condition->right_is_attr = right_is_attr;
     if (right_is_attr)
     {
-      LOG_INFO("right_is_attr=true and attr.relation=%s attr.attribute_name=%s ",right_attr->relation_name,right_attr->attribute_name);
+      LOG_INFO("right_is_attr=true and attr.relation=%s attr.attribute_name=%s ", right_attr->relation_name, right_attr->attribute_name);
       condition->right_attr = *right_attr;
     }
     else
     {
-      LOG_INFO("right_is_attr=false and left_value.type=%d and its data=%s",right_value->type,(char *)right_value->data);
+      LOG_INFO("right_is_attr=false and left_value.type=%d and its data=%s", right_value->type, (char *)right_value->data);
       condition->right_value = *right_value;
     }
   }
@@ -218,10 +226,13 @@ extern "C"
     attr_info->name = strdup(name);
     attr_info->type = type;
     attr_info->length = length;
-    
-    if (is_nullable == ISTRUE) {
+
+    if (is_nullable == ISTRUE)
+    {
       attr_info->is_nullable = 1;
-    } else {
+    }
+    else
+    {
       attr_info->is_nullable = 0;
     }
   }
@@ -564,6 +575,42 @@ extern "C"
   {
     LOG_ERROR(info);
   }
+
+  const char *number_to_str(int number)
+  {
+    char s[25];
+    char ret[25];
+    int idx = 0;
+    int i = 0;
+
+    if (number == 0)
+    {
+      s[idx++] = '0';
+      s[idx] = '\0';
+      return strdup(s);
+    }
+
+    if (number < 0)
+    {
+      ret[i++] = '-';
+      number = -number;
+    }
+
+    while (number != 0)
+    {
+      s[idx++] = number % 10 + '0';
+      number /= 10;
+    }
+
+    for (int j = 0; j < idx; ++j)
+    {
+      ret[i++] = s[j];
+    }
+
+    ret[i] = '\0';
+    return strdup(ret);
+  }
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus

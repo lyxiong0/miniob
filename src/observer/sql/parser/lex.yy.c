@@ -956,7 +956,7 @@ RETURN_TOKEN(DOT);
 case 7:
 YY_RULE_SETUP
 #line 42 "lex_sql.l"
-RETURN_TOKEN(STAR);
+yylval->string=strdup(yytext); RETURN_TOKEN(STAR);
 	YY_BREAK
 case 8:
 YY_RULE_SETUP

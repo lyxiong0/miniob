@@ -122,7 +122,7 @@ union YYSTYPE
   //char *date;
   int number;
   float floats;
-	char *position;
+  char *position;
 
 #line 128 "yacc_sql.tab.h"
 

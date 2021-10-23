@@ -56,7 +56,7 @@ typedef enum
 } AttrType;
 
 // true or false
-typedef enum 
+typedef enum
 {
   ISTRUE,
   ISFALSE,
@@ -284,6 +284,8 @@ extern "C"
   void query_destroy(Query *query); // reset and delete
 
   void log_err(const char *info);
+
+  const char *number_to_str(int number);
 
 #ifdef __cplusplus
 }

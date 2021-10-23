@@ -127,7 +127,7 @@ ParserContext *get_context(yyscan_t scanner)
   //char *date;
   int number;
   float floats;
-	char *position;
+  char *position;
 }
 
 %token <number> NUMBER
@@ -148,6 +148,7 @@ ParserContext *get_context(yyscan_t scanner)
 %type <value1> value;
 %type <number> number;
 %type <number> opt_null;
+%type <string> opt_star;
 
 %%
 
@@ -465,10 +466,10 @@ attr_list:
   	  }
   	;
 window_function:
-	COUNT LBRACE STAR RBRACE 
+	COUNT LBRACE opt_star RBRACE 
 	{	// 只有COUNT允许COUNT(*)
 		RelAttr attr;
-		relation_attr_init(&attr, NULL, "*", $1, 0);
+		relation_attr_init(&attr, NULL, $3, $1, 0);
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
 	| COUNT LBRACE ID RBRACE 
@@ -507,6 +508,10 @@ window_function:
 		relation_attr_init(&attr, $3, "*", $1, 0);
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
+	;
+opt_star:
+	STAR { $$ = $1;}
+	| NUMBER {$$ = number_to_str($1);}
 	;
 function_list:
 	/* empty */
