@@ -176,54 +176,88 @@ void DefaultStorageStage::handle_event(StageEvent *event)
   char response[256];
   switch (sql->flag)
   {
-  case SCF_INSERT: { // insert into
-      const Inserts &inserts = sql->sstr.insertion;
-      const char *table_name = inserts.relation_name;
-      rc = handler_->insert_record(current_trx, current_db, table_name, inserts.value_num, inserts.values);
-      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
-    }
-    break;
-  case SCF_UPDATE: {
-      const Updates &updates = sql->sstr.update;
-      const char *table_name = updates.relation_name;
-      const char *field_name = updates.attribute_name;
-      int updated_count = 0;
-      rc = handler_->update_record(current_trx, current_db, table_name, field_name, &updates.value,
-                                   updates.condition_num, updates.conditions, &updated_count);
-      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
-    }
-    break;
-  case SCF_DELETE: {
-      const Deletes &deletes = sql->sstr.deletion;
-      const char *table_name = deletes.relation_name;
-      int deleted_count = 0;
-      rc = handler_->delete_record(current_trx, current_db, table_name, deletes.condition_num, deletes.conditions, &deleted_count);
-      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
-    }
-    break;
-  case SCF_CREATE_TABLE: { // create table
-      const CreateTable &create_table = sql->sstr.create_table;
-      rc = handler_->create_table(current_db, create_table.relation_name, 
-              create_table.attribute_count, create_table.attributes);
-      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
-    }
-    break;
+  case SCF_INSERT:
+  { // insert into
+    const Inserts &inserts = sql->sstr.insertion;
+    const char *table_name = inserts.relation_name;
+    RC rc = RC::SUCCESS;
+    std::vector<Record> records;
 
-    case SCF_DROP_TABLE: { // drop table
-      const DropTable &drop_table = sql->sstr.drop_table;
-      rc = handler_->drop_table(current_db, drop_table.relation_name);
-      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
-    }
-    break;
+    for (size_t i = 0; i < inserts.group_num; ++i)
+    {
+      Record *record;
+      rc = handler_->insert_record(current_trx, current_db, table_name, inserts.value_num[i], inserts.values[i], &record);
+      if (rc != RC::SUCCESS)
+      {
+        LOG_ERROR("插入第%ld组失败", i);
+        // 不能用rollback，因为可能会遇到连续输入两条insert，后一条失败的情况
+        // 使用rollback会导致成功的insert语句也被回滚
+        // current_trx->rollback();
+        // 一个插入失败，则全部失败，处理面前可能成功的插入
+        if (i != 0)
+        {
+          Table *table = handler_->find_table(current_db, table_name);
+          int n = records.size();
+          for (int j = 0; j < n; ++j)
+          {
+            // table->delete_record(current_trx, &records[j]);
+            table->delete_record(nullptr, &records[j]);
+          }
+        }
+        break;
+      }
 
-  case SCF_CREATE_INDEX: {
-      const CreateIndex &create_index = sql->sstr.create_index;
-      rc = handler_->create_index(current_trx, current_db, create_index.relation_name, 
-                                  create_index.index_name, create_index.attribute_name);
-      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+      records.push_back(*record);
     }
-    break;
-
+    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+  }
+  break;
+  case SCF_UPDATE:
+  {
+    const Updates &updates = sql->sstr.update;
+    const char *table_name = updates.relation_name;
+    const char *field_name = updates.attribute_name;
+    int updated_count = 0;
+    rc = handler_->update_record(current_trx, current_db, table_name, field_name, &updates.value,
+                                 updates.condition_num, updates.conditions, &updated_count);
+    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+  }
+  break;
+  case SCF_DELETE:
+  {
+    const Deletes &deletes = sql->sstr.deletion;
+    const char *table_name = deletes.relation_name;
+    int deleted_count = 0;
+    rc = handler_->delete_record(current_trx, current_db, table_name, deletes.condition_num, deletes.conditions, &deleted_count);
+    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+  }
+  break;
+  case SCF_CREATE_TABLE:
+  { // create table
+    const CreateTable &create_table = sql->sstr.create_table;
+    rc = handler_->create_table(current_db, create_table.relation_name,
+                                create_table.attribute_count, create_table.attributes);
+    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+  }
+  break;
+  case SCF_CREATE_INDEX:
+  {
+    const CreateIndex &create_index = sql->sstr.create_index;
+    rc = handler_->create_index(current_trx, current_db, create_index.relation_name,
+                                create_index.index_name, create_index.attribute_name);
+    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+  }
+  break;
+  case SCF_DROP_TABLE:
+  { // drop table
+    const DropTable &drop_table = sql->sstr.drop_table;
+    int deleted_count = 0;
+    // TODO: 目前清空整个表，实际上应该只要删除所有索引
+    // rc = handler_->delete_record(current_trx, current_db, drop_table.relation_name, 0, nullptr, &deleted_count);
+    rc = handler_->drop_table(current_db, drop_table.relation_name);
+    snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+  }
+  break;
   case SCF_SHOW_TABLES:
   {
     Db *db = handler_->find_db(current_db);

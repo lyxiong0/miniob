@@ -16,6 +16,7 @@ typedef struct ParserContext {
   size_t condition_length;
   size_t from_length;
   size_t value_length;
+  size_t insert_index;
   Value values[MAX_NUM];
   Condition conditions[MAX_NUM];
   CompOp comp;
@@ -25,17 +26,22 @@ typedef struct ParserContext {
 //获取子串
 char *substr(const char *s,int n1,int n2)/*从s中提取下标为n1~n2的字符组成一个新字符串，然后返回这个新串的首地址*/
 {
+  // printf("start call substr on s %s with n1 is %d and n2 is %d \n",s,n1,n2);
   char *sp = malloc(sizeof(char) * (n2 - n1 + 2));
   int i, j = 0;
+  
+  // printf("now the substr is going \n");
   for (i = n1; i <= n2; i++) {
     sp[j++] = s[i];
   }
   sp[j] = 0;
+  // printf("now the substr end and new string is %s \n",sp);
   return sp;
 }
 
 void yyerror(yyscan_t scanner, const char *str)
 {
+	// 初始化
   ParserContext *context = (ParserContext *)(yyget_extra(scanner));
   query_reset(context->ssql);
   context->ssql->flag = SCF_ERROR;
@@ -43,7 +49,11 @@ void yyerror(yyscan_t scanner, const char *str)
   context->from_length = 0;
   context->select_length = 0;
   context->value_length = 0;
-  context->ssql->sstr.insertion.value_num = 0;
+  context->insert_index = 0;
+  for (size_t i = 0; i < MAX_NUM; i++) {
+  	context->ssql->sstr.insertion.value_num[i] = 0;
+  }
+  context->ssql->sstr.insertion.group_num = 0;
   printf("parse sql failed. error=%s", str);
 }
 
@@ -83,6 +93,10 @@ ParserContext *get_context(yyscan_t scanner)
         INT_T
         STRING_T
         FLOAT_T
+		ORDER
+		ASC
+		BY
+		DATE_T
         HELP
         EXIT
         DOT //QUOTE
@@ -96,6 +110,8 @@ ParserContext *get_context(yyscan_t scanner)
         LOAD
         DATA
         INFILE
+		NULLABLE
+		NOT
         EQ
         LT
         GT
@@ -108,9 +124,10 @@ ParserContext *get_context(yyscan_t scanner)
   struct _Condition *condition1;
   struct _Value *value1;
   char *string;
+  //char *date;
   int number;
   float floats;
-	char *position;
+  char *position;
 }
 
 %token <number> NUMBER
@@ -118,21 +135,25 @@ ParserContext *get_context(yyscan_t scanner)
 %token <string> ID
 %token <string> PATH
 %token <string> SSS
+// %token <string> DATE 
 %token <string> STAR
 %token <string> STRING_V
 %token <string> COUNT 
 %token <string> OTHER_FUNCTION_TYPE
+%token <string> NULL_T
 //非终结符
 
 %type <number> type;
 %type <condition1> condition;
 %type <value1> value;
 %type <number> number;
+%type <number> opt_null;
+%type <string> opt_star;
 
 %%
 
 commands:		//commands or sqls. parser starts here.
-    /* empty */
+    /* empty */ 
     | commands command
     ;
 
@@ -240,10 +261,10 @@ attr_def_list:
     ;
     
 attr_def:
-    ID_get type LBRACE number RBRACE 
+    ID_get type LBRACE number RBRACE opt_null
 		{
 			AttrInfo attribute;
-			attr_info_init(&attribute, CONTEXT->id, $2, $4);
+			attr_info_init(&attribute, CONTEXT->id, $2, $4, $6);
 			create_table_append_attribute(&CONTEXT->ssql->sstr.create_table, &attribute);
 			// CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].name =(char*)malloc(sizeof(char));
 			// strcpy(CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].name, CONTEXT->id); 
@@ -251,10 +272,10 @@ attr_def:
 			// CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].length = $4;
 			CONTEXT->value_length++;
 		}
-    |ID_get type
+    |ID_get type opt_null
 		{
 			AttrInfo attribute;
-			attr_info_init(&attribute, CONTEXT->id, $2, 4);
+			attr_info_init(&attribute, CONTEXT->id, $2, 4, $3);
 			create_table_append_attribute(&CONTEXT->ssql->sstr.create_table, &attribute);
 			// CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].name=(char*)malloc(sizeof(char));
 			// strcpy(CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].name, CONTEXT->id); 
@@ -263,13 +284,39 @@ attr_def:
 			CONTEXT->value_length++;
 		}
     ;
+
+opt_null:
+	/*empty*/ {
+		$$ = ISFALSE; // 默认允许null
+	}
+	| NOT NULL_T {
+		$$ = ISFALSE;
+	}
+	| NULLABLE {
+		$$ = ISTRUE;
+	}
+	;
+
 number:
 		NUMBER {$$ = $1;}
 		;
-type:
-	INT_T { $$=INTS; }
-       | STRING_T { $$=CHARS; }
-       | FLOAT_T { $$=FLOATS; }
+type: 
+	INT_T { 
+		$$=INTS; 
+		// printf("CREATE 语句语法解析 type 为 INTS\n");
+	}
+       | STRING_T { 
+		   $$=CHARS;
+		// printf("CREATE 语句语法解析 type 为 STRING_T\n");
+	}
+       | FLOAT_T { 
+		   $$=FLOATS;
+		// printf("CREATE 语句语法解析 type 为 FLOAT_T\n");
+	}
+	   | DATE_T { 
+		   $$=DATES;
+		// printf("CREATE 语句语法解析 type 为 DATE_T\n");
+	}  
        ;
 ID_get:
 	ID 
@@ -281,8 +328,8 @@ ID_get:
 
 	
 insert:				/*insert   语句的语法解析树*/
-    INSERT INTO ID VALUES LBRACE value value_list RBRACE SEMICOLON 
-		{
+    INSERT INTO ID_get VALUES multi_values SEMICOLON 
+	{
 			// CONTEXT->values[CONTEXT->value_length++] = *$6;
 
 			CONTEXT->ssql->flag=SCF_INSERT;//"insert";
@@ -290,13 +337,29 @@ insert:				/*insert   语句的语法解析树*/
 			// CONTEXT->ssql->sstr.insertion.value_num = CONTEXT->value_length;
 			// for(i = 0; i < CONTEXT->value_length; i++){
 			// 	CONTEXT->ssql->sstr.insertion.values[i] = CONTEXT->values[i];
-      // }
-			inserts_init(&CONTEXT->ssql->sstr.insertion, $3, CONTEXT->values, CONTEXT->value_length);
-
-      //临时变量清零
-      CONTEXT->value_length=0;
+      // }	// 到此结束所有插入：存储最后一组、index清零、length清零
+	  		inserts_init(&CONTEXT->ssql->sstr.insertion, CONTEXT->id, CONTEXT->values, CONTEXT->value_length, CONTEXT->insert_index);
+			CONTEXT->insert_index=0;
+			//临时变量清零
+      		CONTEXT->value_length=0;
     }
-
+	;
+multi_values:
+	LBRACE value value_list RBRACE {
+		// 到此结束一组的插入：存储该组、增加index、value_length清零
+		inserts_init(&CONTEXT->ssql->sstr.insertion, CONTEXT->id, CONTEXT->values, CONTEXT->value_length, CONTEXT->insert_index);
+		CONTEXT->insert_index++;
+		//临时变量清零
+      	CONTEXT->value_length=0;
+	}
+	|multi_values COMMA LBRACE value value_list RBRACE {
+		// 到此结束一组的插入：存储该组、增加index、value_length清零
+		inserts_init(&CONTEXT->ssql->sstr.insertion, CONTEXT->id, CONTEXT->values, CONTEXT->value_length, CONTEXT->insert_index);
+		CONTEXT->insert_index++;
+		//临时变量清零
+      	CONTEXT->value_length=0;
+	}
+	;
 value_list:
     /* empty */
     | COMMA value value_list  { 
@@ -306,15 +369,21 @@ value_list:
 value:
     NUMBER{	
   		value_init_integer(&CONTEXT->values[CONTEXT->value_length++], $1);
-		}
+	}
     |FLOAT{
   		value_init_float(&CONTEXT->values[CONTEXT->value_length++], $1);
-		}
+	}
+	|NULL_T {
+		// null不需要加双引号，当作字符串插入
+		printf("初始化null值");
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1);
+	}
     |SSS {
-			$1 = substr($1,1,strlen($1)-2);
-  		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1);
+		$1 = substr($1,1,strlen($1)-2);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1);
 		}
     ;
+
     
 delete:		/*  delete 语句的语法解析树*/
     DELETE FROM ID where SEMICOLON 
@@ -337,16 +406,18 @@ update:			/*  update 语句的语法解析树*/
 		}
     ;
 select:				/*  select 语句的语法解析树*/
-    SELECT select_attr FROM ID rel_list where SEMICOLON
-		{
+    SELECT select_attr FROM ID rel_list where order_by SEMICOLON
+	{
+			CONTEXT->ssql->flag=SCF_SELECT;//"select";
+
 			// CONTEXT->ssql->sstr.selection.relations[CONTEXT->from_length++]=$4;
 			selects_append_relation(&CONTEXT->ssql->sstr.selection, $4);
 
-			selects_append_conditions(&CONTEXT->ssql->sstr.selection, CONTEXT->conditions, CONTEXT->condition_length);
-
-			CONTEXT->ssql->flag=SCF_SELECT;//"select";
+			//selects_append_conditions(&CONTEXT->ssql->sstr.selection, CONTEXT->conditions, CONTEXT->condition_length);
+			selects_append_conditions(CONTEXT->ssql, CONTEXT->conditions, CONTEXT->condition_length);
+			
 			// CONTEXT->ssql->sstr.selection.attr_num = CONTEXT->select_length;
-
+			
 			//临时变量清零
 			CONTEXT->condition_length=0;
 			CONTEXT->from_length=0;
@@ -354,24 +425,28 @@ select:				/*  select 语句的语法解析树*/
 			CONTEXT->value_length = 0;
 	}
 	;
-
 select_attr:
     STAR {  // select *
 			RelAttr attr;
-			relation_attr_init(&attr, NULL, "*", NULL);
+			relation_attr_init(&attr, NULL, "*", NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
     | ID attr_list { // select age
 			RelAttr attr;
-			relation_attr_init(&attr, NULL, $1, NULL);
+			relation_attr_init(&attr, NULL, $1, NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
   	| ID DOT ID attr_list { // select t1.age
 			RelAttr attr;
-			relation_attr_init(&attr, $1, $3, NULL);
+			relation_attr_init(&attr, $1, $3, NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
-	| window_function attr_list {
+	| ID DOT STAR attr_list { // select t1.age
+			RelAttr attr;
+			relation_attr_init(&attr, $1, "*", NULL, 0);
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+		}
+	| window_function function_list {
 		// 放到window_function里执行
 	}
     ;
@@ -379,54 +454,73 @@ attr_list:
     /* empty */
     | COMMA ID attr_list { // .., id
 			RelAttr attr;
-			relation_attr_init(&attr, NULL, $2, NULL);
+			relation_attr_init(&attr, NULL, $2, NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
      	  // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length].relation_name = NULL;
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].attribute_name=$2;
       }
     | COMMA ID DOT ID attr_list {
 			RelAttr attr;
-			relation_attr_init(&attr, $2, $4, NULL);
+			relation_attr_init(&attr, $2, $4, NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length].attribute_name=$4;
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].relation_name=$2;
   	  }
-	| COMMA window_function attr_list {
-		// 放到window_function里执行
-	}
   	;
 window_function:
-	COUNT LBRACE STAR RBRACE 
+	COUNT LBRACE opt_star RBRACE 
 	{	// 只有COUNT允许COUNT(*)
 		RelAttr attr;
-		relation_attr_init(&attr, NULL, "*", $1);
+		relation_attr_init(&attr, NULL, $3, $1, 0);
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
 	| COUNT LBRACE ID RBRACE 
 	{
 		RelAttr attr;
-		relation_attr_init(&attr, NULL, $3, $1);
+		relation_attr_init(&attr, NULL, $3, $1, 0);
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
 	| COUNT LBRACE ID DOT ID RBRACE 
 	{
 		RelAttr attr;
-		relation_attr_init(&attr, $3, $5, $1);
+		relation_attr_init(&attr, $3, $5, $1, 0);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| COUNT LBRACE ID DOT STAR RBRACE 
+	{
+		RelAttr attr;
+		relation_attr_init(&attr, $3, "*", $1, 0);
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
 	| OTHER_FUNCTION_TYPE LBRACE ID RBRACE 
 	{
 		RelAttr attr;
-		relation_attr_init(&attr, NULL, $3, $1);
+		relation_attr_init(&attr, NULL, $3, $1, 0);
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
 	| OTHER_FUNCTION_TYPE LBRACE ID DOT ID RBRACE 
 	{
 		RelAttr attr;
-		relation_attr_init(&attr, $3, $5, $1);
+		relation_attr_init(&attr, $3, $5, $1, 0);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| OTHER_FUNCTION_TYPE LBRACE ID DOT STAR RBRACE 
+	{
+		RelAttr attr;
+		relation_attr_init(&attr, $3, "*", $1, 0);
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
 	;
+opt_star:
+	STAR { $$ = $1;}
+	| NUMBER {$$ = number_to_str($1);}
+	;
+function_list:
+	/* empty */
+    | COMMA window_function function_list { // .., id
+		// 不操作，留给window_function执行
+      }
+  	;
 rel_list:
     /* empty */
     | COMMA ID rel_list {	
@@ -449,7 +543,8 @@ condition:
     ID comOp value 
 		{
 			RelAttr left_attr;
-			relation_attr_init(&left_attr, NULL, $1, NULL);
+			// $1 为属性名称
+			relation_attr_init(&left_attr, NULL, $1, NULL, 0);
 
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
@@ -490,9 +585,9 @@ condition:
 		|ID comOp ID 
 		{
 			RelAttr left_attr;
-			relation_attr_init(&left_attr, NULL, $1, NULL);
+			relation_attr_init(&left_attr, NULL, $1, NULL, 0);
 			RelAttr right_attr;
-			relation_attr_init(&right_attr, NULL, $3, NULL);
+			relation_attr_init(&right_attr, NULL, $3, NULL, 0);
 
 			Condition condition;
 			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 1, &right_attr, NULL);
@@ -511,7 +606,7 @@ condition:
 		{
 			Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 			RelAttr right_attr;
-			relation_attr_init(&right_attr, NULL, $3, NULL);
+			relation_attr_init(&right_attr, NULL, $3, NULL, 0);
 
 			Condition condition;
 			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
@@ -532,7 +627,8 @@ condition:
     |ID DOT ID comOp value
 		{
 			RelAttr left_attr;
-			relation_attr_init(&left_attr, $1, $3, NULL);
+			// $1为表名，$3为属性名
+			relation_attr_init(&left_attr, $1, $3, NULL, 0);
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 			Condition condition;
@@ -555,7 +651,7 @@ condition:
 			Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 			RelAttr right_attr;
-			relation_attr_init(&right_attr, $3, $5, NULL);
+			relation_attr_init(&right_attr, $3, $5, NULL, 0);
 
 			Condition condition;
 			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
@@ -574,9 +670,9 @@ condition:
     |ID DOT ID comOp ID DOT ID
 		{
 			RelAttr left_attr;
-			relation_attr_init(&left_attr, $1, $3, NULL);
+			relation_attr_init(&left_attr, $1, $3, NULL, 0);
 			RelAttr right_attr;
-			relation_attr_init(&right_attr, $5, $7, NULL);
+			relation_attr_init(&right_attr, $5, $7, NULL, 0);
 
 			Condition condition;
 			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 1, &right_attr, NULL);
@@ -600,7 +696,43 @@ comOp:
     | GE { CONTEXT->comp = GREAT_EQUAL; }
     | NE { CONTEXT->comp = NOT_EQUAL; }
     ;
-
+order_by:
+	/*empty*/ 
+	| ORDER BY sort_list {
+	}
+	;
+sort_list:
+	sort_attr {
+		// order by A, B, C，实际上加入顺序为C、B、A，方便后面排序
+	}
+	| sort_list COMMA sort_attr {}
+	;
+sort_attr:
+	ID opt_asc{
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $1, NULL, 0);
+		selects_append_order(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| ID DESC {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $1, NULL, 1);
+		selects_append_order(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| ID DOT ID opt_asc {
+		RelAttr attr;
+		relation_attr_init(&attr, $1, $3, NULL, 0);
+		selects_append_order(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| ID DOT ID DESC {
+		RelAttr attr;
+		relation_attr_init(&attr, $1, $3, NULL, 1);
+		selects_append_order(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	;
+opt_asc:
+	/* empty */
+	| ASC {}
+	;
 load_data:
 		LOAD DATA INFILE SSS INTO TABLE ID SEMICOLON
 		{

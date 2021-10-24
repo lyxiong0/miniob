@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 #include "disk_buffer_pool.h"
 #include <errno.h>
 #include <string.h>
+#include <iostream>
 
 #include "common/log/log.h"
 
@@ -25,6 +26,100 @@ unsigned long current_time()
   clock_gettime(CLOCK_MONOTONIC, &tp);
   return tp.tv_sec * 1000 * 1000 * 1000UL + tp.tv_nsec;
 }
+/**
+ *   added for LRUReplacer function implementation
+*/
+LRUReplacer::LRUReplacer(int num_frames) {
+  max = num_frames;
+}
+
+LRUReplacer::~LRUReplacer() = default;
+
+bool LRUReplacer::Victim(int *frame_id) {
+  if (List.empty()) {
+    return false;
+  }
+  *frame_id = List.front();
+  List.pop_front();
+  map_.erase(*frame_id);
+  std::cout<<"victim frame "<<*frame_id<<std::endl;
+  return true;
+}
+
+void LRUReplacer::Pin(int frame_id) {
+  if (map_.find(frame_id) != map_.end()) {
+    List.erase(map_[frame_id]);
+    map_.erase(frame_id);
+  }
+}
+
+void LRUReplacer::Unpin(int frame_id) {
+  if (map_.find(frame_id) == map_.end()) {
+    // no exist the frame_id
+    List.push_back(frame_id);
+    if (List.size() > max) {
+      map_.erase(List.front());
+      List.pop_front();
+    }
+    map_[frame_id] = --List.end();
+  }
+}
+// for BPManager->get to call
+void LRUReplacer::Refresh(int frame_id) {
+  auto itr = map_.find(frame_id);
+  if (itr == map_.end()){
+    return ;
+  }
+  // List.rbegin() -- > reverse begin() point to the last item
+  if (itr->second != --List.end()) {
+    List.erase(itr->second);
+    List.push_back(frame_id);
+    map_[frame_id] = --List.end();
+  }
+}
+int LRUReplacer::Size() {
+  return List.size();
+}
+
+int BPManager::get_replace_frame(){
+  int  replace_frame_id;
+  if (!free_list_.empty()) {
+    replace_frame_id = free_list_.front();
+    free_list_.pop_front();
+  } else {
+    replacer_->Victim(&replace_frame_id);
+    /**
+     *    need to flush it？  待定
+    */
+  }
+  return replace_frame_id;
+}
+
+Frame *BPManager::alloc() {
+  // TODO for test
+  if (free_list_.empty() && replacer_->Size() == 0) {
+    return nullptr;
+  }
+  int replace_frame_id = this->get_replace_frame();
+  frame[replace_frame_id].acc_time=current_time();
+  // 测试中没有考虑unpin或者pin,这里调用此函数是为了将其放进lru list中
+  replacer_->Unpin(replace_frame_id);
+  return frame+replace_frame_id;
+}
+
+Frame *BPManager::get(int file_desc, PageNum page_num) {
+  // TODO for test   比较暴力，这里需要进行优化，看测试中的file_desc赋值，暂时没想到怎么处理
+  for(int i=0;i<size;i++){
+    if(frame[i].file_desc==file_desc && frame[i].page.page_num == page_num){
+      frame[i].acc_time=current_time();
+      replacer_->Refresh(i);
+      return frame+i;
+    }
+  }
+  return nullptr;
+}
+
+
 
 DiskBufferPool *theGlobalDiskBufferPool()
 {
@@ -457,7 +552,6 @@ RC DiskBufferPool::flush_block(Frame *frame)
 
 RC DiskBufferPool::allocate_block(Frame **buffer)
 {
-
   // There is one Frame which is free.
   for (int i = 0; i < BP_BUFFER_SIZE; i++) {
     if (!bp_manager_.allocated[i]) {
@@ -467,7 +561,6 @@ RC DiskBufferPool::allocate_block(Frame **buffer)
       return RC::SUCCESS;
     }
   }
-
   int min = 0;
   unsigned long mintime = 0;
   bool flag = false;

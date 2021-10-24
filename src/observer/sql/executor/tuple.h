@@ -23,7 +23,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/parser/parse.h"
 #include "sql/executor/value.h"
 
-enum FUNCTION_TYPE
+enum FuncType
 {
   COUNT,
   MAX,
@@ -33,6 +33,7 @@ enum FUNCTION_TYPE
 };
 
 class Table;
+class OrderInfo;
 
 class Tuple
 {
@@ -133,7 +134,7 @@ public:
   {
     fields_.clear();
   }
-
+  
   void print(std::ostream &os) const;
 
 public:
@@ -169,6 +170,14 @@ public:
   const std::vector<Tuple> &tuples() const;
 
   void print(std::ostream &os) const;
+
+  void swap_tuple(int i, int j)
+  {
+    // Tuple tmp = std::move(tuples_[i]);
+    // tuples_[i] = std::move(tuples_[j]);
+    // tuples_[j] = std::move(tmp);
+    std::swap(tuples_[i], tuples_[j]);
+  }
 
 public:
   const TupleSchema &schema() const

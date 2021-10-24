@@ -39,7 +39,7 @@ QUOTE            [\'\"]
 
 ";"                 	 				           RETURN_TOKEN(SEMICOLON);
 {DOT}                 					         RETURN_TOKEN(DOT);
-"*"                   					         RETURN_TOKEN(STAR);
+"*"                   					         yylval->string=strdup(yytext); RETURN_TOKEN(STAR);
 [Ee][Xx][Ii][Tt]						             RETURN_TOKEN(EXIT);
 [Hh][Ee][Ll][Pp]                    	   RETURN_TOKEN(HELP);
 [Dd][Ee][Ss][Cc]                         RETURN_TOKEN(DESC);
@@ -67,15 +67,21 @@ QUOTE            [\'\"]
 [Ii][Nn][Tt]					                   RETURN_TOKEN(INT_T);
 [Cc][Hh][Aa][Rr]				                 RETURN_TOKEN(STRING_T);
 [Ff][Ll][Oo][Aa][Tt]			               RETURN_TOKEN(FLOAT_T);
+[Oo][Rr][Dd][Ee][Rr]							RETURN_TOKEN(ORDER);
+[Aa][Ss][Cc]								RETURN_TOKEN(ASC);
+[Bb][Yy]									RETURN_TOKEN(BY);
+[Dd][Aa][Tt][Ee]			               RETURN_TOKEN(DATE_T);
 [Ll][Oo][Aa][Dd]			                   RETURN_TOKEN(LOAD);
 [Dd][Aa][Tt][Aa]	                       RETURN_TOKEN(DATA);
 [Ii][Nn][Ff][Ii][Ll][Ee]                 RETURN_TOKEN(INFILE);
+[Nn][Uu][Ll][Ll][Aa][Bb][Ll][Ee]			RETURN_TOKEN(NULLABLE);
+[Nn][Oo][Tt]								RETURN_TOKEN(NOT);
+[Nn][Uu][Ll][Ll]							yylval->string=strdup(yytext); RETURN_TOKEN(NULL_T);
 [Cc][Oo][Uu][Nn][Tt]					yylval->string=strdup(yytext); RETURN_TOKEN(COUNT);
 [Aa][Vv][Gg]|[Mm][Aa][Xx]|[Mm][Ii][Nn]	yylval->string=strdup(yytext); RETURN_TOKEN(OTHER_FUNCTION_TYPE);
 {ID}							                       yylval->string=strdup(yytext); RETURN_TOKEN(ID);
 "("								                       RETURN_TOKEN(LBRACE);
 ")"								                       RETURN_TOKEN(RBRACE);
-
 ","                                      RETURN_TOKEN(COMMA);
 "="                                      RETURN_TOKEN(EQ);
 "<="                                     RETURN_TOKEN(LE);

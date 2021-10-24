@@ -16,6 +16,8 @@ See the Mulan PSL v2 for more details. */
 #define __OBSERVER_SQL_PARSER_PARSE_DEFS_H__
 
 #include <stddef.h>
+#include <memory.h>
+#include <stdbool.h>
 
 #define MAX_NUM 20
 #define MAX_REL_NAME 20
@@ -26,8 +28,9 @@ See the Mulan PSL v2 for more details. */
 //属性结构体
 typedef struct
 {
-  char *relation_name;  // relation name (may be NULL) 表名
-  char *attribute_name; // attribute name              属性名
+  int is_desc;                // 默认采用升序asc，=1降序
+  char *relation_name;        // relation name (may be NULL) 表名
+  char *attribute_name;       // attribute name              属性名
   char *window_function_name; // 窗口函数名
 } RelAttr;
 
@@ -48,8 +51,18 @@ typedef enum
   UNDEFINED,
   CHARS,
   INTS,
-  FLOATS
+  FLOATS,
+  DATES,
+  NULLS
 } AttrType;
+
+// true or false
+typedef enum
+{
+  ISTRUE,
+  ISFALSE,
+  NOTTRUEORFALSE
+} TrueOrFalse;
 
 //属性值
 typedef struct _Value
@@ -60,6 +73,7 @@ typedef struct _Value
 
 typedef struct _Condition
 {
+  bool is_valid;      // added for check if date value is valid
   int left_is_attr;   // TRUE if left-hand side is an attribute
                       // 1时，操作符左边是属性名，0时，是属性值
   Value left_value;   // left-hand side value if left_is_attr = FALSE
@@ -85,14 +99,18 @@ typedef struct
   char *relations[MAX_NUM];      // relations in From clause
   size_t condition_num;          // Length of conditions in Where clause
   Condition conditions[MAX_NUM]; // conditions in Where clause
+  size_t order_num;
+  RelAttr order_attrs[MAX_NUM]; // order by数组
 } Selects;
 
 // struct of insert
 typedef struct
 {
-  char *relation_name;   // Relation to insert into
-  size_t value_num;      // Length of values
-  Value values[MAX_NUM]; // values to insert
+  char *relation_name;       // Relation to insert into
+  size_t value_num[MAX_NUM]; // Length of values
+  size_t group_num;
+  // Value values[MAX_NUM]; // values to insert
+  Value values[MAX_NUM][MAX_NUM]; // values to insert, values[i][j] - 插入的第i组元素第j个值
 } Inserts;
 
 // struct of delete
@@ -115,9 +133,10 @@ typedef struct
 
 typedef struct
 {
-  char *name;    // Attribute name
-  AttrType type; // Type of attribute
-  size_t length; // Length of attribute
+  char *name;      // Attribute name
+  AttrType type;   // Type of attribute
+  size_t length;   // Length of attribute
+  int is_nullable; // 是否允许null，默认不允许
 } AttrInfo;
 
 // struct of craete_table
@@ -208,7 +227,7 @@ extern "C"
 {
 #endif // __cplusplus
 
-  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *window_function_name);
+  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *window_function_name, int _is_desc);
   void relation_attr_destroy(RelAttr *relation_attr);
 
   void value_init_integer(Value *value, int v);
@@ -220,16 +239,18 @@ extern "C"
                       int right_is_attr, RelAttr *right_attr, Value *right_value);
   void condition_destroy(Condition *condition);
 
-  void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length);
+  void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, TrueOrFalse is_nullable);
   void attr_info_destroy(AttrInfo *attr_info);
 
   void selects_init(Selects *selects, ...);
   void selects_append_attribute(Selects *selects, RelAttr *rel_attr);
   void selects_append_relation(Selects *selects, const char *relation_name);
-  void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
+  // void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
+  void selects_append_conditions(Query *sql, Condition conditions[], size_t condition_num);
+  void selects_append_order(Selects *selects, RelAttr *rel_attr);
   void selects_destroy(Selects *selects);
 
-  void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num);
+  void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index);
   void inserts_destroy(Inserts *inserts);
 
   void deletes_init_relation(Deletes *deletes, const char *relation_name);
@@ -264,6 +285,10 @@ extern "C"
   Query *query_create(); // create and init
   void query_reset(Query *query);
   void query_destroy(Query *query); // reset and delete
+
+  void log_err(const char *info);
+
+  const char *number_to_str(int number);
 
 #ifdef __cplusplus
 }

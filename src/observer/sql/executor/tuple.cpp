@@ -11,7 +11,8 @@ See the Mulan PSL v2 for more details. */
 //
 // Created by Wangyunlai on 2021/5/14.
 //
-
+#include <string>
+#include <stdio.h>
 #include "sql/executor/tuple.h"
 #include "storage/common/table.h"
 #include "common/log/log.h"
@@ -96,19 +97,14 @@ void TupleSchema::add(AttrType type, const char *table_name, const char *field_n
 
 void TupleSchema::add_if_not_exists(AttrType type, const char *table_name, const char *field_name)
 {
-  LOG_ERROR("field name = %s", field_name);
-  LOG_ERROR("table_name = %s", table_name);
   for (const auto &field : fields_)
   {
-    LOG_ERROR("inside field name = %s", field.field_name());
     if (0 == strcmp(field.table_name(), table_name) &&
         0 == strcmp(field.field_name(), field_name))
     {
       return;
     }
   }
-  LOG_ERROR("insert");
-
   add(type, table_name, field_name);
 }
 
@@ -261,6 +257,26 @@ TupleRecordConverter::TupleRecordConverter(Table *table, TupleSet &tuple_set) : 
 {
 }
 
+std::string num2date(int n)
+{
+  char str1[10];
+  sprintf(str1, "%d", n);
+  char str[10];
+
+  for (int i = 0, j = 0; i < 10; i++)
+  {
+    if (i == 4 || i == 7)
+    {
+      str[i] = '-';
+      i++;
+    }
+    str[i] = str1[j++];
+  }
+
+  std::string s = str;
+  return s;
+}
+
 void TupleRecordConverter::add_record(const char *record)
 {
   const TupleSchema &schema = tuple_set_.schema();
@@ -270,30 +286,58 @@ void TupleRecordConverter::add_record(const char *record)
   {
     const FieldMeta *field_meta = table_meta.field(field.field_name());
     assert(field_meta != nullptr);
-    switch (field_meta->type())
+    // 不管什么类型都有可能插入null
+    const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
+    if (strcmp(s, "null") == 0)
     {
-    case INTS:
-    {
-      int value = *(int *)(record + field_meta->offset());
-      tuple.add(value);
-    }
-    break;
-    case FLOATS:
-    {
-      float value = *(float *)(record + field_meta->offset());
-      tuple.add(value);
-    }
-    break;
-    case CHARS:
-    {
-      const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
       tuple.add(s, strlen(s));
     }
-    break;
-    default:
+    else
     {
-      LOG_PANIC("Unsupported field type. type=%d", field_meta->type());
-    }
+      switch (field_meta->type())
+      {
+      case INTS:
+      {
+        int value = *(int *)(record + field_meta->offset());
+        tuple.add(value);
+      }
+      break;
+      case FLOATS:
+      {
+        float value = *(float *)(record + field_meta->offset());
+        float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));
+        if (value > -1e-6 && value < 1e-6)
+        {
+          tuple.add(value_other);
+        }
+        else
+        {
+          tuple.add(value);
+        }
+      }
+      break;
+      case CHARS:
+      {
+        //TODO: 这里不知道为什么会出现strlen(s)超过field_meta->len()的情况
+        // insert的时候已经检查过长度strlen(s)没问题
+        const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
+        int len = field_meta->len() < strlen(s) ? field_meta->len() : strlen(s);
+        // tuple.add(s, strlen(s));
+        tuple.add(s, len);
+      }
+      break;
+      case DATES:
+      {
+        int value = *(int *)(record + field_meta->offset());
+        const char *s = num2date(value).data();
+        tuple.add(s, strlen(s));
+      }
+      break;
+      default:
+      {
+        LOG_PANIC("Unsupported field type. type=%d", field_meta->type());
+      }
+      }
     }
   }
 

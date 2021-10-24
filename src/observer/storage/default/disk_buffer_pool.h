@@ -23,6 +23,9 @@ See the Mulan PSL v2 for more details. */
 #include <time.h>
 
 #include <vector>
+// self added 21/10/16
+#include <list>
+#include <unordered_map>
 
 #include "rc.h"
 
@@ -30,8 +33,8 @@ typedef int PageNum;
 
 //
 #define BP_INVALID_PAGE_NUM (-1)
-#define BP_PAGE_SIZE (1 << 12)
-#define BP_PAGE_DATA_SIZE (BP_PAGE_SIZE - sizeof(PageNum))
+#define BP_PAGE_SIZE (1 << 12)   // 4k byte
+#define BP_PAGE_DATA_SIZE (BP_PAGE_SIZE - sizeof(PageNum)) // 4k-8 byte
 #define BP_FILE_SUB_HDR_SIZE (sizeof(BPFileSubHeader))
 #define BP_BUFFER_SIZE 50
 #define MAX_OPEN_FILE 1024
@@ -40,26 +43,31 @@ typedef struct {
   PageNum page_num;
   char data[BP_PAGE_DATA_SIZE];
 } Page;
-// sizeof(Page) should be equal to BP_PAGE_SIZE
+// sizeof(Page) should be equal to BP_PAGE_SIZE  4k
 
 typedef struct {
   PageNum page_count;
   int allocated_pages;
 } BPFileSubHeader;
 
+
+// frame wraps a page in it
 typedef struct {
   bool dirty;
   unsigned int pin_count;
   unsigned long acc_time;
   int file_desc;
   Page page;
-} Frame;
+} Frame;           
 
+// BPPageHandle wrap a frame in it 
 typedef struct {
   bool open;
   Frame *frame;
 } BPPageHandle;
 
+
+// BPFileHandle wrap a file which contains frames or pages
 class BPFileHandle{
 public:
   BPFileHandle() {
@@ -76,6 +84,40 @@ public:
   BPFileSubHeader *file_sub_header;
 } ;
 
+/**
+ * LRUReplacer implements the lru replacement policy.  added by xishuai 2021/10/16
+ * to record unpinned pages
+ */
+class LRUReplacer {
+ public:
+  /**
+   * Create a new LRUReplacer.
+   * @param num_pages the maximum number of pages the LRUReplacer will be required to store
+   */
+  explicit LRUReplacer(int num_frames);
+
+  /**
+   * Destroys the LRUReplacer.
+   */
+  ~LRUReplacer();
+
+  bool Victim(int *frame_id);
+
+  void Pin(int frame_id);
+  void Unpin(int frame_id);
+  /**
+   * 对已经在lru list中的frame重新更新位置，比如在本来靠前，但是现在被调用了就需要重新放在后面
+   * */
+  void Refresh(int frame_id);
+
+  int Size();
+
+ private:
+  std::list<int> List;
+  int max;
+  std::unordered_map<int, std::list<int>::iterator> map_;
+};
+
 class BPManager {
 public:
   BPManager(int size = BP_BUFFER_SIZE) {
@@ -86,32 +128,48 @@ public:
       allocated[i] = false;
       frame[i].pin_count = 0;
     }
+
+    // following self-add actually allocated is no longer used
+    // Initially, every frame is in the free list.
+    replacer_ = new LRUReplacer(size);
+    for (int i = 0; i < size; ++i) {
+      free_list_.emplace_back(i);
+    }
   }
 
   ~BPManager() {
     delete[] frame;
     delete[] allocated;
+    delete replacer_;
     size = 0;
     frame = nullptr;
     allocated = nullptr;
   }
+  int get_replace_frame();  // self-added
 
-  Frame *alloc() {
-    return nullptr; // TODO for test
-  }
+  Frame *alloc(); // TODO for test
 
-  Frame *get(int file_desc, PageNum page_num) {
-    return nullptr; // TODO for test
-  }
+  Frame *get(int file_desc, PageNum page_num); // TODO for test
 
   Frame *getFrame() { return frame; }
 
   bool *getAllocated() { return allocated; }
 
 public:
+/**   注释
+ *    allocated-->表示是否被分配
+ *    allocated[i]=true-->frame[i]保存了相关内容
+ * 
+*/
   int size;
-  Frame * frame = nullptr;
+  // now fram contains pinned/unpinned/free frames
+  Frame *frame = nullptr;
   bool *allocated = nullptr;
+  // self-added 
+  std::list<int> free_list_;
+  LRUReplacer *replacer_;
+  // for get function map<&file_desc,frame_id>
+  // std::unordered_map<*int, int> page_table_;
 };
 
 class DiskBufferPool {

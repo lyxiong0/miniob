@@ -32,6 +32,8 @@ class Trx;
 
 class Table
 {
+  friend class DefaultStorageStage;
+
 public:
   Table();
   ~Table();
@@ -47,7 +49,6 @@ public:
    */
   RC create(const char *path, const char *name, const char *base_dir, int attribute_count, const AttrInfo attributes[]);
 
-
   /**
    * 打开一个表
    * @param meta_file 保存表元数据的文件完整路径
@@ -55,7 +56,7 @@ public:
    */
   RC open(const char *meta_file, const char *base_dir);
 
-  RC insert_record(Trx *trx, int value_num, const Value *values);
+  RC insert_record(Trx *trx, int value_num, const Value *values, Record **ret_record = nullptr);
 
   /**
    * @brief 该函数用于更新表中所有满足指定条件的元组，
@@ -78,6 +79,8 @@ public:
   RC scan_record(Trx *trx, ConditionFilter *filter, int limit, void *context, void (*record_reader)(const char *data, void *context));
 
   RC create_index(Trx *trx, const char *index_name, const char *attribute_name);
+
+  std::vector<const char *> get_index_names();
 
 public:
   const char *name() const;
@@ -116,6 +119,7 @@ private:
 
 private:
   Index *find_index(const char *index_name) const;
+  RC is_legal(const Value &value, const FieldMeta *field);
 
 private:
   std::string base_dir_;

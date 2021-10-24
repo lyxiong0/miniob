@@ -21,7 +21,8 @@ See the Mulan PSL v2 for more details. */
 using namespace common;
 
 ConditionFilter::~ConditionFilter()
-{}
+{
+}
 
 DefaultConditionFilter::DefaultConditionFilter()
 {
@@ -36,16 +37,18 @@ DefaultConditionFilter::DefaultConditionFilter()
   right_.value = nullptr;
 }
 DefaultConditionFilter::~DefaultConditionFilter()
-{}
+{
+}
 
 RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op)
 {
-  if (attr_type < CHARS || attr_type > FLOATS) {
+  if (attr_type < CHARS || attr_type > DATES) {
     LOG_ERROR("Invalid condition with unsupported attribute type: %d", attr_type);
     return RC::INVALID_ARGUMENT;
   }
 
-  if (comp_op < EQUAL_TO || comp_op >= NO_OP) {
+  if (comp_op < EQUAL_TO || comp_op >= NO_OP)
+  {
     LOG_ERROR("Invalid condition with unsupported compare operation: %d", comp_op);
     return RC::INVALID_ARGUMENT;
   }
@@ -54,6 +57,7 @@ RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrT
   right_ = right;
   attr_type_ = attr_type;
   comp_op_ = comp_op;
+  LOG_INFO("default condition filter init 完成 comp_op = %d",comp_op_);
   return RC::SUCCESS;
 }
 
@@ -66,11 +70,13 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   AttrType type_left = UNDEFINED;
   AttrType type_right = UNDEFINED;
 
-  if (1 == condition.left_is_attr) {
+  if (1 == condition.left_is_attr)
+  {
     left.is_attr = true;
     const FieldMeta *field_left = table_meta.field(condition.left_attr.attribute_name);
     // 这里检查了where子句中的列名是否存在
-    if (nullptr == field_left) {
+    if (nullptr == field_left)
+    {
       LOG_WARN("No such field in condition. %s.%s", table.name(), condition.left_attr.attribute_name);
       return RC::SCHEMA_FIELD_MISSING;
     }
@@ -80,20 +86,24 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
     left.value = nullptr;
 
     type_left = field_left->type();
-  } else {
+  }
+  else
+  {
     left.is_attr = false;
-    left.value = condition.left_value.data;  // 校验type 或者转换类型
+    left.value = condition.left_value.data; // 校验type 或者转换类型
     type_left = condition.left_value.type;
 
     left.attr_length = 0;
     left.attr_offset = 0;
   }
 
-  if (1 == condition.right_is_attr) {
+  if (1 == condition.right_is_attr)
+  {
     right.is_attr = true;
     const FieldMeta *field_right = table_meta.field(condition.right_attr.attribute_name);
     // 这里检查了where子句中的列名是否存在
-    if (nullptr == field_right) {
+    if (nullptr == field_right)
+    {
       LOG_WARN("No such field in condition. %s.%s", table.name(), condition.right_attr.attribute_name);
       return RC::SCHEMA_FIELD_MISSING;
     }
@@ -102,7 +112,9 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
     type_right = field_right->type();
 
     right.value = nullptr;
-  } else {
+  }
+  else
+  {
     right.is_attr = false;
     right.value = condition.right_value.data;
     type_right = condition.right_value.type;
@@ -118,7 +130,8 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   //  }
   // NOTE：这里没有实现不同类型的数据比较，比如整数跟浮点数之间的对比
   // 但是选手们还是要实现。这个功能在预选赛中会出现
-  if (type_left != type_right) {
+  if (type_left != type_right)
+  {
     return RC::SCHEMA_FIELD_TYPE_MISMATCH;
   }
 
@@ -130,65 +143,99 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   char *left_value = nullptr;
   char *right_value = nullptr;
 
-  if (left_.is_attr) {  // value
+  if (left_.is_attr)
+  { // value
     left_value = (char *)(rec.data + left_.attr_offset);
-  } else {
+  }
+  else
+  {
     left_value = (char *)left_.value;
   }
 
-  if (right_.is_attr) {
+  if (right_.is_attr)
+  {
     right_value = (char *)(rec.data + right_.attr_offset);
-  } else {
+  }
+  else
+  {
     right_value = (char *)right_.value;
   }
 
   int cmp_result = 0;
-  switch (attr_type_) {
-    case CHARS: {  // 字符串都是定长的，直接比较
-      // 按照C字符串风格来定
-      cmp_result = strcmp(left_value, right_value);
-    } break;
-    case INTS: {
+  switch (attr_type_)
+  {
+  case CHARS:
+  { // 字符串都是定长的，直接比较
+    // 按照C字符串风格来定
+    // LOG_INFO("THE left_value length = %d right_value length = %d in defaultconditionfilter",strlen(left_value),strlen(right_value));
+    cmp_result = strncmp(left_value, right_value, left_.attr_length);
+  }
+  break;
+  case INTS:
+  {
+    // 没有考虑大小端问题
+    // 对int和float，要考虑字节对齐问题,有些平台下直接转换可能会跪
+    int left = *(int *)left_value;
+    int right = *(int *)right_value;
+    cmp_result = left - right;
+  }
+  break;
+  case DATES: {
       // 没有考虑大小端问题
       // 对int和float，要考虑字节对齐问题,有些平台下直接转换可能会跪
       int left = *(int *)left_value;
       int right = *(int *)right_value;
       cmp_result = left - right;
-    } break;
-    case FLOATS: {
-      float left = *(float *)left_value;
-      float right = *(float *)right_value;
-      cmp_result = (int)(left - right);
-    } break;
-    default: {
+  } 
+  break;
+  case FLOATS:
+  {
+    float left = *(float *)left_value;
+    float right = *(float *)right_value;
+    float result = left - right;
+    if (result < 1e-6 && result > -1e-6) {
+      cmp_result = 0;
+    } else if (result > 0) {
+      cmp_result = 1;
+    } else {
+      cmp_result = -1;
     }
+    // 原来这个写法有问题，差值在1以内都会判断为相等
+    // cmp_result = (int)(left - right);
+  }
+  break;
+  default:
+  {
+  }
   }
 
-  switch (comp_op_) {
-    case EQUAL_TO:
-      return 0 == cmp_result;
-    case LESS_EQUAL:
-      return cmp_result <= 0;
-    case NOT_EQUAL:
-      return cmp_result != 0;
-    case LESS_THAN:
-      return cmp_result < 0;
-    case GREAT_EQUAL:
-      return cmp_result >= 0;
-    case GREAT_THAN:
-      return cmp_result > 0;
+  switch (comp_op_)
+  {
+  case EQUAL_TO:
+    return 0 == cmp_result;
+  case LESS_EQUAL:
+    return cmp_result <= 0;
+  case NOT_EQUAL:
+    return cmp_result != 0;
+  case LESS_THAN:
+    return cmp_result < 0;
+  case GREAT_EQUAL:
+    return cmp_result >= 0;
+  case GREAT_THAN:
+    return cmp_result > 0;
 
-    default:
-      break;
+  default:
+    break;
   }
 
   LOG_PANIC("Never should print this.");
-  return cmp_result;  // should not go here
+  return cmp_result; // should not go here
 }
 
 CompositeConditionFilter::~CompositeConditionFilter()
 {
-  if (memory_owner_) {
+  if (memory_owner_)
+  {
     delete[] filters_;
     filters_ = nullptr;
   }
@@ -208,21 +255,26 @@ RC CompositeConditionFilter::init(const ConditionFilter *filters[], int filter_n
 
 RC CompositeConditionFilter::init(Table &table, const Condition *conditions, int condition_num)
 {
-  if (condition_num == 0) {
+  if (condition_num == 0)
+  {
     return RC::SUCCESS;
   }
-  if (conditions == nullptr) {
+  if (conditions == nullptr)
+  {
     return RC::INVALID_ARGUMENT;
   }
 
   RC rc = RC::SUCCESS;
   ConditionFilter **condition_filters = new ConditionFilter *[condition_num];
-  for (int i = 0; i < condition_num; i++) {
+  for (int i = 0; i < condition_num; i++)
+  {
     DefaultConditionFilter *default_condition_filter = new DefaultConditionFilter();
     rc = default_condition_filter->init(table, conditions[i]);
-    if (rc != RC::SUCCESS) {
+    if (rc != RC::SUCCESS)
+    {
       delete default_condition_filter;
-      for (int j = i - 1; j >= 0; j--) {
+      for (int j = i - 1; j >= 0; j--)
+      {
         delete condition_filters[j];
         condition_filters[j] = nullptr;
       }
@@ -237,8 +289,10 @@ RC CompositeConditionFilter::init(Table &table, const Condition *conditions, int
 
 bool CompositeConditionFilter::filter(const Record &rec) const
 {
-  for (int i = 0; i < filter_num_; i++) {
-    if (!filters_[i]->filter(rec)) {
+  for (int i = 0; i < filter_num_; i++)
+  {
+    if (!filters_[i]->filter(rec))
+    {
       return false;
     }
   }

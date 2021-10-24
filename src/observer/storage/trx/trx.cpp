@@ -59,6 +59,7 @@ Trx::~Trx()
 
 RC Trx::update_record(Table *table, Record *record, char *new_record_data)
 {
+  LOG_ERROR("Start update");
   start_if_not_started();
   Operation *old_oper = find_operation(table, record->rid);
 
@@ -84,6 +85,7 @@ RC Trx::update_record(Table *table, Record *record, char *new_record_data)
   reocrd_data_map_[digest_(record->rid)] = new_record_data;
   set_record_trx_id(table, *record, trx_id_, false);
   insert_operation(table, Operation::Type::UPDATE, record->rid);
+  LOG_ERROR("finish update");
   return RC::SUCCESS;
 }
 
@@ -109,33 +111,34 @@ RC Trx::insert_record(Table *table, Record *record)
 
 RC Trx::delete_record(Table *table, Record *record)
 {
+  ("delete_record record: %d - %d", record->rid.page_num, record->rid.slot_num);
   RC rc = RC::SUCCESS;
   start_if_not_started();
   Operation *old_oper = find_operation(table, record->rid);
   // 原代码
-  // if (old_oper != nullptr)
-  // {
-  //   if (old_oper->type() != Operation::Type::DELETE)
-  //   {
-  //     // 上次操作是插入或更新，删除即为撤销
-  //     delete_operation(table, record->rid);
-  //     return RC::SUCCESS;
-  //   }
-  //   else
-  //   {
-  //     return RC::GENERIC_ERROR;
-  //   }
-  // }
-
   if (old_oper != nullptr)
   {
-    if (old_oper->type() == Operation::Type::DELETE)
+    if (old_oper->type() != Operation::Type::DELETE)
+    {
+      // 上次操作是插入或更新，删除即为撤销
+      delete_operation(table, record->rid);
+      return RC::SUCCESS;
+    }
+    else
     {
       return RC::GENERIC_ERROR;
     }
-    // 上次操作是插入或更新，删除即为撤销
-    delete_operation(table, record->rid);
   }
+
+  // if (old_oper != nullptr)
+  // {
+  //   if (old_oper->type() == Operation::Type::DELETE)
+  //   {
+  //     return RC::GENERIC_ERROR;
+  //   }
+  //   // 上次操作是插入或更新，删除即为撤销
+  //   delete_operation(table, record->rid);
+  // }
 
   set_record_trx_id(table, *record, trx_id_, true);
   insert_operation(table, Operation::Type::DELETE, record->rid);
@@ -194,7 +197,9 @@ void Trx::delete_operation(Table *table, const RID &rid)
   }
 
   Operation tmp(Operation::Type::UNDEFINED, rid);
+  int origin_size = table_operations_iter->second.size();
   table_operations_iter->second.erase(tmp);
+  int delete_size = table_operations_iter->second.size();
 }
 
 RC Trx::commit()
