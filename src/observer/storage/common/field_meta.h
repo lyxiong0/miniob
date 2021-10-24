@@ -38,7 +38,7 @@ public:
    * @param visible 字段是否可见
    * @return RC 
    */
-  RC init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, bool nullable = false);
+  RC init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, bool nullable);
 
 public:
   const char *name() const;
