@@ -483,7 +483,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     {
       const RelAttr &attr = selects.attributes[i];
 
-      // 确定该属性与这张表有关
       if (attr.window_function_name != nullptr)
       {
         // 注意这里attr.relation_name可能为nullptr
@@ -504,15 +503,16 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       end_trx_if_need(session, trx, false);
       return rc;
     }
+
+    if (results.size() != 0)
+    {
+      result = std::move(results[0]);
+      results.clear();
+    }
   }
   ////////////////////////////聚合函数结束/////////////////////////////
 
-  if (results.size() != 0)
-  {
-    result = std::move(results[0]);
-    results.clear();
-  }
-  else
+  if (selects.order_num > 0)
   {
     // 当前没有group by，先假设聚合和排序是矛盾的，仍然用tuples_sets进行快速排序
     ///////////////////////////////////排序开始////////////////////////////////
@@ -524,18 +524,45 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       const RelAttr &attr = selects.order_attrs[i];
       const TupleSchema &schema = result.get_schema();
       // 确定该属性与这张表有关
-      int index = schema.index_of_field(attr.relation_name, attr.attribute_name);
-      if (index != -1)
+      int index = -1;
+      if (attr.relation_name != nullptr)
       {
-        order_info->add(attr.attribute_name, index, attr.is_desc == 1);
+        index = schema.index_of_field(attr.relation_name, attr.attribute_name);
       }
+      else
+      {
+        const int size = schema.fields().size();
+
+        for (index = 0; index < size; ++index)
+        {
+          if (strcmp(attr.attribute_name, schema.field(index).field_name()) == 0)
+          {
+            break;
+          }
+        }
+
+        if (index == size)
+        {
+          index = -1; //未查找到
+        }
+      }
+
+      if (index == -1)
+      {
+        // 有order信息但没有提取出来，说明出现错误的列名
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        session_event->set_response("FAILURE\n");
+        end_trx_if_need(session, trx, true);
+        return RC::GENERIC_ERROR;
+      }
+      order_info->add(attr.attribute_name, index, attr.is_desc == 1);
     }
 
-    if (order_info->get_size() > 0 && result.size() > 0)
-    {
-      // 遍历每个TupleSet（即每个表的结果）
-      quick_sort(&result, 0, result.size() - 1, order_info);
-    }
+    quick_sort(&result, 0, result.size() - 1, order_info);
   }
 
   result.print(ss);
@@ -664,7 +691,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       }
     }
     // const TupleField &field = tuple_set->get_schema().field(index);
-    LOG_ERROR("here");
 
     if (func_type == FuncType::NOFUNC)
     {
@@ -684,7 +710,25 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       add_type = AttrType::INTS;
 
       // TODO: 考虑NULL值
-      tmp_tuple.add((int)tuple_set->tuples().size());
+      if (!tuple_set->get_schema().field(index).is_nullable())
+      {
+        // 无null值 = count(*)
+        tmp_tuple.add((int)tuple_set->tuples().size());
+      }
+      else
+      {
+        int ans = 0;
+
+        for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
+        {
+          std::shared_ptr<StringValue> value = std::dynamic_pointer_cast<StringValue>(tuple_set->get(tuple_i).get_pointer(index));
+          if (value->GetValue()[0] != 'n')
+          {
+            ++ans;
+          }
+        }
+        tmp_tuple.add(ans);
+      }
       break;
     }
     case FuncType::AVG:
@@ -831,7 +875,7 @@ static RC schema_add_field(Table *table, const char *field_name, TupleSchema &sc
     return RC::SCHEMA_FIELD_MISSING;
   }
 
-  schema.add_if_not_exists(field_meta->type(), table->name(), field_meta->name());
+  schema.add_if_not_exists(field_meta->type(), table->name(), field_meta->name(), field_meta->nullable());
   return RC::SUCCESS;
 }
 

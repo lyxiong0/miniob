@@ -72,7 +72,7 @@ public:
     float输出规则：先保留两位小数（四舍五入），再去掉尾后0
     17.101 -> 17.10 -> 17.1
     */
-    char ftos[20];
+    char ftos[50];
     sprintf(ftos, "%.2f", static_cast<float>(value_));
     int s_end = strlen(ftos) - 1;
 

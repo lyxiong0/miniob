@@ -150,6 +150,7 @@ RC Table::open(const char *meta_file, const char *base_dir)
   {
     const IndexMeta *index_meta = table_meta_.index(i);
     const FieldMeta *field_meta = table_meta_.field(index_meta->field());
+
     if (field_meta == nullptr)
     {
       LOG_PANIC("Found invalid index meta info which has a non-exists field. table=%s, index=%s, field=%s",

@@ -16,7 +16,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 
 #include "json/json.h"
-#include<iostream>
+#include <iostream>
 
 const static Json::StaticString FIELD_NAME("name");
 const static Json::StaticString FIELD_TYPE("type");
@@ -25,49 +25,57 @@ const static Json::StaticString FIELD_LEN("len");
 const static Json::StaticString FIELD_VISIBLE("visible");
 
 const char *ATTR_TYPE_NAME[] = {
-  "undefined",
-  "chars",
-  "ints",
-  "floats",
-  "dates"
-};
+    "undefined",
+    "chars",
+    "ints",
+    "floats",
+    "dates"};
 
-const char *attr_type_to_string(AttrType type) {
+const char *attr_type_to_string(AttrType type)
+{
   // std::cout<<"the type in the attr_type_to_string is "<<type<<std::endl;
-  if (type >= UNDEFINED && type <= DATES) {
+  if (type >= UNDEFINED && type <= DATES)
+  {
     return ATTR_TYPE_NAME[type];
   }
   return "unknown";
 }
 
-AttrType attr_type_from_string(const char *s) {
-  for (unsigned int i = 0; i < sizeof(ATTR_TYPE_NAME)/sizeof(ATTR_TYPE_NAME[0]); i++) {
+AttrType attr_type_from_string(const char *s)
+{
+  for (unsigned int i = 0; i < sizeof(ATTR_TYPE_NAME) / sizeof(ATTR_TYPE_NAME[0]); i++)
+  {
     // std::cout<<"the s in the attr_type_from_string is "<<s<<std::endl;
-    if (0 == strcmp(ATTR_TYPE_NAME[i], s)) {
+    if (0 == strcmp(ATTR_TYPE_NAME[i], s))
+    {
       return (AttrType)i;
     }
   }
   return UNDEFINED;
 }
 
-FieldMeta::FieldMeta() : attr_type_(AttrType::UNDEFINED), attr_offset_(-1), attr_len_(0), visible_(false) {
+FieldMeta::FieldMeta() : attr_type_(AttrType::UNDEFINED), attr_offset_(-1), attr_len_(0), visible_(false)
+{
 }
 
-RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, bool nullable) {
+RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, bool nullable)
+{
   // 检查字段名参数
   // std::cout<<"init FieldMeta that attr_type is "<<attr_type<<std::endl;
-  if (nullptr == name || '\0' == name[0]) {
+  if (nullptr == name || '\0' == name[0])
+  {
     LOG_WARN("Name cannot be empty");
     return RC::INVALID_ARGUMENT;
   }
 
   // 检查其他参数
-  if (AttrType::UNDEFINED == attr_type || attr_offset < 0 || attr_len <= 0) {
+  if (AttrType::UNDEFINED == attr_type || attr_offset < 0 || attr_len <= 0)
+  {
     LOG_WARN("Invalid argument. name=%s, attr_type=%d, attr_offset=%d, attr_len=%d",
-      name, attr_type, attr_offset, attr_len);
+             name, attr_type, attr_offset, attr_len);
     return RC::INVALID_ARGUMENT;
   }
-  
+
   name_ = name;
   attr_type_ = attr_type;
   attr_len_ = attr_len;
@@ -75,35 +83,42 @@ RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int at
   visible_ = visible;
   nullable_ = nullable;
 
-  LOG_INFO("Init a field with name=%s type =%d, attr_offset=%d,attr_len=%d", name,attr_type,attr_offset,attr_len);
+  LOG_INFO("Init a field with name=%s type =%d, attr_offset=%d,attr_len=%d,nullable_=%d", name, attr_type, attr_offset, attr_len, nullable_);
   return RC::SUCCESS;
 }
 
-const char *FieldMeta::name() const {
+const char *FieldMeta::name() const
+{
   return name_.c_str();
 }
 
-AttrType FieldMeta::type() const {
+AttrType FieldMeta::type() const
+{
   return attr_type_;
 }
 
-int FieldMeta::offset() const {
+int FieldMeta::offset() const
+{
   return attr_offset_;
 }
 
-int FieldMeta::len() const {
+int FieldMeta::len() const
+{
   return attr_len_;
 }
 
-bool FieldMeta::visible() const {
+bool FieldMeta::visible() const
+{
   return visible_;
 }
 
-bool FieldMeta::nullable() const {
+bool FieldMeta::nullable() const
+{
   return nullable_;
 }
 
-void FieldMeta::desc(std::ostream &os) const {
+void FieldMeta::desc(std::ostream &os) const
+{
   os << "field name=" << name_
      << ", type=" << attr_type_to_string(attr_type_)
      << ", len=" << attr_len_
@@ -111,21 +126,24 @@ void FieldMeta::desc(std::ostream &os) const {
      << ", nullable=" << (nullable_ ? "yes" : "no");
 }
 
-void FieldMeta::to_json(Json::Value &json_value) const {
+void FieldMeta::to_json(Json::Value &json_value) const
+{
   json_value[FIELD_NAME] = name_;
   json_value[FIELD_TYPE] = attr_type_to_string(attr_type_);
   json_value[FIELD_OFFSET] = attr_offset_;
-  json_value[FIELD_LEN]  = attr_len_;
+  json_value[FIELD_LEN] = attr_len_;
   json_value[FIELD_VISIBLE] = visible_;
 }
 
-RC FieldMeta::from_json(const Json::Value &json_value, FieldMeta &field) {
-  if (!json_value.isObject()) {
+RC FieldMeta::from_json(const Json::Value &json_value, FieldMeta &field)
+{
+  if (!json_value.isObject())
+  {
     LOG_ERROR("Failed to deserialize field. json is not an object. json value=%s",
-        json_value.toStyledString().c_str());
+              json_value.toStyledString().c_str());
     return RC::GENERIC_ERROR;
   }
-  // std::cout<<"json_value[FIELD_TYPE] is "<<json_value[FIELD_TYPE]<<std::endl; 
+  // std::cout<<"json_value[FIELD_TYPE] is "<<json_value[FIELD_TYPE]<<std::endl;
 
   const Json::Value &name_value = json_value[FIELD_NAME];
   const Json::Value &type_value = json_value[FIELD_TYPE];
@@ -133,30 +151,36 @@ RC FieldMeta::from_json(const Json::Value &json_value, FieldMeta &field) {
   const Json::Value &len_value = json_value[FIELD_LEN];
   const Json::Value &visible_value = json_value[FIELD_VISIBLE];
 
-  if (!name_value.isString()) {
+  if (!name_value.isString())
+  {
     LOG_ERROR("Field name is not a string. json value=%s", name_value.toStyledString().c_str());
     return RC::GENERIC_ERROR;
   }
-  if (!type_value.isString()) {
+  if (!type_value.isString())
+  {
     LOG_ERROR("Field type is not a string. json value=%s", type_value.toStyledString().c_str());
     return RC::GENERIC_ERROR;
   }
 
-  if (!offset_value.isInt()) {
+  if (!offset_value.isInt())
+  {
     LOG_ERROR("Offset is not an integer. json value=%s", offset_value.toStyledString().c_str());
     return RC::GENERIC_ERROR;
   }
-  if (!len_value.isInt()) {
+  if (!len_value.isInt())
+  {
     LOG_ERROR("Len is not an integer. json value=%s", len_value.toStyledString().c_str());
     return RC::GENERIC_ERROR;
   }
-  if (!visible_value.isBool()) {
+  if (!visible_value.isBool())
+  {
     LOG_ERROR("Visible field is not a bool value. json value=%s", visible_value.toStyledString().c_str());
     return RC::GENERIC_ERROR;
   }
   // std::cout<<"type_value is "<<type_value<<std::endl;
   AttrType type = attr_type_from_string(type_value.asCString());
-  if (UNDEFINED == type) {
+  if (UNDEFINED == type)
+  {
     LOG_ERROR("Got invalid field type. type=%d", type);
     return RC::GENERIC_ERROR;
   }
