@@ -36,17 +36,7 @@ See the Mulan PSL v2 for more details. */
 using namespace common;
 
 
-static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema) {
-  const FieldMeta *field_meta = table->table_meta().field(field_name);
-  if (nullptr == field_meta) {
-    LOG_WARN("No such field. %s.%s", table->name(), field_name);
-    return RC::SCHEMA_FIELD_MISSING;
-  }
-
-  schema.add_if_not_exists(field_meta->type(), table->name(), field_meta->name());
-  return RC::SUCCESS;
-}
-
+static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema);
 
 RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
 
@@ -108,19 +98,6 @@ void ExecuteStage::cleanup()
   LOG_TRACE("Enter");
 
   LOG_TRACE("Exit");
-}
-
-static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema)
-{
-  const FieldMeta *field_meta = table->table_meta().field(field_name);
-  if (nullptr == field_meta)
-  {
-    LOG_WARN("No such field. %s.%s", table->name(), field_name);
-    return RC::SCHEMA_FIELD_MISSING;
-  }
-
-  schema.add_if_not_exists(field_meta->type(), table->name(), field_meta->name());
-  return RC::SUCCESS;
 }
 
 void ExecuteStage::handle_event(StageEvent *event)
@@ -838,6 +815,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
   return rc;
 }
 
+
 bool match_table(const Selects &selects, const char *table_name_in_condition, const char *table_name_to_match)
 {
   if (table_name_in_condition != nullptr)
@@ -882,6 +860,19 @@ FuncType judge_function_type(char *window_function_name)
   }
 
   return FuncType::NOFUNC;
+}
+
+static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema)
+{
+  const FieldMeta *field_meta = table->table_meta().field(field_name);
+  if (nullptr == field_meta)
+  {
+    LOG_WARN("No such field. %s.%s", table->name(), field_name);
+    return RC::SCHEMA_FIELD_MISSING;
+  }
+
+  schema.add_if_not_exists(field_meta->type(), table->name(), field_meta->name());
+  return RC::SUCCESS;
 }
 
 // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
