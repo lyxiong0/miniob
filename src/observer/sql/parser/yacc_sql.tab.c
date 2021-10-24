@@ -245,19 +245,110 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 122 "yacc_sql.y"
-
-  struct _Attr *attr;
-  struct _Condition *condition1;
-  struct _Value *value1;
-  char *string;
-  //char *date;
-  int number;
-  float floats;
-  char *position;
-
-#line 260 "yacc_sql.tab.c"
-
+  YYSYMBOL_YYEMPTY = -2,
+  YYSYMBOL_YYEOF = 0,                      /* "end of file"  */
+  YYSYMBOL_YYerror = 1,                    /* error  */
+  YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
+  YYSYMBOL_SEMICOLON = 3,                  /* SEMICOLON  */
+  YYSYMBOL_CREATE = 4,                     /* CREATE  */
+  YYSYMBOL_DROP = 5,                       /* DROP  */
+  YYSYMBOL_TABLE = 6,                      /* TABLE  */
+  YYSYMBOL_TABLES = 7,                     /* TABLES  */
+  YYSYMBOL_INDEX = 8,                      /* INDEX  */
+  YYSYMBOL_SELECT = 9,                     /* SELECT  */
+  YYSYMBOL_DESC = 10,                      /* DESC  */
+  YYSYMBOL_SHOW = 11,                      /* SHOW  */
+  YYSYMBOL_SYNC = 12,                      /* SYNC  */
+  YYSYMBOL_INSERT = 13,                    /* INSERT  */
+  YYSYMBOL_DELETE = 14,                    /* DELETE  */
+  YYSYMBOL_UPDATE = 15,                    /* UPDATE  */
+  YYSYMBOL_LBRACE = 16,                    /* LBRACE  */
+  YYSYMBOL_RBRACE = 17,                    /* RBRACE  */
+  YYSYMBOL_COMMA = 18,                     /* COMMA  */
+  YYSYMBOL_TRX_BEGIN = 19,                 /* TRX_BEGIN  */
+  YYSYMBOL_TRX_COMMIT = 20,                /* TRX_COMMIT  */
+  YYSYMBOL_TRX_ROLLBACK = 21,              /* TRX_ROLLBACK  */
+  YYSYMBOL_INT_T = 22,                     /* INT_T  */
+  YYSYMBOL_STRING_T = 23,                  /* STRING_T  */
+  YYSYMBOL_FLOAT_T = 24,                   /* FLOAT_T  */
+  YYSYMBOL_ORDER = 25,                     /* ORDER  */
+  YYSYMBOL_ASC = 26,                       /* ASC  */
+  YYSYMBOL_BY = 27,                        /* BY  */
+  YYSYMBOL_DATE_T = 28,                    /* DATE_T  */
+  YYSYMBOL_HELP = 29,                      /* HELP  */
+  YYSYMBOL_EXIT = 30,                      /* EXIT  */
+  YYSYMBOL_DOT = 31,                       /* DOT  */
+  YYSYMBOL_INTO = 32,                      /* INTO  */
+  YYSYMBOL_VALUES = 33,                    /* VALUES  */
+  YYSYMBOL_FROM = 34,                      /* FROM  */
+  YYSYMBOL_WHERE = 35,                     /* WHERE  */
+  YYSYMBOL_AND = 36,                       /* AND  */
+  YYSYMBOL_SET = 37,                       /* SET  */
+  YYSYMBOL_ON = 38,                        /* ON  */
+  YYSYMBOL_LOAD = 39,                      /* LOAD  */
+  YYSYMBOL_DATA = 40,                      /* DATA  */
+  YYSYMBOL_INFILE = 41,                    /* INFILE  */
+  YYSYMBOL_NULLABLE = 42,                  /* NULLABLE  */
+  YYSYMBOL_NOT = 43,                       /* NOT  */
+  YYSYMBOL_EQ = 44,                        /* EQ  */
+  YYSYMBOL_LT = 45,                        /* LT  */
+  YYSYMBOL_GT = 46,                        /* GT  */
+  YYSYMBOL_LE = 47,                        /* LE  */
+  YYSYMBOL_GE = 48,                        /* GE  */
+  YYSYMBOL_NE = 49,                        /* NE  */
+  YYSYMBOL_NUMBER = 50,                    /* NUMBER  */
+  YYSYMBOL_FLOAT = 51,                     /* FLOAT  */
+  YYSYMBOL_ID = 52,                        /* ID  */
+  YYSYMBOL_PATH = 53,                      /* PATH  */
+  YYSYMBOL_SSS = 54,                       /* SSS  */
+  YYSYMBOL_STAR = 55,                      /* STAR  */
+  YYSYMBOL_STRING_V = 56,                  /* STRING_V  */
+  YYSYMBOL_COUNT = 57,                     /* COUNT  */
+  YYSYMBOL_OTHER_FUNCTION_TYPE = 58,       /* OTHER_FUNCTION_TYPE  */
+  YYSYMBOL_NULL_T = 59,                    /* NULL_T  */
+  YYSYMBOL_YYACCEPT = 60,                  /* $accept  */
+  YYSYMBOL_commands = 61,                  /* commands  */
+  YYSYMBOL_command = 62,                   /* command  */
+  YYSYMBOL_exit = 63,                      /* exit  */
+  YYSYMBOL_help = 64,                      /* help  */
+  YYSYMBOL_sync = 65,                      /* sync  */
+  YYSYMBOL_begin = 66,                     /* begin  */
+  YYSYMBOL_commit = 67,                    /* commit  */
+  YYSYMBOL_rollback = 68,                  /* rollback  */
+  YYSYMBOL_drop_table = 69,                /* drop_table  */
+  YYSYMBOL_show_tables = 70,               /* show_tables  */
+  YYSYMBOL_desc_table = 71,                /* desc_table  */
+  YYSYMBOL_create_index = 72,              /* create_index  */
+  YYSYMBOL_drop_index = 73,                /* drop_index  */
+  YYSYMBOL_create_table = 74,              /* create_table  */
+  YYSYMBOL_attr_def_list = 75,             /* attr_def_list  */
+  YYSYMBOL_attr_def = 76,                  /* attr_def  */
+  YYSYMBOL_opt_null = 77,                  /* opt_null  */
+  YYSYMBOL_number = 78,                    /* number  */
+  YYSYMBOL_type = 79,                      /* type  */
+  YYSYMBOL_ID_get = 80,                    /* ID_get  */
+  YYSYMBOL_insert = 81,                    /* insert  */
+  YYSYMBOL_multi_values = 82,              /* multi_values  */
+  YYSYMBOL_value_list = 83,                /* value_list  */
+  YYSYMBOL_value = 84,                     /* value  */
+  YYSYMBOL_delete = 85,                    /* delete  */
+  YYSYMBOL_update = 86,                    /* update  */
+  YYSYMBOL_select = 87,                    /* select  */
+  YYSYMBOL_select_attr = 88,               /* select_attr  */
+  YYSYMBOL_attr_list = 89,                 /* attr_list  */
+  YYSYMBOL_window_function = 90,           /* window_function  */
+  YYSYMBOL_opt_star = 91,                  /* opt_star  */
+  YYSYMBOL_function_list = 92,             /* function_list  */
+  YYSYMBOL_rel_list = 93,                  /* rel_list  */
+  YYSYMBOL_where = 94,                     /* where  */
+  YYSYMBOL_condition_list = 95,            /* condition_list  */
+  YYSYMBOL_condition = 96,                 /* condition  */
+  YYSYMBOL_comOp = 97,                     /* comOp  */
+  YYSYMBOL_order_by = 98,                  /* order_by  */
+  YYSYMBOL_sort_list = 99,                 /* sort_list  */
+  YYSYMBOL_sort_attr = 100,                /* sort_attr  */
+  YYSYMBOL_opt_asc = 101,                  /* opt_asc  */
+  YYSYMBOL_load_data = 102                 /* load_data  */
 };
 typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
@@ -655,22 +746,22 @@ static const yytype_int16 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "SEMICOLON", "CREATE", "DROP", "TABLE",
-  "TABLES", "INDEX", "SELECT", "DESC", "SHOW", "SYNC", "INSERT", "DELETE",
-  "UPDATE", "LBRACE", "RBRACE", "COMMA", "TRX_BEGIN", "TRX_COMMIT",
-  "TRX_ROLLBACK", "INT_T", "STRING_T", "FLOAT_T", "ORDER", "ASC", "BY",
-  "DATE_T", "HELP", "EXIT", "DOT", "INTO", "VALUES", "FROM", "WHERE",
-  "AND", "SET", "ON", "LOAD", "DATA", "INFILE", "NULLABLE", "NOT", "EQ",
-  "LT", "GT", "LE", "GE", "NE", "NUMBER", "FLOAT", "ID", "PATH", "SSS",
-  "STAR", "STRING_V", "COUNT", "OTHER_FUNCTION_TYPE", "NULL_T", "$accept",
-  "commands", "command", "exit", "help", "sync", "begin", "commit",
-  "rollback", "drop_table", "show_tables", "desc_table", "create_index",
-  "drop_index", "create_table", "attr_def_list", "attr_def", "opt_null",
-  "number", "type", "ID_get", "insert", "multi_values", "value_list",
-  "value", "delete", "update", "select", "select_attr", "attr_list",
-  "window_function", "opt_star", "function_list", "rel_list", "where",
-  "condition_list", "condition", "comOp", "order_by", "sort_list",
-  "sort_attr", "opt_asc", "load_data", YY_NULLPTR
+  "\"end of file\"", "error", "\"invalid token\"", "SEMICOLON", "CREATE",
+  "DROP", "TABLE", "TABLES", "INDEX", "SELECT", "DESC", "SHOW", "SYNC",
+  "INSERT", "DELETE", "UPDATE", "LBRACE", "RBRACE", "COMMA", "TRX_BEGIN",
+  "TRX_COMMIT", "TRX_ROLLBACK", "INT_T", "STRING_T", "FLOAT_T", "ORDER",
+  "ASC", "BY", "DATE_T", "HELP", "EXIT", "DOT", "INTO", "VALUES", "FROM",
+  "WHERE", "AND", "SET", "ON", "LOAD", "DATA", "INFILE", "NULLABLE", "NOT",
+  "EQ", "LT", "GT", "LE", "GE", "NE", "NUMBER", "FLOAT", "ID", "PATH",
+  "SSS", "STAR", "STRING_V", "COUNT", "OTHER_FUNCTION_TYPE", "NULL_T",
+  "$accept", "commands", "command", "exit", "help", "sync", "begin",
+  "commit", "rollback", "drop_table", "show_tables", "desc_table",
+  "create_index", "drop_index", "create_table", "attr_def_list",
+  "attr_def", "opt_null", "number", "type", "ID_get", "insert",
+  "multi_values", "value_list", "value", "delete", "update", "select",
+  "select_attr", "attr_list", "window_function", "opt_star",
+  "function_list", "rel_list", "where", "condition_list", "condition",
+  "comOp", "order_by", "sort_list", "sort_attr", "opt_asc", "load_data", YY_NULLPTR
 };
 #endif
 
@@ -1591,7 +1682,7 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 21:
+  case 21: /* exit: EXIT SEMICOLON  */
 #line 181 "yacc_sql.y"
                    {
         CONTEXT->ssql->flag=SCF_EXIT;//"exit";
@@ -1599,7 +1690,7 @@ yyreduce:
 #line 1600 "yacc_sql.tab.c"
     break;
 
-  case 22:
+  case 22: /* help: HELP SEMICOLON  */
 #line 186 "yacc_sql.y"
                    {
         CONTEXT->ssql->flag=SCF_HELP;//"help";
@@ -1607,7 +1698,7 @@ yyreduce:
 #line 1608 "yacc_sql.tab.c"
     break;
 
-  case 23:
+  case 23: /* sync: SYNC SEMICOLON  */
 #line 191 "yacc_sql.y"
                    {
       CONTEXT->ssql->flag = SCF_SYNC;
@@ -1615,7 +1706,7 @@ yyreduce:
 #line 1616 "yacc_sql.tab.c"
     break;
 
-  case 24:
+  case 24: /* begin: TRX_BEGIN SEMICOLON  */
 #line 197 "yacc_sql.y"
                         {
       CONTEXT->ssql->flag = SCF_BEGIN;
@@ -1623,7 +1714,7 @@ yyreduce:
 #line 1624 "yacc_sql.tab.c"
     break;
 
-  case 25:
+  case 25: /* commit: TRX_COMMIT SEMICOLON  */
 #line 203 "yacc_sql.y"
                          {
       CONTEXT->ssql->flag = SCF_COMMIT;
@@ -1631,7 +1722,7 @@ yyreduce:
 #line 1632 "yacc_sql.tab.c"
     break;
 
-  case 26:
+  case 26: /* rollback: TRX_ROLLBACK SEMICOLON  */
 #line 209 "yacc_sql.y"
                            {
       CONTEXT->ssql->flag = SCF_ROLLBACK;
@@ -1639,7 +1730,7 @@ yyreduce:
 #line 1640 "yacc_sql.tab.c"
     break;
 
-  case 27:
+  case 27: /* drop_table: DROP TABLE ID SEMICOLON  */
 #line 215 "yacc_sql.y"
                             {
         CONTEXT->ssql->flag = SCF_DROP_TABLE;//"drop_table";
@@ -1648,7 +1739,7 @@ yyreduce:
 #line 1649 "yacc_sql.tab.c"
     break;
 
-  case 28:
+  case 28: /* show_tables: SHOW TABLES SEMICOLON  */
 #line 221 "yacc_sql.y"
                           {
       CONTEXT->ssql->flag = SCF_SHOW_TABLES;
@@ -1656,7 +1747,7 @@ yyreduce:
 #line 1657 "yacc_sql.tab.c"
     break;
 
-  case 29:
+  case 29: /* desc_table: DESC ID SEMICOLON  */
 #line 227 "yacc_sql.y"
                       {
       CONTEXT->ssql->flag = SCF_DESC_TABLE;
@@ -1665,7 +1756,7 @@ yyreduce:
 #line 1666 "yacc_sql.tab.c"
     break;
 
-  case 30:
+  case 30: /* create_index: CREATE INDEX ID ON ID LBRACE ID RBRACE SEMICOLON  */
 #line 235 "yacc_sql.y"
                 {
 			CONTEXT->ssql->flag = SCF_CREATE_INDEX;//"create_index";
@@ -1674,7 +1765,7 @@ yyreduce:
 #line 1675 "yacc_sql.tab.c"
     break;
 
-  case 31:
+  case 31: /* drop_index: DROP INDEX ID SEMICOLON  */
 #line 243 "yacc_sql.y"
                 {
 			CONTEXT->ssql->flag=SCF_DROP_INDEX;//"drop_index";
@@ -1683,7 +1774,7 @@ yyreduce:
 #line 1684 "yacc_sql.tab.c"
     break;
 
-  case 32:
+  case 32: /* create_table: CREATE TABLE ID LBRACE attr_def attr_def_list RBRACE SEMICOLON  */
 #line 250 "yacc_sql.y"
                 {
 			CONTEXT->ssql->flag=SCF_CREATE_TABLE;//"create_table";
@@ -1695,13 +1786,13 @@ yyreduce:
 #line 1696 "yacc_sql.tab.c"
     break;
 
-  case 34:
+  case 34: /* attr_def_list: COMMA attr_def attr_def_list  */
 #line 260 "yacc_sql.y"
                                    {    }
 #line 1702 "yacc_sql.tab.c"
     break;
 
-  case 35:
+  case 35: /* attr_def: ID_get type LBRACE number RBRACE opt_null  */
 #line 265 "yacc_sql.y"
                 {
 			AttrInfo attribute;
@@ -1716,7 +1807,7 @@ yyreduce:
 #line 1717 "yacc_sql.tab.c"
     break;
 
-  case 36:
+  case 36: /* attr_def: ID_get type opt_null  */
 #line 276 "yacc_sql.y"
                 {
 			AttrInfo attribute;
@@ -1731,7 +1822,7 @@ yyreduce:
 #line 1732 "yacc_sql.tab.c"
     break;
 
-  case 37:
+  case 37: /* opt_null: %empty  */
 #line 289 "yacc_sql.y"
                   {
 		(yyval.number) = ISFALSE; // 默认允许null
@@ -1739,7 +1830,7 @@ yyreduce:
 #line 1740 "yacc_sql.tab.c"
     break;
 
-  case 38:
+  case 38: /* opt_null: NOT NULL_T  */
 #line 292 "yacc_sql.y"
                      {
 		(yyval.number) = ISFALSE;
@@ -1747,7 +1838,7 @@ yyreduce:
 #line 1748 "yacc_sql.tab.c"
     break;
 
-  case 39:
+  case 39: /* opt_null: NULLABLE  */
 #line 295 "yacc_sql.y"
                    {
 		(yyval.number) = ISTRUE;
@@ -1755,13 +1846,13 @@ yyreduce:
 #line 1756 "yacc_sql.tab.c"
     break;
 
-  case 40:
+  case 40: /* number: NUMBER  */
 #line 301 "yacc_sql.y"
                        {(yyval.number) = (yyvsp[0].number);}
 #line 1762 "yacc_sql.tab.c"
     break;
 
-  case 41:
+  case 41: /* type: INT_T  */
 #line 304 "yacc_sql.y"
               { 
 		(yyval.number)=INTS; 
@@ -1770,7 +1861,7 @@ yyreduce:
 #line 1771 "yacc_sql.tab.c"
     break;
 
-  case 42:
+  case 42: /* type: STRING_T  */
 #line 308 "yacc_sql.y"
                   { 
 		   (yyval.number)=CHARS;
@@ -1779,7 +1870,7 @@ yyreduce:
 #line 1780 "yacc_sql.tab.c"
     break;
 
-  case 43:
+  case 43: /* type: FLOAT_T  */
 #line 312 "yacc_sql.y"
                  { 
 		   (yyval.number)=FLOATS;
@@ -1788,7 +1879,7 @@ yyreduce:
 #line 1789 "yacc_sql.tab.c"
     break;
 
-  case 44:
+  case 44: /* type: DATE_T  */
 #line 316 "yacc_sql.y"
                     { 
 		   (yyval.number)=DATES;
@@ -1797,7 +1888,7 @@ yyreduce:
 #line 1798 "yacc_sql.tab.c"
     break;
 
-  case 45:
+  case 45: /* ID_get: ID  */
 #line 323 "yacc_sql.y"
         {
 		char *temp=(yyvsp[0].string); 
@@ -1806,7 +1897,7 @@ yyreduce:
 #line 1807 "yacc_sql.tab.c"
     break;
 
-  case 46:
+  case 46: /* insert: INSERT INTO ID_get VALUES multi_values SEMICOLON  */
 #line 332 "yacc_sql.y"
         {
 			// CONTEXT->values[CONTEXT->value_length++] = *$6;
@@ -1825,7 +1916,7 @@ yyreduce:
 #line 1826 "yacc_sql.tab.c"
     break;
 
-  case 47:
+  case 47: /* multi_values: LBRACE value value_list RBRACE  */
 #line 348 "yacc_sql.y"
                                        {
 		// 到此结束一组的插入：存储该组、增加index、value_length清零
@@ -1837,7 +1928,7 @@ yyreduce:
 #line 1838 "yacc_sql.tab.c"
     break;
 
-  case 48:
+  case 48: /* multi_values: multi_values COMMA LBRACE value value_list RBRACE  */
 #line 355 "yacc_sql.y"
                                                            {
 		// 到此结束一组的插入：存储该组、增加index、value_length清零
@@ -1849,7 +1940,7 @@ yyreduce:
 #line 1850 "yacc_sql.tab.c"
     break;
 
-  case 50:
+  case 50: /* value_list: COMMA value value_list  */
 #line 365 "yacc_sql.y"
                               { 
   		// CONTEXT->values[CONTEXT->value_length++] = *$2;
@@ -1857,7 +1948,7 @@ yyreduce:
 #line 1858 "yacc_sql.tab.c"
     break;
 
-  case 51:
+  case 51: /* value: NUMBER  */
 #line 370 "yacc_sql.y"
           {	
   		value_init_integer(&CONTEXT->values[CONTEXT->value_length++], (yyvsp[0].number));
@@ -1865,7 +1956,7 @@ yyreduce:
 #line 1866 "yacc_sql.tab.c"
     break;
 
-  case 52:
+  case 52: /* value: FLOAT  */
 #line 373 "yacc_sql.y"
           {
   		value_init_float(&CONTEXT->values[CONTEXT->value_length++], (yyvsp[0].floats));
@@ -1873,7 +1964,7 @@ yyreduce:
 #line 1874 "yacc_sql.tab.c"
     break;
 
-  case 53:
+  case 53: /* value: NULL_T  */
 #line 376 "yacc_sql.y"
                 {
 		// null不需要加双引号，当作字符串插入
@@ -1883,7 +1974,7 @@ yyreduce:
 #line 1884 "yacc_sql.tab.c"
     break;
 
-  case 54:
+  case 54: /* value: SSS  */
 #line 381 "yacc_sql.y"
          {
 		(yyvsp[0].string) = substr((yyvsp[0].string),1,strlen((yyvsp[0].string))-2);
@@ -1892,7 +1983,7 @@ yyreduce:
 #line 1893 "yacc_sql.tab.c"
     break;
 
-  case 55:
+  case 55: /* delete: DELETE FROM ID where SEMICOLON  */
 #line 390 "yacc_sql.y"
                 {
 			CONTEXT->ssql->flag = SCF_DELETE;//"delete";
@@ -1904,7 +1995,7 @@ yyreduce:
 #line 1905 "yacc_sql.tab.c"
     break;
 
-  case 56:
+  case 56: /* update: UPDATE ID SET ID EQ value where SEMICOLON  */
 #line 400 "yacc_sql.y"
                 {
 			CONTEXT->ssql->flag = SCF_UPDATE;//"update";
@@ -1916,7 +2007,7 @@ yyreduce:
 #line 1917 "yacc_sql.tab.c"
     break;
 
-  case 57:
+  case 57: /* select: SELECT select_attr FROM ID rel_list where order_by SEMICOLON  */
 #line 410 "yacc_sql.y"
         {
 			CONTEXT->ssql->flag=SCF_SELECT;//"select";
