@@ -20,76 +20,157 @@ See the Mulan PSL v2 for more details. */
 #include <string>
 #include <ostream>
 
-class TupleValue {
+class TupleValue
+{
 public:
   TupleValue() = default;
   virtual ~TupleValue() = default;
 
   virtual void to_string(std::ostream &os) const = 0;
   virtual int compare(const TupleValue &other) const = 0;
+
 private:
 };
 
-class IntValue : public TupleValue {
+class IntValue : public TupleValue
+{
 public:
-  explicit IntValue(int value) : value_(value) {
+  explicit IntValue(int value) : value_(value)
+  {
   }
 
-  void to_string(std::ostream &os) const override {
+  void to_string(std::ostream &os) const override
+  {
     os << value_;
   }
 
-  int compare(const TupleValue &other) const override {
-    const IntValue & int_other = (const IntValue &)other;
+  int compare(const TupleValue &other) const override
+  {
+    const IntValue &int_other = (const IntValue &)other;
     return value_ - int_other.value_;
+  }
+
+  int GetValue()
+  {
+    return value_;
   }
 
 private:
   int value_;
 };
 
-class FloatValue : public TupleValue {
+class FloatValue : public TupleValue
+{
 public:
-  explicit FloatValue(float value) : value_(value) {
+  explicit FloatValue(float value) : value_(value)
+  {
   }
 
-  void to_string(std::ostream &os) const override {
-    os << value_;
+  void to_string(std::ostream &os) const override
+  {
+    /*
+    float输出规则：先保留两位小数（截断，不四舍五入），再去掉尾后0
+    17.101 -> 17.10 -> 17.1
+    */
+    char ftos[20];
+    sprintf(ftos, "%f", static_cast<float>(value_));
+    int s_end = 0;
+    int len = strlen(ftos);
+
+    for (; s_end < len; ++s_end) {
+      if (ftos[s_end] == '.') {
+        break; // 找到小数点
+      }
+    }
+
+    if (s_end < len) {
+      // 存在小数点，取数
+      int index_1 = s_end + 1;
+      int index_2 = s_end + 2;
+      s_end += 3;
+
+      if (index_2 < len) {
+        if (ftos[index_2] == '0') {
+          --s_end;
+          if (ftos[index_1] == '0') {
+            s_end -= 2;
+          }
+        } 
+      } else {
+        --s_end;
+        if (index_1 < len && ftos[index_1] == '0') {
+          s_end -= 2;
+        }
+      }
+
+      ftos[s_end] = '\0';
+    }
+
+    // os << value_;
+    os << ftos;
   }
 
-  int compare(const TupleValue &other) const override {
-    const FloatValue & float_other = (const FloatValue &)other;
+  int compare(const TupleValue &other) const override
+  {
+    const FloatValue &float_other = (const FloatValue &)other;
     float result = value_ - float_other.value_;
-    if (result > 0) { // 浮点数没有考虑精度问题
+    if (result > -1e-6 && result < 1e-6)
+    {
+      return 0;
+    }
+    else if (result > 0)
+    { // 浮点数没有考虑精度问题
       return 1;
     }
-    if (result < 0) {
+    if (result < 0)
+    {
       return -1;
     }
     return 0;
   }
+
+  float GetValue()
+  {
+    return value_;
+  }
+
 private:
   float value_;
 };
 
-class StringValue : public TupleValue {
+class StringValue : public TupleValue
+{
 public:
-  StringValue(const char *value, int len) : value_(value, len){
+  StringValue(const char *value, int len) : value_(value, len)
+  {
   }
-  explicit StringValue(const char *value) : value_(value) {
+  explicit StringValue(const char *value) : value_(value)
+  {
   }
 
-  void to_string(std::ostream &os) const override {
+  void to_string(std::ostream &os) const override
+  {
     os << value_;
   }
 
-  int compare(const TupleValue &other) const override {
+  int compare(const TupleValue &other) const override
+  {
     const StringValue &string_other = (const StringValue &)other;
     return strcmp(value_.c_str(), string_other.value_.c_str());
   }
+
+  const char *GetValue()
+  {
+    return value_.c_str();
+  }
+
+  int GetLen()
+  {
+    return value_.size();
+  }
+
 private:
   std::string value_;
 };
-
 
 #endif //__OBSERVER_SQL_EXECUTOR_VALUE_H_

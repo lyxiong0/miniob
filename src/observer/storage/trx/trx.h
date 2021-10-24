@@ -25,10 +25,14 @@ See the Mulan PSL v2 for more details. */
 #include "rc.h"
 
 class Table;
+class RID;
+class RidDigest;
 
-class Operation {
+class Operation
+{
 public:
-  enum class Type: int {
+  enum class Type : int
+  {
     INSERT,
     UPDATE,
     DELETE,
@@ -36,34 +40,50 @@ public:
   };
 
 public:
-  Operation(Type type, const RID &rid) : type_(type), page_num_(rid.page_num), slot_num_(rid.slot_num){
+  Operation(Type type, const RID &rid, char *new_record_data = nullptr) : type_(type), page_num_(rid.page_num), slot_num_(rid.slot_num), new_record_data_(new_record_data)
+  {
   }
 
-  Type type() const {
+  Type type() const
+  {
     return type_;
   }
-  PageNum  page_num() const {
+
+  PageNum page_num() const
+  {
     return page_num_;
   }
-  SlotNum  slot_num() const {
+
+  SlotNum slot_num() const
+  {
     return slot_num_;
+  }
+
+  char *new_record_data() const
+  {
+    return new_record_data_;
   }
 
 private:
   Type type_;
-  PageNum  page_num_;
-  SlotNum  slot_num_;
+  PageNum page_num_;
+  SlotNum slot_num_;
+  char *new_record_data_;
 };
-class OperationHasher {
+class OperationHasher
+{
 public:
-  size_t operator() (const Operation &op) const {
+  size_t operator()(const Operation &op) const
+  {
     return (((size_t)op.page_num()) << 32) | (op.slot_num());
   }
 };
 
-class OperationEqualer {
+class OperationEqualer
+{
 public:
-  bool operator()(const Operation &op1, const Operation &op2) const {
+  bool operator()(const Operation &op1, const Operation &op2) const
+  {
     return op1.page_num() == op2.page_num() &&
            op1.slot_num() == op2.slot_num();
   }
@@ -73,13 +93,14 @@ public:
  * 这里是一个简单的事务实现，可以支持提交/回滚。但是没有对并发访问做控制
  * 可以在这个基础上做备份恢复，当然也可以重写
  */
-class Trx {
+class Trx
+{
 public:
   static int32_t default_trx_id();
   static int32_t next_trx_id();
   static const char *trx_field_name();
   static AttrType trx_field_type();
-  static int      trx_field_len();
+  static int trx_field_len();
 
 public:
   Trx();
@@ -88,6 +109,7 @@ public:
 public:
   RC insert_record(Table *table, Record *record);
   RC delete_record(Table *table, Record *record);
+  RC update_record(Table *table, Record *record, char *new_record_data);
 
   RC commit();
   RC rollback();
@@ -104,6 +126,8 @@ private:
   static void get_record_trx_id(Table *table, const Record &record, int32_t &trx_id, bool &deleted);
 
 private:
+  // OperationSet以rid作为计算作为哈希函数，与Operation::Type::UNDEFINED无关
+  // 因此rid唯一则操作唯一
   using OperationSet = std::unordered_set<Operation, OperationHasher, OperationEqualer>;
 
   Operation *find_operation(Table *table, const RID &rid);
@@ -112,9 +136,12 @@ private:
 
 private:
   void start_if_not_started();
+
 private:
-  int32_t  trx_id_ = 0;
+  int32_t trx_id_ = 0;
   std::unordered_map<Table *, OperationSet> operations_;
+  std::unordered_map<size_t, char *> reocrd_data_map_;
+  RidDigest digest_;
 };
 
 #endif // __OBSERVER_STORAGE_TRX_TRX_H_

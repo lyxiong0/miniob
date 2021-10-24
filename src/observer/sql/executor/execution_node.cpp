@@ -47,5 +47,6 @@ RC SelectExeNode::execute(TupleSet &tuple_set) {
   tuple_set.clear();
   tuple_set.set_schema(tuple_schema_);
   TupleRecordConverter converter(table_, tuple_set);
+
   return table_->scan_record(trx_, &condition_filter, -1, (void *)&converter, record_reader);
 }

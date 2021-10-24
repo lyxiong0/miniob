@@ -28,8 +28,17 @@ class FieldMeta {
 public:
   FieldMeta();
   ~FieldMeta() = default;
-
-  RC init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible);
+  /**
+   * @brief 初始化字段
+   * 
+   * @param name 字段名
+   * @param attr_type 字段类型
+   * @param attr_offset 无视，不考虑字节对齐问题，默认4字节对齐
+   * @param attr_len 字段长度
+   * @param visible 字段是否可见
+   * @return RC 
+   */
+  RC init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, bool nullable = false);
 
 public:
   const char *name() const;
@@ -37,6 +46,7 @@ public:
   int         offset() const;
   int         len() const;
   bool        visible() const;
+  bool        nullable() const;
 
 public:
   void desc(std::ostream &os) const;
@@ -50,5 +60,6 @@ private:
   int          attr_offset_;
   int          attr_len_;
   bool         visible_;
+  bool         nullable_; // 默认为false
 };
 #endif // __OBSERVER_STORAGE_COMMON_FIELD_META_H__

@@ -52,11 +52,13 @@ RC TableMeta::init_sys_fields() {
   return rc;
 }
 RC TableMeta::init(const char *name, int field_num, const AttrInfo attributes[]) {
+  // 检查表名参数
   if (nullptr == name || '\0' == name[0]) {
     LOG_ERROR("Name cannot be empty");
     return RC::INVALID_ARGUMENT;
   }
 
+  // 检查属性参数
   if (field_num <= 0 || nullptr == attributes) {
     LOG_ERROR("Invalid argument. field_num=%d, attributes=%p", field_num, attributes);
     return RC::INVALID_ARGUMENT;
@@ -80,7 +82,7 @@ RC TableMeta::init(const char *name, int field_num, const AttrInfo attributes[])
 
   for (int i = 0; i < field_num; i++) {
     const AttrInfo &attr_info = attributes[i];
-    rc = fields_[i + sys_fields_.size()].init(attr_info.name, attr_info.type, field_offset, attr_info.length, true);
+    rc = fields_[i + sys_fields_.size()].init(attr_info.name, attr_info.type, field_offset, attr_info.length, true, attr_info.is_nullable == 1);
     if (rc != RC::SUCCESS) {
       LOG_ERROR("Failed to init field meta. table name=%s, field name: %s", name, attr_info.name);
       return rc;
@@ -93,7 +95,7 @@ RC TableMeta::init(const char *name, int field_num, const AttrInfo attributes[])
 
   name_ = name;
   LOG_INFO("Init table meta success. table name=%s", name);
-  return RC::SUCCESS;
+  return RC::SUCCESS; 
 }
 
 RC TableMeta::add_index(const IndexMeta &index) {
