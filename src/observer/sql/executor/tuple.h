@@ -169,9 +169,6 @@ public:
   const Tuple &get(int index) const;
   const std::vector<Tuple> &tuples() const;
 
-<<<<<<< HEAD
-  void print(std::ostream &os, bool multitable=false) const;
-=======
   void print(std::ostream &os, bool isMultiTable=false) const;
 
   void swap_tuple(int i, int j)
@@ -182,7 +179,6 @@ public:
     std::swap(tuples_[i], tuples_[j]);
   }
 
->>>>>>> main
 public:
   const TupleSchema &schema() const
   {

@@ -292,40 +292,6 @@ TupleSet cartesian_product(const TupleSet& setA, const TupleSet& setB, bool hasC
 
         for (int i = selects.attr_num - 1; i >= 0; i--) {
         const RelAttr &attr = selects.attributes[i];
-<<<<<<< HEAD
-        if (nullptr == attr.relation_name || 0 == strcmp(left_rel_name, attr.relation_name)) {
-          Table * left_table = DefaultHandler::get_default().find_table(db, left_rel_name);
-          if (0 == strcmp("*", attr.attribute_name)) {
-            // *则列出这张表所有字段
-             TupleSchema::from_table(left_table, schema);
-            break; // 没有校验，给出* 之后，再写字段的错误
-          } else {
-            // 列出这张表相关字段
-            RC rc = schema_add_field(left_table, attr.attribute_name, schema);
-            schema.print(std::cout);
-            if (rc != RC::SUCCESS) {
-              
-            }
-          }
-        }
-        
-
-        if (nullptr == attr.relation_name || 0 == strcmp(right_rel_name, attr.relation_name)) {
-          Table * right_table = DefaultHandler::get_default().find_table(db, right_rel_name);
-          if (0 == strcmp("*", attr.attribute_name)) {
-            // 列出这张表所有字段
-             TupleSchema::from_table(right_table, schema);
-            break; // 没有校验，给出* 之后，再写字段的错误
-          } else {
-            // 列出这张表相关字段
-            RC rc = schema_add_field(right_table, attr.attribute_name, schema);
-            if (rc != RC::SUCCESS) {
-              
-            }
-          }
-        }
-      }
-=======
         // select * from t1,t2;
         if (nullptr == attr.relation_name && 0 == strcmp("*", attr.attribute_name)) {
           Table * left_table = DefaultHandler::get_default().find_table(db, left_rel_name);  
@@ -363,7 +329,6 @@ TupleSet cartesian_product(const TupleSet& setA, const TupleSet& setB, bool hasC
             }
         }
         }
->>>>>>> main
       ret.set_schema(schema);
         if ((0 == strcmp(setA.get_schema().field(0).table_name(), left_rel_name)) &&
             (0 == strcmp(setB.get_schema().field(0).table_name(), right_rel_name))) {
@@ -519,16 +484,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     // 然后要根据这个condition找出对应的两个表的TupleSet
     // 并根据condition的谓词过滤出满足条件的构造Tuple
     int len = tuple_sets.size();
-<<<<<<< HEAD
-    TupleSet tuple_set(std::move(tuple_sets[len - 1]));
-    for (int i = len - 2; i >= 0; i--) {
-        tuple_set = cartesian_product(tuple_set, tuple_sets[i], hasCondition, cond, selects, db);
-    }
-    // tuple_set.get_schema().print(ss);
-    tuple_set.print(ss, true);
-  } else {
-
-=======
     result = std::move(tuple_sets[len - 1]);
     for (int i = len - 2; i >= 0; i--)
     {
@@ -537,7 +492,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   }
   else
   {
->>>>>>> main
     // 当前只查询一张表，直接返回结果即可
     result = std::move(tuple_sets.front());
   }
@@ -894,9 +848,6 @@ bool match_table(const Selects &selects, const char *table_name_in_condition, co
   return selects.relation_num == 1;
 }
 
-<<<<<<< HEAD
-
-=======
 
 FuncType judge_function_type(char *window_function_name)
 {
@@ -932,7 +883,6 @@ FuncType judge_function_type(char *window_function_name)
 
   return FuncType::NOFUNC;
 }
->>>>>>> main
 
 // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
 RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode& select_node)
@@ -948,14 +898,9 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     return RC::SCHEMA_TABLE_NOT_EXIST;
   }
 
-<<<<<<< HEAD
-
-  for (int i = selects.attr_num - 1; i >= 0; i--) {
-=======
   // 2. 遍历Select中所有属性
   for (int i = selects.attr_num - 1; i >= 0; i--)
   {
->>>>>>> main
     const RelAttr &attr = selects.attributes[i];
 
     // 确定该属性与这张表有关
@@ -980,13 +925,8 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
       }
     }
   }
-<<<<<<< HEAD
-
-  bool first = true; // 标记是不是第一次遇到多表连接语句
-=======
     
     bool first = true; // 标记是不是第一次遇到多表连接语句
->>>>>>> main
 
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
   std::vector<DefaultConditionFilter *> condition_filters;
@@ -996,13 +936,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
         (condition.left_is_attr == 0 && condition.right_is_attr == 1 && match_table(selects, condition.right_attr.relation_name, table_name)) || // 左边是值，右边是属性名
-<<<<<<< HEAD
-         (condition.left_is_attr == 1 && condition.right_is_attr == 1 )
-           //  match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name)) // 左右都是属性名，并且表名都符合
-            // t1.id = t2.id，左右两边的relation_name不可能都是table_name
-        ) {
-
-=======
         (condition.left_is_attr == 1 && condition.right_is_attr == 1) // &&
          // match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name)) // 左右都是属性名，并且表名都符合
     )
@@ -1026,7 +959,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
                 return RC::SCHEMA_TABLE_NAME_ILLEGAL;
             }
         }
->>>>>>> main
       DefaultConditionFilter *condition_filter = new DefaultConditionFilter();
       // 这个init函数里检查了where子句中的列名是否存在
       RC rc = condition_filter->init(*table, condition);
@@ -1041,10 +973,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
       }
       condition_filters.push_back(condition_filter);
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> main
     // 如果是多表，取所有列
     if (first && condition.left_is_attr == 1 && condition.right_is_attr == 1 ) {
       schema.clear();

@@ -133,15 +133,10 @@ int TupleSchema::index_of_field(const char *table_name, const char *field_name) 
   return -1;
 }
 
-<<<<<<< HEAD
-void TupleSchema::print(std::ostream &os, bool isMultiTable) const {
-  if (fields_.empty()) {
-=======
 void TupleSchema::print(std::ostream &os, bool isMultiTable) const
 {
   if (fields_.empty())
   {
->>>>>>> main
     os << "No schema";
     return;
   }
@@ -154,28 +149,16 @@ void TupleSchema::print(std::ostream &os, bool isMultiTable) const
   }
 
   for (std::vector<TupleField>::const_iterator iter = fields_.begin(), end = --fields_.end();
-<<<<<<< HEAD
-       iter != end; ++iter) {
-    // 多张表才会打印表名，一张表只打印列名
-    LOG_INFO("multitable is true");
-    if (table_names.size() > 1 || isMultiTable == true) {
-=======
        iter != end; ++iter)
   {
     if (table_names.size() > 1 || isMultiTable == true)
     {
->>>>>>> main
       os << iter->table_name() << ".";
     }
     os << iter->field_name() << " | ";
   }
 
-<<<<<<< HEAD
   if (table_names.size() > 1 || isMultiTable == true) {
-=======
-  if (table_names.size() > 1 || isMultiTable == true)
-  {
->>>>>>> main
     os << fields_.back().table_name() << ".";
   }
   os << fields_.back().field_name() << std::endl;
@@ -214,24 +197,13 @@ void TupleSet::clear()
   schema_.clear();
 }
 
-<<<<<<< HEAD
 void TupleSet::print(std::ostream &os, bool isMultiTable) const {
   if (schema_.fields().empty()) {
-=======
-void TupleSet::print(std::ostream &os, bool isMultiTable) const
-{
-  if (schema_.fields().empty())
-  {
->>>>>>> main
     LOG_WARN("Got empty schema");
     return;
   }
 
-<<<<<<< HEAD
   schema_.print(os, isMultiTable);
-=======
-  schema_.print(os, isMultiTable);
->>>>>>> main
 
   for (const Tuple &item : tuples_)
   {
