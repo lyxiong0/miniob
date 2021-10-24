@@ -178,6 +178,7 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   return init(left, right, type_left, condition.comp);
 }
 
+
 bool DefaultConditionFilter::filter(const Record &rec) const
 {
   char *left_value = nullptr;

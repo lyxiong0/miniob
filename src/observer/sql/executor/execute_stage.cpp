@@ -421,8 +421,9 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   {
     // 遍历所有表
     const char *table_name = selects.relations[i];
-    SelectExeNode *select_node = new SelectExeNode;
 
+
+    SelectExeNode *select_node = new SelectExeNode;
     rc = create_selection_executor(trx, selects, db, table_name, *select_node);
     if (rc != RC::SUCCESS)
     {
@@ -478,6 +479,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     // 首先要从where子句的Condition中找出两边都是属性的Condition
     Condition cond;
     bool hasCondition = false;
+    std::vector<Condition> conditions;
     for (size_t i = 0; i < selects.condition_num; i++)
     {
       const Condition &condition = selects.conditions[i];
@@ -485,8 +487,25 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       {
         cond = condition; //先假设只有一个这样的condition
         hasCondition = true;
+        conditions.push_back(condition);
       }
     }
+    // hasCondition =  (conditions.size() > 0) ? true : false;
+    // for (const auto& each : conditions) {
+    //     const char* left_table_name = each.left_attr.relation_name;
+    //     const char* right_table_name = each.right_attr.relation_name;
+    //     TupleSet left;
+    //     TupleSet right;
+    //     for (auto& ts : tuple_sets) {
+    //         if (0 == strcmp(ts.get_schema().field(0).table_name(), left_table_name)) {
+    //             left = std::move(ts);
+    //         }
+    //         if (0 == strcmp(ts.get_schema().field(0).table_name(), right_table_name)) {
+    //             right = std::move(ts);
+    //         }
+    //     }
+    //     result = cartesian_product(left, right, true, each, selects, db);
+    // }
     // 然后要根据这个condition找出对应的两个表的TupleSet
     // 并根据condition的谓词过滤出满足条件的构造Tuple
     int len = tuple_sets.size();
@@ -903,6 +922,8 @@ bool match_table(const Selects &selects, const char *table_name_in_condition, co
 {
   if (table_name_in_condition != nullptr)
   {
+      LOG_INFO("table_name_in_condition: %s", table_name_in_condition);
+      LOG_INFO("table_name_to_match: %s", table_name_to_match);
     return 0 == strcmp(table_name_in_condition, table_name_to_match);
   }
 
@@ -971,10 +992,35 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     return RC::SCHEMA_TABLE_NOT_EXIST;
   }
 
+  // selects.attributes  select中的 表.列
+  // selects.relations  from中的 表
+  // selects.conditions where中的 condition
+
   // 2. 遍历Select中所有属性
+  int rel_num = selects.relation_num;
   for (int i = selects.attr_num - 1; i >= 0; i--)
   {
     const RelAttr &attr = selects.attributes[i];
+
+    // 检查一下select中的表是否在from中  
+    if (rel_num > 1) {  // 多表
+        bool table_name_in_from = false;
+        for (int j = 0; j < rel_num; j++) {
+            if ((nullptr == attr.relation_name) || (0 == strcmp(attr.relation_name, selects.relations[j]))) {
+                table_name_in_from = true;
+                break;
+            }
+        }
+        if (table_name_in_from == false) {
+            LOG_WARN("Table [%s] not in from", attr.relation_name);
+            return RC::SCHEMA_TABLE_NOT_EXIST;
+        }
+    } else if (rel_num == 1) {
+        if ((attr.relation_name != nullptr) && (0 != strcmp(attr.relation_name, selects.relations[0]))) {
+            LOG_WARN("Table [%s] not in from", attr.relation_name);
+            return RC::SCHEMA_TABLE_NOT_EXIST;
+        }
+    }
 
     // 确定该属性与这张表有关
     if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name))
@@ -1006,37 +1052,47 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   for (size_t i = 0; i < selects.condition_num; i++)
   {
     const Condition &condition = selects.conditions[i];
+
+    // 检查where中的表名是否在from中
+    if (rel_num == 1) {
+        if (((condition.left_is_attr == 1) && (0 != strcmp(condition.left_attr.relation_name, table_name))) ||
+            ((condition.right_is_attr == 1) && (0 != strcmp(condition.right_attr.relation_name, table_name)))) {
+            LOG_WARN("Table name in where but not in from");
+            return RC::SCHEMA_TABLE_NOT_EXIST;
+        }
+    } else if (rel_num > 1) {
+        if (condition.left_is_attr == 1) {
+            bool left_is_found = false;
+            for (int j = 0; j < rel_num; j++) {
+                if (0 == strcmp(condition.left_attr.relation_name, selects.relations[j])) {
+                    left_is_found = true;
+                    break;
+                }
+            }
+            if (left_is_found == false) {
+                LOG_WARN("Table name %s appears in where but not in from", condition.left_attr.relation_name);
+                return RC::SCHEMA_TABLE_NOT_EXIST;
+            }
+        }
+        if (condition.right_is_attr == 1) {
+            bool right_is_found = false;
+            for (int j = 0; j < rel_num; j++) {
+                if (0 == strcmp(condition.right_attr.relation_name, selects.relations[j])) {
+                    right_is_found = true;
+                    break;
+                }
+            }
+            if (right_is_found == false) {
+                LOG_WARN("Table name %s appears in where but not in from", condition.right_attr.relation_name);
+                return RC::SCHEMA_TABLE_NOT_EXIST;
+            }
+        }
+    }
+
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
         (condition.left_is_attr == 0 && condition.right_is_attr == 1 && match_table(selects, condition.right_attr.relation_name, table_name)) || // 左边是值，右边是属性名
-        (condition.left_is_attr == 1 && condition.right_is_attr == 1)                                                                            // &&
-                                                                                                                                                 // match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name)) // 左右都是属性名，并且表名都符合
-    )
-    {
-      // 检查where中的表名是否都是from中出现的表名
-      // e.g. select t1.id from t1,t2 where t1.id=t3.id
-      if ((condition.left_is_attr == 1 && condition.right_is_attr == 1))
-      {
-        bool left_is_found = false;
-        bool right_is_found = false;
-        for (size_t i = 0; i < selects.relation_num; i++)
-        {
-          if (0 == strcmp(condition.left_attr.relation_name, selects.relations[i]))
-          {
-            left_is_found = true;
-          }
-          if (0 == strcmp(condition.right_attr.relation_name, selects.relations[i]))
-          {
-            right_is_found = true;
-          }
-        }
-        // condition左右的表名都是from中表名才正确
-        if (!(left_is_found && right_is_found))
-        {
-          LOG_ERROR("Table in condition does not appear in from.");
-          return RC::SCHEMA_TABLE_NAME_ILLEGAL;
-        }
-      }
+        (condition.left_is_attr == 1 && condition.right_is_attr == 1 && match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name))) { // 左右都是属性名，并且表名都符合
       DefaultConditionFilter *condition_filter = new DefaultConditionFilter();
       // 这个init函数里检查了where子句中的列名是否存在
       RC rc = condition_filter->init(*table, condition);
@@ -1050,15 +1106,15 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         return rc;
       }
       condition_filters.push_back(condition_filter);
+
+    } else if (first && condition.left_is_attr == 1 && condition.right_is_attr == 1) {
+        // 多表时不考虑condition_filter
+        schema.clear();
+        TupleSchema::from_table(table, schema);
+        first = false;
     }
-    // 如果是多表，取所有列
-    if (first && condition.left_is_attr == 1 && condition.right_is_attr == 1)
-    {
-      schema.clear();
-      TupleSchema::from_table(table, schema);
-      first = false;
-    }
-  }
-  LOG_INFO("condition_filters count: %d", condition_filters.size());
-  return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
+
+  } // for
+    LOG_INFO("condition_filters count: %d", condition_filters.size());
+    return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
 }
