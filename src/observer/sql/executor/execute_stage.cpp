@@ -392,8 +392,9 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   {
     // 遍历所有表
     const char *table_name = selects.relations[i];
-    SelectExeNode *select_node = new SelectExeNode;
 
+
+    SelectExeNode *select_node = new SelectExeNode;
     rc = create_selection_executor(trx, selects, db, table_name, *select_node);
     if (rc != RC::SUCCESS)
     {
@@ -820,6 +821,8 @@ bool match_table(const Selects &selects, const char *table_name_in_condition, co
 {
   if (table_name_in_condition != nullptr)
   {
+      LOG_INFO("table_name_in_condition: %s", table_name_in_condition);
+      LOG_INFO("table_name_to_match: %s", table_name_to_match);
     return 0 == strcmp(table_name_in_condition, table_name_to_match);
   }
 
@@ -894,6 +897,19 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   {
     const RelAttr &attr = selects.attributes[i];
 
+    // 检查一下select中的表是否在from中
+    bool table_name_in_from = false;
+    for (size_t j = 0; j < selects.relation_num; j++) {
+        if ((nullptr == attr.relation_name) || (0 == strcmp(attr.relation_name, selects.relations[j]))) {
+            table_name_in_from = true;
+            break;
+        }
+    }
+    if (table_name_in_from == false) {
+        LOG_WARN("Table [%s] not in from", attr.relation_name);
+        return RC::SCHEMA_TABLE_NOT_EXIST;
+    }
+
     // 确定该属性与这张表有关
     if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name))
     {
@@ -924,13 +940,21 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   for (size_t i = 0; i < selects.condition_num; i++)
   {
     const Condition &condition = selects.conditions[i];
+    // where中的表名是否在from中
+    if ((condition.left_is_attr == 1) && (0 != strcmp(condition.left_attr.relation_name, table_name))) {
+        LOG_WARN("Table name [%s] in where not in from", condition.left_attr.relation_name);
+        return RC::SCHEMA_TABLE_NOT_EXIST;
+    }
+    // if ((condition.left_is_attr == 1) && (0 != strcmp(condition.left_attr.relation_name, table_name))) {
+    //     LOG_WARN("Table name [%s] in where not in from", condition.left_attr.relation_name);
+    //     return RC::SCHEMA_TABLE_NOT_EXIST;
+    // }
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
         (condition.left_is_attr == 0 && condition.right_is_attr == 1 && match_table(selects, condition.right_attr.relation_name, table_name)) || // 左边是值，右边是属性名
         (condition.left_is_attr == 1 && condition.right_is_attr == 1) // &&
          // match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name)) // 左右都是属性名，并且表名都符合
-    )
-    {
+    ) {
         // 检查where中的表名是否都是from中出现的表名
         // e.g. select t1.id from t1,t2 where t1.id=t3.id
         if ((condition.left_is_attr == 1 && condition.right_is_attr == 1)) {
@@ -963,13 +987,15 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         return rc;
       }
       condition_filters.push_back(condition_filter);
+
+        // 如果是多表，取所有列
+        if (first && condition.left_is_attr == 1 && condition.right_is_attr == 1 ) {
+        schema.clear();
+        TupleSchema::from_table(table, schema);
+        first = false;
+        }
     }
-    // 如果是多表，取所有列
-    if (first && condition.left_is_attr == 1 && condition.right_is_attr == 1 ) {
-      schema.clear();
-      TupleSchema::from_table(table, schema);
-      first = false;
-    }
+
   }
     LOG_INFO("condition_filters count: %d", condition_filters.size());
   return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
