@@ -69,42 +69,24 @@ public:
   void to_string(std::ostream &os) const override
   {
     /*
-    float输出规则：先保留两位小数（截断，不四舍五入），再去掉尾后0
+    float输出规则：先保留两位小数（四舍五入），再去掉尾后0
     17.101 -> 17.10 -> 17.1
     */
     char ftos[20];
-    sprintf(ftos, "%f", static_cast<float>(value_));
-    int s_end = 0;
-    int len = strlen(ftos);
+    sprintf(ftos, "%.2f", static_cast<float>(value_));
+    int s_end = strlen(ftos) - 1;
 
-    for (; s_end < len; ++s_end) {
-      if (ftos[s_end] == '.') {
-        break; // 找到小数点
-      }
+    while (ftos[s_end] == '0')
+    {
+      --s_end;
     }
 
-    if (s_end < len) {
-      // 存在小数点，取数
-      int index_1 = s_end + 1;
-      int index_2 = s_end + 2;
-      s_end += 3;
-
-      if (index_2 < len) {
-        if (ftos[index_2] == '0') {
-          --s_end;
-          if (ftos[index_1] == '0') {
-            s_end -= 2;
-          }
-        } 
-      } else {
-        --s_end;
-        if (index_1 < len && ftos[index_1] == '0') {
-          s_end -= 2;
-        }
-      }
-
+    if (ftos[s_end] == '.') {
       ftos[s_end] = '\0';
+    } else {
+      ftos[s_end + 1] = '\0';
     }
+    
 
     // os << value_;
     os << ftos;

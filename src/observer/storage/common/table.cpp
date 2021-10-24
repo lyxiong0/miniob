@@ -299,11 +299,12 @@ const TableMeta &Table::table_meta() const
 
 RC Table::is_legal(const Value &value, const FieldMeta *field)
 {
-  if (value.type == AttrType::INTS && field->type() == AttrType::FLOATS)
-  {
-    // 允许int类型给float类型赋值，例如17 -> 17.00
-    return RC::SUCCESS;
-  }
+  // 比赛里暂时不要支持这种转换
+  // if (value.type == AttrType::INTS && field->type() == AttrType::FLOATS)
+  // {
+  //   // 允许int类型给float类型赋值，例如17 -> 17.00
+  //   return RC::SUCCESS;
+  // }
 
   if (value.type == AttrType::NULLS)
   {
