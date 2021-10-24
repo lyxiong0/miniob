@@ -441,7 +441,7 @@ select_attr:
 			relation_attr_init(&attr, $1, $3, NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
-	| ID DOT STAR attr_list { // select t1.age
+	| ID DOT STAR attr_list { // select t1.*
 			RelAttr attr;
 			relation_attr_init(&attr, $1, "*", NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
@@ -462,6 +462,13 @@ attr_list:
     | COMMA ID DOT ID attr_list {
 			RelAttr attr;
 			relation_attr_init(&attr, $2, $4, NULL, 0);
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+        // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length].attribute_name=$4;
+        // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].relation_name=$2;
+  	  }
+    | COMMA ID DOT STAR attr_list {     // select t1.*, t2.*
+			RelAttr attr;
+			relation_attr_init(&attr, $2, "*", NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length].attribute_name=$4;
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].relation_name=$2;

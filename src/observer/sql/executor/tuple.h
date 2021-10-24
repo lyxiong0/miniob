@@ -135,7 +135,7 @@ public:
     fields_.clear();
   }
   
-  void print(std::ostream &os) const;
+  void print(std::ostream &os, bool isMultiTable=false) const;
 
 public:
   static void from_table(const Table *table, TupleSchema &schema);
@@ -169,7 +169,7 @@ public:
   const Tuple &get(int index) const;
   const std::vector<Tuple> &tuples() const;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os, bool isMultiTable=false) const;
 
   void swap_tuple(int i, int j)
   {
