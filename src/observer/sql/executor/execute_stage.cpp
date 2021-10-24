@@ -35,7 +35,6 @@ See the Mulan PSL v2 for more details. */
 
 using namespace common;
 
-
 static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema);
 
 RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
@@ -257,124 +256,154 @@ void end_trx_if_need(Session *session, Trx *trx, bool all_right)
 }
 
 // 求两个TupleSet的笛卡尔积
-TupleSet cartesian_product(const TupleSet& setA, const TupleSet& setB, bool hasCondition, const Condition& cond, const Selects &selects, const char *db){
-    TupleSet ret;
-    TupleSchema schema;
+TupleSet cartesian_product(const TupleSet &setA, const TupleSet &setB, bool hasCondition, const Condition &cond, const Selects &selects, const char *db)
+{
+  TupleSet ret;
+  TupleSchema schema;
 
-    if (hasCondition) {
-        const char* left_rel_name = cond.left_attr.relation_name;
-        const char* left_attr_name = cond.left_attr.attribute_name;
-        const char* right_rel_name = cond.right_attr.relation_name;
-        const char* right_attr_name = cond.right_attr.attribute_name;
+  if (hasCondition)
+  {
+    const char *left_rel_name = cond.left_attr.relation_name;
+    const char *left_attr_name = cond.left_attr.attribute_name;
+    const char *right_rel_name = cond.right_attr.relation_name;
+    const char *right_attr_name = cond.right_attr.attribute_name;
 
-        for (int i = selects.attr_num - 1; i >= 0; i--) {
-        const RelAttr &attr = selects.attributes[i];
-        // select * from t1,t2;
-        if (nullptr == attr.relation_name && 0 == strcmp("*", attr.attribute_name)) {
-          Table * left_table = DefaultHandler::get_default().find_table(db, left_rel_name);  
-          Table * right_table = DefaultHandler::get_default().find_table(db, right_rel_name);
-          TupleSchema::from_table(left_table, schema);
-          TupleSchema::from_table(right_table, schema);
-        } else {    // 题目里说明了多表查询的输入SQL，只要是字段，都会带表名
-            if (0 == strcmp(left_rel_name, attr.relation_name)) {
-            Table * left_table = DefaultHandler::get_default().find_table(db, left_rel_name);
-            if (0 == strcmp("*", attr.attribute_name)) {
-                // *则列出这张表所有字段
-                TupleSchema::from_table(left_table, schema);
-            } else {
-                // 列出这张表相关字段
-                RC rc = schema_add_field(left_table, attr.attribute_name, schema);
-                schema.print(std::cout);
-                if (rc != RC::SUCCESS) {
-                    LOG_ERROR("schema_add_field failed!");
-                }
+    for (int i = selects.attr_num - 1; i >= 0; i--)
+    {
+      const RelAttr &attr = selects.attributes[i];
+      // select * from t1,t2;
+      if (nullptr == attr.relation_name && 0 == strcmp("*", attr.attribute_name))
+      {
+        Table *left_table = DefaultHandler::get_default().find_table(db, left_rel_name);
+        Table *right_table = DefaultHandler::get_default().find_table(db, right_rel_name);
+        TupleSchema::from_table(left_table, schema);
+        TupleSchema::from_table(right_table, schema);
+      }
+      else
+      { // 题目里说明了多表查询的输入SQL，只要是字段，都会带表名
+        if (0 == strcmp(left_rel_name, attr.relation_name))
+        {
+          Table *left_table = DefaultHandler::get_default().find_table(db, left_rel_name);
+          if (0 == strcmp("*", attr.attribute_name))
+          {
+            // *则列出这张表所有字段
+            TupleSchema::from_table(left_table, schema);
+          }
+          else
+          {
+            // 列出这张表相关字段
+            RC rc = schema_add_field(left_table, attr.attribute_name, schema);
+            schema.print(std::cout);
+            if (rc != RC::SUCCESS)
+            {
+              LOG_ERROR("schema_add_field failed!");
             }
-            }
-            
-            if (0 == strcmp(right_rel_name, attr.relation_name)) {
-            Table * right_table = DefaultHandler::get_default().find_table(db, right_rel_name);
-            if (0 == strcmp("*", attr.attribute_name)) {
-                // 列出这张表所有字段
-                TupleSchema::from_table(right_table, schema);
-            } else {
-                // 列出这张表相关字段
-                RC rc = schema_add_field(right_table, attr.attribute_name, schema);
-                if (rc != RC::SUCCESS) {
-                    LOG_ERROR("schema_add_field failed!");
-                }
-            }
-            }
+          }
         }
-        }
-      ret.set_schema(schema);
-        if ((0 == strcmp(setA.get_schema().field(0).table_name(), left_rel_name)) &&
-            (0 == strcmp(setB.get_schema().field(0).table_name(), right_rel_name))) {
-                // 找出要比较的列在对应schema中的位置
-                int left_index = setA.get_schema().index_of_field(left_rel_name, left_attr_name);
-                int right_index = setB.get_schema().index_of_field(right_rel_name, right_attr_name);
-                for(const auto& tuple_a : setA.tuples()) {
-                    for (const auto& tuple_b : setB.tuples()) {
-                        TupleValue* value_a = tuple_a.get_pointer(left_index).get();
-                        TupleValue* value_b = tuple_b.get_pointer(right_index).get();
-                        bool compare_result = false;
-                        switch (cond.comp) {
-                        case EQUAL_TO:
-                            compare_result = (value_a->compare(*value_b) == 0);
-                            break;
-                        case LESS_EQUAL:
-                            compare_result = (value_a->compare(*value_b) <= 0);
-                            break;
-                        case NOT_EQUAL:
-                            compare_result = (value_a->compare(*value_b) != 0);
-                            break;
-                        case LESS_THAN:
-                            compare_result = (value_a->compare(*value_b) < 0);
-                            break;
-                        case GREAT_EQUAL:
-                            compare_result = (value_a->compare(*value_b) >= 0);
-                            break;
-                        case GREAT_THAN:
-                            compare_result = (value_a->compare(*value_b) > 0);
-                            break;
-                        default:
-                            break;
-                        }
-                        if (compare_result) { // 满足条件则加入结果Tuple
-                            Tuple tmp;
-                            // 按照select中列的顺序构造结果集
-                        for (const auto& each : schema.fields()) {
-                          if (0 == strcmp(each.table_name(), left_rel_name)) {
-                            int l = setA.get_schema().index_of_field(each.table_name(), each.field_name());
-                            tmp.add(tuple_a.get_pointer(l));
-                          }
-                          if (0 == strcmp(each.table_name(), right_rel_name)) {
-                            int r = setB.get_schema().index_of_field(each.table_name(), each.field_name());
-                            tmp.add(tuple_a.get_pointer(r));
-                          }
-                        }
-                            ret.add(std::move(tmp));
-                        }
-                    }
-                }
-        }
-    }  else {
-        schema.append(setA.get_schema());
-        schema.append(setB.get_schema());
-        ret.set_schema(schema);
-        for(const auto& tuple_a : setA.tuples()) {
-            for (const auto& tuple_b : setB.tuples()) {
-                Tuple tmp;
-                for (auto value : tuple_a.values()) {
-                    tmp.add(value);
-                }
-                for (auto value : tuple_b.values()) {
-                    tmp.add(value);
-                }
-                ret.add(std::move(tmp));
+
+        if (0 == strcmp(right_rel_name, attr.relation_name))
+        {
+          Table *right_table = DefaultHandler::get_default().find_table(db, right_rel_name);
+          if (0 == strcmp("*", attr.attribute_name))
+          {
+            // 列出这张表所有字段
+            TupleSchema::from_table(right_table, schema);
+          }
+          else
+          {
+            // 列出这张表相关字段
+            RC rc = schema_add_field(right_table, attr.attribute_name, schema);
+            if (rc != RC::SUCCESS)
+            {
+              LOG_ERROR("schema_add_field failed!");
             }
+          }
         }
+      }
     }
-    return ret;
+    ret.set_schema(schema);
+    if ((0 == strcmp(setA.get_schema().field(0).table_name(), left_rel_name)) &&
+        (0 == strcmp(setB.get_schema().field(0).table_name(), right_rel_name)))
+    {
+      // 找出要比较的列在对应schema中的位置
+      int left_index = setA.get_schema().index_of_field(left_rel_name, left_attr_name);
+      int right_index = setB.get_schema().index_of_field(right_rel_name, right_attr_name);
+      for (const auto &tuple_a : setA.tuples())
+      {
+        for (const auto &tuple_b : setB.tuples())
+        {
+          TupleValue *value_a = tuple_a.get_pointer(left_index).get();
+          TupleValue *value_b = tuple_b.get_pointer(right_index).get();
+          bool compare_result = false;
+          switch (cond.comp)
+          {
+          case EQUAL_TO:
+            compare_result = (value_a->compare(*value_b) == 0);
+            break;
+          case LESS_EQUAL:
+            compare_result = (value_a->compare(*value_b) <= 0);
+            break;
+          case NOT_EQUAL:
+            compare_result = (value_a->compare(*value_b) != 0);
+            break;
+          case LESS_THAN:
+            compare_result = (value_a->compare(*value_b) < 0);
+            break;
+          case GREAT_EQUAL:
+            compare_result = (value_a->compare(*value_b) >= 0);
+            break;
+          case GREAT_THAN:
+            compare_result = (value_a->compare(*value_b) > 0);
+            break;
+          default:
+            break;
+          }
+          if (compare_result)
+          { // 满足条件则加入结果Tuple
+            Tuple tmp;
+            // 按照select中列的顺序构造结果集
+            for (const auto &each : schema.fields())
+            {
+              if (0 == strcmp(each.table_name(), left_rel_name))
+              {
+                int l = setA.get_schema().index_of_field(each.table_name(), each.field_name());
+                tmp.add(tuple_a.get_pointer(l));
+              }
+              if (0 == strcmp(each.table_name(), right_rel_name))
+              {
+                int r = setB.get_schema().index_of_field(each.table_name(), each.field_name());
+                tmp.add(tuple_a.get_pointer(r));
+              }
+            }
+            ret.add(std::move(tmp));
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+    schema.append(setA.get_schema());
+    schema.append(setB.get_schema());
+    ret.set_schema(schema);
+    for (const auto &tuple_a : setA.tuples())
+    {
+      for (const auto &tuple_b : setB.tuples())
+      {
+        Tuple tmp;
+        for (auto value : tuple_a.values())
+        {
+          tmp.add(value);
+        }
+        for (auto value : tuple_b.values())
+        {
+          tmp.add(value);
+        }
+        ret.add(std::move(tmp));
+      }
+    }
+  }
+  return ret;
 }
 
 // 这里没有对输入的某些信息做合法性校验，比如查询的列名、where条件中的列名等，没有做必要的合法性校验
@@ -505,7 +534,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     {
       const RelAttr &attr = selects.attributes[i];
 
-      // 确定该属性与这张表有关
       if (attr.window_function_name != nullptr)
       {
         // 注意这里attr.relation_name可能为nullptr
@@ -526,15 +554,16 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       end_trx_if_need(session, trx, false);
       return rc;
     }
+
+    if (results.size() != 0)
+    {
+      result = std::move(results[0]);
+      results.clear();
+    }
   }
   ////////////////////////////聚合函数结束/////////////////////////////
 
-  if (results.size() != 0)
-  {
-    result = std::move(results[0]);
-    results.clear();
-  }
-  else
+  if (selects.order_num > 0)
   {
     // 当前没有group by，先假设聚合和排序是矛盾的，仍然用tuples_sets进行快速排序
     ///////////////////////////////////排序开始////////////////////////////////
@@ -546,18 +575,45 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       const RelAttr &attr = selects.order_attrs[i];
       const TupleSchema &schema = result.get_schema();
       // 确定该属性与这张表有关
-      int index = schema.index_of_field(attr.relation_name, attr.attribute_name);
-      if (index != -1)
+      int index = -1;
+      if (attr.relation_name != nullptr)
       {
-        order_info->add(attr.attribute_name, index, attr.is_desc == 1);
+        index = schema.index_of_field(attr.relation_name, attr.attribute_name);
       }
+      else
+      {
+        const int size = schema.fields().size();
+
+        for (index = 0; index < size; ++index)
+        {
+          if (strcmp(attr.attribute_name, schema.field(index).field_name()) == 0)
+          {
+            break;
+          }
+        }
+
+        if (index == size)
+        {
+          index = -1; //未查找到
+        }
+      }
+
+      if (index == -1)
+      {
+        // 有order信息但没有提取出来，说明出现错误的列名
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        session_event->set_response("FAILURE\n");
+        end_trx_if_need(session, trx, true);
+        return RC::GENERIC_ERROR;
+      }
+      order_info->add(attr.attribute_name, index, attr.is_desc == 1);
     }
 
-    if (order_info->get_size() > 0 && result.size() > 0)
-    {
-      // 遍历每个TupleSet（即每个表的结果）
-      quick_sort(&result, 0, result.size() - 1, order_info);
-    }
+    quick_sort(&result, 0, result.size() - 1, order_info);
   }
 
   result.print(ss, isMultiTable);
@@ -686,7 +742,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       }
     }
     // const TupleField &field = tuple_set->get_schema().field(index);
-    LOG_ERROR("here");
 
     if (func_type == FuncType::NOFUNC)
     {
@@ -704,9 +759,22 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     {
       // 增加Scheme
       add_type = AttrType::INTS;
+      tmp_tuple.add((int)tuple_set->tuples().size());
 
       // TODO: 考虑NULL值
-      tmp_tuple.add((int)tuple_set->tuples().size());
+      // LOG_INFO("name = %s, nullable = %d", tuple_set->get_schema().field(index).field_name(), tuple_set->get_schema().field(index).is_nullable());
+      // int ans = 0;
+
+      // for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
+      // {
+      //   std::shared_ptr<StringValue> value = std::dynamic_pointer_cast<StringValue>(tuple_set->get(tuple_i).get_pointer(index));
+      //   LOG_ERROR("value->GetValue()[0] = %c", value->GetValue()[0]);
+      //   if (value->GetValue()[0] != 'n')
+      //   {
+      //     ++ans;
+      //   }
+      // }
+      // tmp_tuple.add(ans);
       break;
     }
     case FuncType::AVG:
@@ -834,7 +902,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
   return rc;
 }
 
-
 bool match_table(const Selects &selects, const char *table_name_in_condition, const char *table_name_to_match)
 {
   if (table_name_in_condition != nullptr)
@@ -847,6 +914,18 @@ bool match_table(const Selects &selects, const char *table_name_in_condition, co
   return selects.relation_num == 1;
 }
 
+static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema)
+{
+  const FieldMeta *field_meta = table->table_meta().field(field_name);
+  if (nullptr == field_meta)
+  {
+    LOG_WARN("No such field. %s.%s", table->name(), field_name);
+    return RC::SCHEMA_FIELD_MISSING;
+  }
+
+  schema.add_if_not_exists(field_meta->type(), table->name(), field_meta->name(), field_meta->nullable());
+  return RC::SUCCESS;
+}
 
 FuncType judge_function_type(char *window_function_name)
 {
@@ -883,21 +962,8 @@ FuncType judge_function_type(char *window_function_name)
   return FuncType::NOFUNC;
 }
 
-static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema)
-{
-  const FieldMeta *field_meta = table->table_meta().field(field_name);
-  if (nullptr == field_meta)
-  {
-    LOG_WARN("No such field. %s.%s", table->name(), field_name);
-    return RC::SCHEMA_FIELD_MISSING;
-  }
-
-  schema.add_if_not_exists(field_meta->type(), table->name(), field_meta->name());
-  return RC::SUCCESS;
-}
-
 // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode& select_node)
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node)
 {
   // 列出跟这张表关联的Attr
   // 1. 找到表
@@ -962,8 +1028,8 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
       }
     }
   }
-    
-    bool first = true; // 标记是不是第一次遇到多表连接语句
+
+  bool first = true; // 标记是不是第一次遇到多表连接语句
 
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
   std::vector<DefaultConditionFilter *> condition_filters;

@@ -150,6 +150,7 @@ RC Table::open(const char *meta_file, const char *base_dir)
   {
     const IndexMeta *index_meta = table_meta_.index(i);
     const FieldMeta *field_meta = table_meta_.field(index_meta->field());
+
     if (field_meta == nullptr)
     {
       LOG_PANIC("Found invalid index meta info which has a non-exists field. table=%s, index=%s, field=%s",
@@ -299,11 +300,12 @@ const TableMeta &Table::table_meta() const
 
 RC Table::is_legal(const Value &value, const FieldMeta *field)
 {
-  if (value.type == AttrType::INTS && field->type() == AttrType::FLOATS)
-  {
-    // 允许int类型给float类型赋值，例如17 -> 17.00
-    return RC::SUCCESS;
-  }
+  // 比赛里暂时不要支持这种转换
+  // if (value.type == AttrType::INTS && field->type() == AttrType::FLOATS)
+  // {
+  //   // 允许int类型给float类型赋值，例如17 -> 17.00
+  //   return RC::SUCCESS;
+  // }
 
   if (value.type == AttrType::NULLS)
   {
@@ -352,7 +354,8 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
     const Value &value = values[i];
 
     RC rc = is_legal(value, field);
-    if (rc != RC::SUCCESS) {
+    if (rc != RC::SUCCESS)
+    {
       return rc;
     }
   }
@@ -538,7 +541,6 @@ RC Table::scan_record_by_index(Trx *trx, IndexScanner *scanner, ConditionFilter 
         break;
       }
     }
-
     record_count++;
   }
 
@@ -724,7 +726,28 @@ RC Table::update_record(Trx *trx, const char *attribute_name, const Value *value
 
   if (condition_num > 0)
   {
-    CompositeConditionFilter condition_filter;
+    // 元数据检查：判断where中表名是否与要update的表名一致
+    const char *rel_name = table_meta_.name();
+    for (int i = 0; i < condition_num; i++) {
+      const Condition &cond = conditions[i];
+      if (cond.left_is_attr == 1) {
+        const char *cond_rel_name = cond.left_attr.relation_name;
+        if (cond_rel_name != nullptr && strcmp(cond_rel_name, rel_name) != 0) {
+          LOG_ERROR("update的表名和where条件中不一致");
+          return RC::SCHEMA_TABLE_NAME_ILLEGAL;
+        }
+      }
+
+      if (cond.right_is_attr == 1) {
+        const char *cond_rel_name = cond.right_attr.relation_name;
+        if (cond_rel_name != nullptr && strcmp(cond_rel_name, rel_name) != 0) {
+          LOG_ERROR("update的表名和where条件中不一致");
+          return RC::SCHEMA_TABLE_NAME_ILLEGAL;
+        }
+      }
+    }
+
+      CompositeConditionFilter condition_filter;
     rc = condition_filter.init(*this, conditions, condition_num);
     if (rc != RC::SUCCESS)
     {
@@ -798,7 +821,8 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
 
   // 更新record
   rc = is_legal(*value, field_meta);
-  if (rc != RC::SUCCESS) {
+  if (rc != RC::SUCCESS)
+  {
     return rc;
   }
   memcpy(record->data + field_meta->offset(), value->data, field_meta->len());

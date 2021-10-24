@@ -85,17 +85,17 @@ void TupleSchema::from_table(const Table *table, TupleSchema &schema)
     const FieldMeta *field_meta = table_meta.field(i);
     if (field_meta->visible())
     {
-      schema.add(field_meta->type(), table_name, field_meta->name());
+      schema.add(field_meta->type(), table_name, field_meta->name(), field_meta->nullable());
     }
   }
 }
 
-void TupleSchema::add(AttrType type, const char *table_name, const char *field_name)
+void TupleSchema::add(AttrType type, const char *table_name, const char *field_name, bool nullable)
 {
   fields_.emplace_back(type, table_name, field_name);
 }
 
-void TupleSchema::add_if_not_exists(AttrType type, const char *table_name, const char *field_name)
+void TupleSchema::add_if_not_exists(AttrType type, const char *table_name, const char *field_name, bool nullable)
 {
   for (const auto &field : fields_)
   {
@@ -105,7 +105,7 @@ void TupleSchema::add_if_not_exists(AttrType type, const char *table_name, const
       return;
     }
   }
-  add(type, table_name, field_name);
+  add(type, table_name, field_name, nullable);
 }
 
 void TupleSchema::append(const TupleSchema &other)
@@ -295,28 +295,52 @@ void TupleRecordConverter::add_record(const char *record)
       {
       case INTS:
       {
-        int value = *(int *)(record + field_meta->offset());
-        tuple.add(value);
-      }
-      break;
-      case FLOATS:
-      {
-        float value = *(float *)(record + field_meta->offset());
-        float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));
-        if (value > -1e-6 && value < 1e-6)
+        const char *s = record + field_meta->offset();
+        if (field_meta->nullable() && s[0] == 'n')
         {
-          tuple.add(value_other);
+          // 出现null
+          int len = field_meta->len() < strlen(s) ? field_meta->len() : strlen(s);
+          // tuple.add(s, strlen(s));
+          tuple.add(s, len);
         }
         else
         {
+          int value = *(int *)(record + field_meta->offset());
           tuple.add(value);
         }
       }
       break;
+      case FLOATS:
+      {
+        const char *s = record + field_meta->offset();
+        if (field_meta->nullable() && s[0] == 'n')
+        {
+          // 出现null
+          int len = field_meta->len() < strlen(s) ? field_meta->len() : strlen(s);
+          // tuple.add(s, strlen(s));
+          tuple.add(s, len);
+        }
+        else
+        {
+          float value = *(float *)(record + field_meta->offset());
+          tuple.add(value);
+        }
+        // 不考虑用int给float赋值
+        // float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));
+        // if (value > -1e-6 && value < 1e-6)
+        // {
+        //   tuple.add(value_other);
+        // }
+        // else
+        // {
+        //   tuple.add(value);
+        // }
+      }
+      break;
       case CHARS:
       {
-        //TODO: 这里不知道为什么会出现strlen(s)超过field_meta->len()的情况
-        // insert的时候已经检查过长度strlen(s)没问题
+        // TODO: 这里不知道为什么会出现strlen(s)超过field_meta->len()的情况
+        //  insert的时候已经检查过长度strlen(s)没问题
         const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
         int len = field_meta->len() < strlen(s) ? field_meta->len() : strlen(s);
         // tuple.add(s, strlen(s));

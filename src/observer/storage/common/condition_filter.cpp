@@ -42,7 +42,8 @@ DefaultConditionFilter::~DefaultConditionFilter()
 
 RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op)
 {
-  if (attr_type < CHARS || attr_type > DATES) {
+  if (attr_type < CHARS || attr_type > DATES)
+  {
     LOG_ERROR("Invalid condition with unsupported attribute type: %d", attr_type);
     return RC::INVALID_ARGUMENT;
   }
@@ -57,7 +58,7 @@ RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrT
   right_ = right;
   attr_type_ = attr_type;
   comp_op_ = comp_op;
-  LOG_INFO("default condition filter init 完成 comp_op = %d",comp_op_);
+  LOG_INFO("default condition filter init 完成 comp_op = %d", comp_op_);
   return RC::SUCCESS;
 }
 
@@ -130,9 +131,48 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   //  }
   // NOTE：这里没有实现不同类型的数据比较，比如整数跟浮点数之间的对比
   // 但是选手们还是要实现。这个功能在预选赛中会出现
+  // CompOp cmp_op = condition.comp;
   if (type_left != type_right)
   {
+    // TODO: 不知道咋实现int和float比较
+    // if (type_left == AttrType::INTS && type_right == AttrType::FLOATS && condition.right_is_attr == 0)
+    // {
+    //   支持(int)age > 1.1
+    //   type_right = AttrType::INTS;
+    //   float ori_v = *(float *)condition.right_value.data;
+    //   int v = (int)ori_v;
+    //   if (v * 1.0 != ori_v) {
+    //     ++v;
+    //     if (cmp_op == CompOp::GREAT_THAN) {
+    //       // >1.1 -> >= 2
+    //       cmp_op = CompOp::GREAT_THAN;
+    //     } else if (cmp_op == CompOp::LESS_EQUAL) {
+    //       // <=1.1 -> <2
+    //       cmp_op = CompOp::LESS_THAN;
+    //     }
+    //     //其余情况：>=1.1 -> >= 2
+    //     // <1.1 -> <2
+    //   }
+    //   delete right.value;
+    //   right.value = malloc(sizeof(v));
+    //   memcpy(right.value, &v, sizeof(v));
+    // }
+    // else if (type_left == AttrType::FLOATS && type_right == AttrType::INTS && condition.right_is_attr == 0)
+    // {
+    //   // 支持(float)score > 60;
+    //   type_right = AttrType::FLOATS;
+    //   int ori_v = *(int *)condition.right_value.data;
+    //   float v = ori_v * 1.0;
+    //   LOG_INFO("v = %f", v);
+    //   delete right.value;
+    //   right.value = malloc(sizeof(v));
+    //   memcpy(right.value, &v, sizeof(v));
+    //   LOG_INFO("right.value = %f", *(float *)right.value);
+    // }
+    // else
+    // {
     return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+    // }
   }
 
   return init(left, right, type_left, condition.comp);
@@ -181,24 +221,30 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     cmp_result = left - right;
   }
   break;
-  case DATES: {
-      // 没有考虑大小端问题
-      // 对int和float，要考虑字节对齐问题,有些平台下直接转换可能会跪
-      int left = *(int *)left_value;
-      int right = *(int *)right_value;
-      cmp_result = left - right;
-  } 
+  case DATES:
+  {
+    // 没有考虑大小端问题
+    // 对int和float，要考虑字节对齐问题,有些平台下直接转换可能会跪
+    int left = *(int *)left_value;
+    int right = *(int *)right_value;
+    cmp_result = left - right;
+  }
   break;
   case FLOATS:
   {
     float left = *(float *)left_value;
     float right = *(float *)right_value;
     float result = left - right;
-    if (result < 1e-6 && result > -1e-6) {
+    if (result < 1e-6 && result > -1e-6)
+    {
       cmp_result = 0;
-    } else if (result > 0) {
+    }
+    else if (result > 0)
+    {
       cmp_result = 1;
-    } else {
+    }
+    else
+    {
       cmp_result = -1;
     }
     // 原来这个写法有问题，差值在1以内都会判断为相等

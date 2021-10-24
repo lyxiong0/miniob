@@ -375,7 +375,6 @@ value:
 	}
 	|NULL_T {
 		// null不需要加双引号，当作字符串插入
-		printf("初始化null值");
 		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1);
 	}
     |SSS {
