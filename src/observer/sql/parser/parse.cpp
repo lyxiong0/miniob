@@ -143,7 +143,7 @@ int date2num(const char *s)
 // 如果过了date格式则设定t为true且返回对应的int,否则设定t为false且返回0
 int check_date_data_convert(const char *s,int &t){
     int num = date2num(s);
-    if(num<19700101||num>20380228){
+    if(num<19700101||num>20380131){
         t=0;
     }
     // check 天数
