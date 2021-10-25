@@ -453,7 +453,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   {
     TupleSet tuple_set;
     // excute里设置了聚合函数的type，type定义于tuple.h文件
-
+    LOG_INFO("开始执行select_node->execute函数");
     rc = node->execute(tuple_set);
     if (rc != RC::SUCCESS)
     {
@@ -967,6 +967,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 {
   // 列出跟这张表关联的Attr
   // 1. 找到表
+  
   TupleSchema schema;
   Table *table = DefaultHandler::get_default().find_table(db, table_name);
 
@@ -981,6 +982,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   // selects.conditions where中的 condition
 
   // 2. 遍历Select中所有属性
+  
   int rel_num = selects.relation_num;
   for (int i = selects.attr_num - 1; i >= 0; i--)
   {
@@ -1028,7 +1030,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
       }
     }
   }
-
+  
   bool first = true; // 标记是不是第一次遇到多表连接语句
 
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
@@ -1036,16 +1038,20 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   for (size_t i = 0; i < selects.condition_num; i++)
   {
     const Condition &condition = selects.conditions[i];
-
+    
     // 检查where中的表名是否在from中
     if (rel_num == 1) {
+      //这里需要注意,strcmp不能接受参数中有Null值,会产生段错误。c为了高效而这样设计
+      LOG_INFO("condition.left_attr.relation_name = %s",condition.left_attr.relation_name);
         if (((condition.left_is_attr == 1) && (0 != strcmp(condition.left_attr.relation_name, table_name))) ||
             ((condition.right_is_attr == 1) && (0 != strcmp(condition.right_attr.relation_name, table_name)))) {
             LOG_WARN("Table name in where but not in from");
             return RC::SCHEMA_TABLE_NOT_EXIST;
         }
     } else if (rel_num > 1) {
+      
         if (condition.left_is_attr == 1) {
+          
             bool left_is_found = false;
             for (int j = 0; j < rel_num; j++) {
                 if (0 == strcmp(condition.left_attr.relation_name, selects.relations[j])) {
@@ -1059,6 +1065,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
             }
         }
         if (condition.right_is_attr == 1) {
+          LOG_INFO("create selection executor 3.1.2.2 ");
             bool right_is_found = false;
             for (int j = 0; j < rel_num; j++) {
                 if (0 == strcmp(condition.right_attr.relation_name, selects.relations[j])) {
@@ -1072,7 +1079,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
             }
         }
     }
-
+    LOG_INFO("create selection executor 3.2 ");
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
         (condition.left_is_attr == 0 && condition.right_is_attr == 1 && match_table(selects, condition.right_attr.relation_name, table_name)) || // 左边是值，右边是属性名

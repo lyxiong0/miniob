@@ -94,6 +94,7 @@ bool check_date_format(const char *s)
     }
     return false;
   }
+/*  重新解析date字段
 bool check_date_data(const char *s)
   {
     // 
@@ -105,9 +106,10 @@ bool check_date_data(const char *s)
     }
     return false;
   }
-
-  int convert_date(const char *s)
+*/
+int date2num(const char *s)
   {
+    // 这个函数写的比较丑，先用着（后期可以考虑使用strtok字符串分割函数进行改写）
     // 设定格式为yyyy-mm-dd/yyyy-m-dd/yyyy-mm-d/yyyy-m-d
     std::string str = s;
     int len = str.length();
@@ -138,6 +140,48 @@ bool check_date_data(const char *s)
     }
     return num;
   }
+// 如果过了date格式则设定t为true且返回对应的int,否则设定t为false且返回0
+int check_date_data_convert(const char *s,int &t){
+    int num = date2num(s);
+    if(num<19700101||num>20380228){
+        t=0;
+    }
+    // check 天数
+    int days=num%100;
+    if(days>31||days<1){
+        t=0;
+    }
+    int mons=num%10000/100;
+    if(mons>12||mons<1){
+        t=0;
+    }
+    int years=num/10000;
+    // 处理闰年
+    if(mons==2){
+        // years(1970~2038)
+        if(years%4==0){
+            if(days>29){
+                t=0;
+            }
+        }else{
+            if(days>28){
+                t=0;
+            }
+        }
+    }
+    // 处理大小月份
+    if(mons==4||mons==6||mons==9||mons==11){
+        if(days>30){
+            t=0;
+        }
+    }else{
+        if(days>31){
+            t=0;
+        }
+    }
+    return num;
+}
+  
 
   bool match_null(const char *s)
   {
@@ -156,15 +200,24 @@ bool check_date_data(const char *s)
 
   void value_init_string(Value *value, const char *v)
   {
-    if (check_date_data(v))
+    if (check_date_format(v))
     {
-      LOG_INFO("成功匹配日期格式");
-      value->type = DATES;
+      LOG_INFO("成功匹配日期格式开始检查具体日期");
       // 转换为数字
-      int date_num = convert_date(v);
-      value->data = malloc(sizeof(date_num));
-      memcpy(value->data, &date_num, sizeof(date_num));
-      // std::cout << "now the insert date in value->data is " << *(int *)(value->data) << std::endl;
+      int t=1;
+      int date_num = check_date_data_convert(v,t);
+      if(t){
+        LOG_INFO("通过具体日期检测，将输入值作为dates处理");
+        value->type = DATES;
+        value->data = malloc(sizeof(date_num));  
+        memcpy(value->data, &date_num, sizeof(date_num));
+      }else{
+        //没有通过具体日期检测  因为后面插入表格的时候会有table_meta与value_type的检测，就不用再这里将解析识别为错误，
+        // 对于不通过日期检测的字符串解析为正常字符串
+        LOG_INFO("成功匹配日期格式但没有通过具体日期检测，将输入值作为char处理");
+        value->type = CHARS;
+        value->data = strdup(v);
+      }
     }
     else if (match_null(v))
     {
@@ -174,10 +227,9 @@ bool check_date_data(const char *s)
     }
     else
     {
-      std::cout << "没有成功匹配日期格式" << std::endl;      
+      LOG_INFO("没有成功匹配日期格式将输入值作为char处理");     
       value->type = CHARS;
       value->data = strdup(v);
-      // std::cout << "now the insert char in value->data is " << (char *)(value->data) << std::endl;
     }
   }
 
@@ -198,15 +250,23 @@ bool check_date_data(const char *s)
     {
       // check the date format
       //LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data);
-      if(check_date_format((char *)left_value->data) && !check_date_data((char *)left_value->data)){
-        // fail to pass date format check should return FAILURE
-        //LOG_INFO("condition is invalid cause do not pass the date data check");
-        condition->is_valid=false;
+      /*
+      if(left_value->type==4){
+        int t=1;
+        check_date_data_convert((char *)left_value->data,t);
+        if(!t){
+          // fail to pass date format check should return FAILURE
+          condition->is_valid=false;
+        }else{
+          condition->left_value = *left_value;  
+        }
       }else{
         condition->left_value = *left_value;
       }
+      */
+      condition->left_value = *left_value;
+      LOG_INFO("condition->left_value.type=%d",condition->left_value.type);
     }
-
     condition->right_is_attr = right_is_attr;
     if (right_is_attr)
     {
@@ -215,6 +275,7 @@ bool check_date_data(const char *s)
     }
     else
     {
+      /*
       //LOG_INFO("right_is_attr=false and right_value.type=%d and its data=%s",right_value->type,(char *)right_value->data);
       if(check_date_format((char *)right_value->data) && !check_date_data((char *)right_value->data)){
         // fail to pass date format check should return FAILURE
@@ -223,6 +284,23 @@ bool check_date_data(const char *s)
       }else{
         condition->right_value = *right_value;
       }
+      */
+     /*
+     if(right_value->type==4){
+        int t=1;
+        check_date_data_convert((char *)right_value->data,t);
+        if(!t){
+          // fail to pass date format check should return FAILURE
+          condition->is_valid=false;
+        }else{
+          condition->right_value = *right_value;  
+        }
+      }else{
+        condition->right_value = *right_value;
+      }
+      */
+     condition->right_value = *right_value;
+     LOG_INFO("condition->right_value.type=%d",condition->right_value.type);
     }
   }
   void condition_destroy(Condition *condition)
