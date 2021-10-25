@@ -94,6 +94,7 @@ bool check_date_format(const char *s)
     }
     return false;
   }
+  /*  放弃使用regex
 bool check_date_data(const char *s)
   {
     // 
@@ -105,8 +106,8 @@ bool check_date_data(const char *s)
     }
     return false;
   }
-
-  int convert_date(const char *s)
+  */
+ int convert_date(const char *s)
   {
     // 设定格式为yyyy-mm-dd/yyyy-m-dd/yyyy-mm-d/yyyy-m-d
     std::string str = s;
@@ -138,6 +139,48 @@ bool check_date_data(const char *s)
     }
     return num;
   }
+ int check_date_data_convert(const char *s,int &t){
+    int num = convert_date(s);
+    if(num<19700101||num>20380228){
+        t=0;
+    }
+    // check 天数
+    int days=num%100;
+    if(days>31||days<1){
+        t=0;
+    }
+    int mons=num%10000/100;
+    if(mons>12||mons<1){
+        t=0;
+    }
+    int years=num/10000;
+    // 处理闰年
+    if(mons==2){
+        // years(1970~2038)
+        if(years%4==0){
+            if(days>29){
+                t=0;
+            }
+        }else{
+            if(days>28){
+                t=0;
+            }
+        }
+    }
+    // 处理大小月份
+    if(mons==4||mons==6||mons==9||mons==11){
+        if(days>30){
+            t=0;
+        }
+    }else{
+        if(days>31){
+            t=0;
+        }
+    }
+    return num;
+}
+
+  
 
   bool match_null(const char *s)
   {
@@ -156,15 +199,22 @@ bool check_date_data(const char *s)
 
   void value_init_string(Value *value, const char *v)
   {
-    if (check_date_data(v))
+    if (check_date_format(v))
     {
-      LOG_INFO("成功匹配日期格式");
-      value->type = DATES;
+      LOG_INFO("成功匹配日期格式进行日期数据检查");
+      int t=1;
+      int date_num = check_date_data_convert(v,t);
       // 转换为数字
-      int date_num = convert_date(v);
-      value->data = malloc(sizeof(date_num));
-      memcpy(value->data, &date_num, sizeof(date_num));
-      // std::cout << "now the insert date in value->data is " << *(int *)(value->data) << std::endl;
+      if(t){
+        LOG_INFO("通过日期数据检查value->data被初始化为%d",date_num);
+        value->type = DATES;
+        value->data = malloc(sizeof(date_num));
+        memcpy(value->data, &date_num, sizeof(date_num));
+      }else{  
+        LOG_INFO("没有通过日期数据检查当做CHAR进行处理");
+         value->type = CHARS;
+        value->data = strdup(v);
+      }
     }
     else if (match_null(v))
     {
@@ -177,7 +227,6 @@ bool check_date_data(const char *s)
       std::cout << "没有成功匹配日期格式" << std::endl;      
       value->type = CHARS;
       value->data = strdup(v);
-      // std::cout << "now the insert char in value->data is " << (char *)(value->data) << std::endl;
     }
   }
 
@@ -185,7 +234,7 @@ bool check_date_data(const char *s)
                       int left_is_attr, RelAttr *left_attr, Value *left_value,
                       int right_is_attr, RelAttr *right_attr, Value *right_value)
   {
-    LOG_INFO("condition_init function starts");
+    LOG_INFO("condition_init function starts and right_value.type=%d",right_value->type);
     condition->comp = comp;
     condition->is_valid=true;
     condition->left_is_attr = left_is_attr;
@@ -197,14 +246,8 @@ bool check_date_data(const char *s)
     else
     {
       // check the date format
-      //LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data);
-      if(check_date_format((char *)left_value->data) && !check_date_data((char *)left_value->data)){
-        // fail to pass date format check should return FAILURE
-        //LOG_INFO("condition is invalid cause do not pass the date data check");
-        condition->is_valid=false;
-      }else{
+      //LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data)
         condition->left_value = *left_value;
-      }
     }
 
     condition->right_is_attr = right_is_attr;
@@ -215,14 +258,7 @@ bool check_date_data(const char *s)
     }
     else
     {
-      //LOG_INFO("right_is_attr=false and right_value.type=%d and its data=%s",right_value->type,(char *)right_value->data);
-      if(check_date_format((char *)right_value->data) && !check_date_data((char *)right_value->data)){
-        // fail to pass date format check should return FAILURE
-        //LOG_INFO("condition is invalid cause do not pass the date data check");
-        condition->is_valid=false;
-      }else{
-        condition->right_value = *right_value;
-      }
+      condition->right_value = *right_value;
     }
   }
   void condition_destroy(Condition *condition)
