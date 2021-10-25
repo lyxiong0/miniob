@@ -68,6 +68,9 @@ m4/lt~obsolete.m4
 #==============================================================================#
 #m4/
 build/
+<<<<<<< HEAD
+.vscode/
+=======
 miniob/
 #*.m4
 *.o
@@ -262,3 +265,15 @@ docs/dev
 
 # Vagrant
 .vagrant
+>>>>>>> main
+
+/build/
+**/log
+**/*.log.*
+**/*.log
+
+/miniob/
+<<<<<<< HEAD
+=======
+.vagrant
+>>>>>>> main
