@@ -1722,12 +1722,15 @@ RC BplusTreeScanner::close() {
 }
 
 RC BplusTreeScanner::next_entry(RID *rid) {
+  LOG_INFO("开始调用BplusTreeScanner::next_entry");
   RC rc;
   if(!opened_){
     return RC::RECORD_CLOSED;
   }
   rc = get_next_idx_in_memory(rid);//和RM中一样，有可能有错误，一次只查当前页和当前页的下一页，有待确定
+  LOG_INFO("BplusTreeScanner::next_entry初次调用get_next_idx_in_memory返回rc %d",rc);
   if(rc == RC::RECORD_NO_MORE_IDX_IN_MEM){
+    
     rc = find_idx_pages();
     if(rc != SUCCESS){
       return rc;
@@ -1781,6 +1784,7 @@ RC BplusTreeScanner::find_idx_pages() {
 }
 
 RC BplusTreeScanner::get_next_idx_in_memory(RID *rid) {
+  LOG_INFO("开始调用BplusTreeScanner::get_next_idx_in_memory");
   char *pdata;
   IndexNode *node;
   RC rc;
@@ -1813,6 +1817,7 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid) {
   return RC::RECORD_NO_MORE_IDX_IN_MEM;
 }
 bool BplusTreeScanner::satisfy_condition(const char *pkey) {
+  LOG_INFO("BplusTreeScanner::调用satisfy_condition");
   int i1=0,i2=0;
   float f1=0,f2=0;
   const char *s1=nullptr,*s2=nullptr;

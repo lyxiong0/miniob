@@ -94,7 +94,7 @@ bool check_date_format(const char *s)
     }
     return false;
   }
-/*  重新解析date字段
+  /*  放弃使用regex
 bool check_date_data(const char *s)
   {
     // 
@@ -237,7 +237,7 @@ int check_date_data_convert(const char *s,int &t){
                       int left_is_attr, RelAttr *left_attr, Value *left_value,
                       int right_is_attr, RelAttr *right_attr, Value *right_value)
   {
-    LOG_INFO("condition_init function starts");
+    LOG_INFO("condition_init function starts and right_value.type=%d",right_value->type);
     condition->comp = comp;
     condition->is_valid=true;
     condition->left_is_attr = left_is_attr;
@@ -249,23 +249,8 @@ int check_date_data_convert(const char *s,int &t){
     else
     {
       // check the date format
-      //LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data);
-      /*
-      if(left_value->type==4){
-        int t=1;
-        check_date_data_convert((char *)left_value->data,t);
-        if(!t){
-          // fail to pass date format check should return FAILURE
-          condition->is_valid=false;
-        }else{
-          condition->left_value = *left_value;  
-        }
-      }else{
+      //LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data)
         condition->left_value = *left_value;
-      }
-      */
-      condition->left_value = *left_value;
-      LOG_INFO("condition->left_value.type=%d",condition->left_value.type);
     }
     condition->right_is_attr = right_is_attr;
     if (right_is_attr)
@@ -275,32 +260,7 @@ int check_date_data_convert(const char *s,int &t){
     }
     else
     {
-      /*
-      //LOG_INFO("right_is_attr=false and right_value.type=%d and its data=%s",right_value->type,(char *)right_value->data);
-      if(check_date_format((char *)right_value->data) && !check_date_data((char *)right_value->data)){
-        // fail to pass date format check should return FAILURE
-        //LOG_INFO("condition is invalid cause do not pass the date data check");
-        condition->is_valid=false;
-      }else{
-        condition->right_value = *right_value;
-      }
-      */
-     /*
-     if(right_value->type==4){
-        int t=1;
-        check_date_data_convert((char *)right_value->data,t);
-        if(!t){
-          // fail to pass date format check should return FAILURE
-          condition->is_valid=false;
-        }else{
-          condition->right_value = *right_value;  
-        }
-      }else{
-        condition->right_value = *right_value;
-      }
-      */
-     condition->right_value = *right_value;
-     LOG_INFO("condition->right_value.type=%d",condition->right_value.type);
+      condition->right_value = *right_value;
     }
   }
   void condition_destroy(Condition *condition)
