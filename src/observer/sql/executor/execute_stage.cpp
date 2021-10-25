@@ -436,7 +436,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       end_trx_if_need(session, trx, false);
       return rc;
     }
-
+    LOG_INFO("成功创建selection_executor");
     select_nodes.push_back(select_node);
   }
 
@@ -453,10 +453,12 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   {
     TupleSet tuple_set;
     // excute里设置了聚合函数的type，type定义于tuple.h文件
-
+    LOG_INFO("开始执行execute");
     rc = node->execute(tuple_set);
+    LOG_INFO("node->execute完毕并返回 rc=%d",rc);
     if (rc != RC::SUCCESS)
     {
+      LOG_INFO("node->execute失败 rc=%d",rc);
       for (SelectExeNode *&tmp_node : select_nodes)
       {
         delete tmp_node;
@@ -1039,6 +1041,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 
     // 检查where中的表名是否在from中
     if (rel_num == 1) {
+      // strcmp的参数如果为null会出现segmentation 错误
         if (((condition.left_is_attr == 1) && (nullptr != condition.left_attr.relation_name) && (0 != strcmp(condition.left_attr.relation_name, table_name))) ||
             ((condition.right_is_attr == 1) && (nullptr != condition.right_attr.relation_name) && (0 != strcmp(condition.right_attr.relation_name, table_name)))) {
             LOG_WARN("Table name in where but not in from");
