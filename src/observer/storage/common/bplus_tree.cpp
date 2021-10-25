@@ -35,7 +35,7 @@ IndexNode * BplusTreeHandler::get_index_node(char *page_data) const {
 RC BplusTreeHandler::sync() {
   return disk_buffer_pool_->flush_all_pages(file_id_);
 }
-
+// 创建以file_name为名称的index文件
 RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_length)
 {
   BPPageHandle page_handle;
@@ -331,7 +331,7 @@ RC BplusTreeHandler::print() {
       return rc;
     }
     node = get_index_node(pdata);
-    printf("page_num :%d %d\n",i,node->is_leaf);
+    printf("page_num :%d 当前node是否为leaf :%d\n",i,node->is_leaf);
     for(j=0;j<node->key_num&&j<6;j++){
       printf("keynum :%d rids:page_num :%d,slotnum :%d\n", node->key_num, node->rids[j].page_num, node->rids[j].slot_num);
     }
@@ -800,6 +800,7 @@ RC BplusTreeHandler::insert_into_new_root(PageNum left_page, const char *pkey, P
 }
 
 RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid) {
+  LOG_INFO("call bplustree insert_entry");
   RC rc;
   PageNum leaf_page;
   BPPageHandle page_handle;
@@ -846,7 +847,7 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid) {
       return rc;
     }
     free(key);
-    return SUCCESS;
+    // return SUCCESS;
   }
   else{
     rc = disk_buffer_pool_->unpin_page(&page_handle);
@@ -854,13 +855,14 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid) {
       free(key);
       return rc;
     }
-
     // print();
-
     rc=insert_into_leaf_after_split(leaf_page,key,rid);
     free(key);
-    return SUCCESS;
+    
   }
+  LOG_INFO("BplusTreeHandler::insert_entry ends and the tree is following");
+  print();
+  return SUCCESS;
 }
 
 RC BplusTreeHandler::get_entry(const char *pkey,RID *rid) {

@@ -211,6 +211,7 @@ RC Table::rollback_insert(Trx *trx, const RID &rid)
 
 RC Table::insert_record(Trx *trx, Record *record)
 {
+  // 首先insert到record中，再将记录insert到index索引中
   RC rc = RC::SUCCESS;
 
   if (trx != nullptr)
@@ -239,7 +240,8 @@ RC Table::insert_record(Trx *trx, Record *record)
       return rc;
     }
   }
-
+  // LOG_INFO("INSERT ENTRY OF INDEXES with data %d, rid:page_num :%d,slotnum :%d\n",record->data,record->rid.page_num,record->rid.slot_num);
+  // record->data为key,record->rid为value
   rc = insert_entry_of_indexes(record->data, record->rid);
   if (rc != RC::SUCCESS)
   {
@@ -262,12 +264,14 @@ RC Table::insert_record(Trx *trx, Record *record)
 
 RC Table::insert_record(Trx *trx, int value_num, const Value *values, Record **ret_record)
 {
+  // value_num->value的数量,values->value数组，ret_record->用于返回
   if (value_num <= 0 || nullptr == values)
   {
     LOG_ERROR("Invalid argument. value num=%d, values=%p", value_num, values);
     return RC::INVALID_ARGUMENT;
   }
 
+  // record_data只是单纯用来装数据
   char *record_data;
   RC rc = make_record(value_num, values, record_data);
   if (rc != RC::SUCCESS)
@@ -275,6 +279,7 @@ RC Table::insert_record(Trx *trx, int value_num, const Value *values, Record **r
     LOG_ERROR("Failed to create a record. rc=%d:%s", rc, strrc(rc));
     return rc;
   }
+
 
   Record record;
   record.data = record_data;
@@ -340,6 +345,9 @@ RC Table::is_legal(const Value &value, const FieldMeta *field)
 
 RC Table::make_record(int value_num, const Value *values, char *&record_out)
 {
+  // 首先确定插入的数据依次和当前的table属性一样
+  // 然后将制作好的record放在record_out中
+
   // 检查字段类型是否一致
   if (value_num + table_meta_.sys_field_num() != table_meta_.field_num())
   {
@@ -513,6 +521,7 @@ RC Table::scan_record_by_index(Trx *trx, IndexScanner *scanner, ConditionFilter 
   int record_count = 0;
   while (record_count < limit)
   {
+    // 通过bplustree搜索获取rid
     rc = scanner->next_entry(&rid);
     if (rc != RC::SUCCESS)
     {
@@ -524,7 +533,7 @@ RC Table::scan_record_by_index(Trx *trx, IndexScanner *scanner, ConditionFilter 
       LOG_ERROR("Failed to scan table by index. rc=%d:%s", rc, strrc(rc));
       break;
     }
-
+    // 根据rid获取record
     rc = record_handler_->get_record(&rid, &record);
     if (rc != RC::SUCCESS)
     {
@@ -584,6 +593,7 @@ std::vector<const char *> Table::get_index_names()
 
 RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_name)
 {
+  LOG_INFO("create_index starts");
   if (index_name == nullptr || common::is_blank(index_name) ||
       attribute_name == nullptr || common::is_blank(attribute_name))
   {
@@ -611,6 +621,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   // 创建索引相关数据
   BplusTreeIndex *index = new BplusTreeIndex();
   std::string index_file = index_data_file(base_dir_.c_str(), name(), index_name);
+  // 创建对应文件
   rc = index->create(index_file.c_str(), new_index_meta, *field_meta);
   if (rc != RC::SUCCESS)
   {
@@ -667,7 +678,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
 
   table_meta_.swap(new_table_meta);
 
-  LOG_INFO("add a new index (%s) on the table (%s)", index_name, name());
+  LOG_INFO("successfully add a new index (%s) on the table (%s)", index_name, name());
 
   return rc;
 }
@@ -1022,6 +1033,7 @@ RC Table::insert_entry_of_indexes(const char *record, const RID &rid)
   RC rc = RC::SUCCESS;
   for (Index *index : indexes_)
   {
+    // 这里record就是Key,*rid就是value   bplustree的kv结构
     rc = index->insert_entry(record, &rid);
     if (rc != RC::SUCCESS)
     {
