@@ -526,21 +526,21 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   std::vector<TupleSet> results;
 
   // 处理聚合函数
-  AttrFunction *attr_function = new AttrFunction;
-  for (int i = selects.attr_num - 1; i >= 0; i--)
+  if (result.size() > 0)
   {
-    const RelAttr &attr = selects.attributes[i];
-
-    if (attr.window_function_name != nullptr)
+    // 上一步有结果才进行聚合
+    AttrFunction *attr_function = new AttrFunction;
+    for (int i = selects.attr_num - 1; i >= 0; i--)
     {
-      // 注意这里attr.relation_name可能为nullptr
-      FuncType function_type = judge_function_type(attr.window_function_name);
-      attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
+      const RelAttr &attr = selects.attributes[i];
+
+      if (attr.window_function_name != nullptr)
+      {
+        // 注意这里attr.relation_name可能为nullptr
+        FuncType function_type = judge_function_type(attr.window_function_name);
+        attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
+      }
     }
-  }
-  
-  if (attr_function->get_size() > 0)
-  {
 
     rc = do_aggregation(&result, attr_function, results);
 
@@ -785,12 +785,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         rc = RC::GENERIC_ERROR;
         break;
       }
-
-      if (tuple_set->size() == 0) {
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
       // 增加Scheme
       // tmp_scheme.add_if_not_exists(AttrType::FLOATS, add_scheme_name.c_str(), add_attr_name.c_str());
       add_type = AttrType::FLOATS;
@@ -819,11 +813,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     }
     case FuncType::MAX:
     {
-      if (tuple_set->size() == 0) {
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
       auto ans = tuple_set->get(0).get_pointer(index);
       for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
       {
@@ -858,11 +847,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     }
     case FuncType::MIN:
     {
-      if (tuple_set->size() == 0) {
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
       auto ans = tuple_set->get(0).get_pointer(index);
       for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
       {
