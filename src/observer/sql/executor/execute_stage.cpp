@@ -1039,8 +1039,8 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 
     // 检查where中的表名是否在from中
     if (rel_num == 1) {
-        if (((condition.left_is_attr == 1) && (0 != strcmp(condition.left_attr.relation_name, table_name))) ||
-            ((condition.right_is_attr == 1) && (0 != strcmp(condition.right_attr.relation_name, table_name)))) {
+        if (((condition.left_is_attr == 1) && (nullptr != condition.left_attr.relation_name) && (0 != strcmp(condition.left_attr.relation_name, table_name))) ||
+            ((condition.right_is_attr == 1) && (nullptr != condition.right_attr.relation_name) && (0 != strcmp(condition.right_attr.relation_name, table_name)))) {
             LOG_WARN("Table name in where but not in from");
             return RC::SCHEMA_TABLE_NOT_EXIST;
         }
