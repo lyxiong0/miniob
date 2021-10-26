@@ -18,7 +18,9 @@ See the Mulan PSL v2 for more details. */
 #include <string.h>
 
 #include <string>
+#include <algorithm>
 #include <ostream>
+#include <iostream>
 
 class TupleValue
 {
@@ -28,6 +30,7 @@ public:
 
   virtual void to_string(std::ostream &os) const = 0;
   virtual int compare(const TupleValue &other) const = 0;
+  virtual bool is_null() const = 0;
 
 private:
 };
@@ -53,6 +56,11 @@ public:
   int GetValue()
   {
     return value_;
+  }
+
+  bool is_null() const override
+  {
+    return false;
   }
 
 private:
@@ -81,12 +89,14 @@ public:
       --s_end;
     }
 
-    if (ftos[s_end] == '.') {
+    if (ftos[s_end] == '.')
+    {
       ftos[s_end] = '\0';
-    } else {
+    }
+    else
+    {
       ftos[s_end + 1] = '\0';
     }
-    
 
     // os << value_;
     os << ftos;
@@ -116,6 +126,11 @@ public:
     return value_;
   }
 
+  bool is_null() const override
+  {
+    return false;
+  }
+
 private:
   float value_;
 };
@@ -132,7 +147,15 @@ public:
 
   void to_string(std::ostream &os) const override
   {
-    os << value_;
+    std::string tmp("Eu83");
+    if (value_ == tmp)
+    {
+      os << "NULL";
+    }
+    else
+    {
+      os << value_;
+    }
   }
 
   int compare(const TupleValue &other) const override
@@ -149,6 +172,13 @@ public:
   int GetLen()
   {
     return value_.size();
+  }
+
+  bool is_null() const override
+  {
+    std::string tmp("Eu83");
+
+    return value_ == tmp;
   }
 
 private:

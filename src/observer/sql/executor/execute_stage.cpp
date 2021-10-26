@@ -422,7 +422,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     // 遍历所有表
     const char *table_name = selects.relations[i];
 
-
     SelectExeNode *select_node = new SelectExeNode;
     rc = create_selection_executor(trx, selects, db, table_name, *select_node);
     if (rc != RC::SUCCESS)
@@ -525,23 +524,22 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   // 不管是单表还是多表，到聚合这一步都应该只剩一个TupleSet
   std::vector<TupleSet> results;
 
-  // 处理聚合函数
-  if (result.size() > 0)
+  AttrFunction *attr_function = new AttrFunction;
+  for (int i = selects.attr_num - 1; i >= 0; i--)
   {
-    // 上一步有结果才进行聚合
-    AttrFunction *attr_function = new AttrFunction;
-    for (int i = selects.attr_num - 1; i >= 0; i--)
+    const RelAttr &attr = selects.attributes[i];
+
+    if (attr.window_function_name != nullptr)
     {
-      const RelAttr &attr = selects.attributes[i];
-
-      if (attr.window_function_name != nullptr)
-      {
-        // 注意这里attr.relation_name可能为nullptr
-        FuncType function_type = judge_function_type(attr.window_function_name);
-        attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
-      }
+      // 注意这里attr.relation_name可能为nullptr
+      FuncType function_type = judge_function_type(attr.window_function_name);
+      attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
     }
+  }
 
+  // 处理聚合函数
+  if (attr_function->get_size() > 0)
+  {
     rc = do_aggregation(&result, attr_function, results);
 
     if (rc != RC::SUCCESS)
@@ -698,6 +696,7 @@ void quick_sort(TupleSet *tuple_set, int l, int r, OrderInfo *order_info)
  */
 RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results)
 {
+
   TupleSchema tmp_scheme;
   Tuple tmp_tuple;
 
@@ -759,22 +758,19 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     {
       // 增加Scheme
       add_type = AttrType::INTS;
-      tmp_tuple.add((int)tuple_set->tuples().size());
+      // tmp_tuple.add((int)tuple_set->tuples().size());
 
-      // TODO: 考虑NULL值
-      // LOG_INFO("name = %s, nullable = %d", tuple_set->get_schema().field(index).field_name(), tuple_set->get_schema().field(index).is_nullable());
-      // int ans = 0;
+      int ans = 0;
 
-      // for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
-      // {
-      //   std::shared_ptr<StringValue> value = std::dynamic_pointer_cast<StringValue>(tuple_set->get(tuple_i).get_pointer(index));
-      //   LOG_ERROR("value->GetValue()[0] = %c", value->GetValue()[0]);
-      //   if (value->GetValue()[0] != 'n')
-      //   {
-      //     ++ans;
-      //   }
-      // }
-      // tmp_tuple.add(ans);
+      for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
+      {
+        const std::shared_ptr<TupleValue> &value = tuple_set->get(tuple_i).get_pointer(index);
+        if (!value->is_null())
+        {
+          ++ans;
+        }
+      }
+      tmp_tuple.add(ans);
       break;
     }
     case FuncType::AVG:
@@ -785,17 +781,26 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         rc = RC::GENERIC_ERROR;
         break;
       }
+
       // 增加Scheme
       // tmp_scheme.add_if_not_exists(AttrType::FLOATS, add_scheme_name.c_str(), add_attr_name.c_str());
       add_type = AttrType::FLOATS;
 
       int size = (int)tuple_set->tuples().size();
       float ans = 0;
+      int is_calculate = 0; // 防止一整列都是null
+
       if (type == AttrType::FLOATS)
       {
         for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
         {
-          std::shared_ptr<FloatValue> value = std::dynamic_pointer_cast<FloatValue>(tuple_set->get(tuple_i).get_pointer(index));
+          const std::shared_ptr<TupleValue> &ori_val = tuple_set->get(tuple_i).get_pointer(index);
+          if (ori_val->is_null())
+          {
+            continue;
+          }
+          ++is_calculate;
+          std::shared_ptr<FloatValue> value = std::dynamic_pointer_cast<FloatValue>(ori_val);
           ans += value->GetValue();
         }
       }
@@ -803,81 +808,152 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       {
         for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
         {
-          std::shared_ptr<IntValue> value = std::dynamic_pointer_cast<IntValue>(tuple_set->get(tuple_i).get_pointer(index));
+          const std::shared_ptr<TupleValue> &ori_val = tuple_set->get(tuple_i).get_pointer(index);
+          if (ori_val->is_null())
+          {
+            continue;
+          }
+          ++is_calculate;
+          std::shared_ptr<IntValue> value = std::dynamic_pointer_cast<IntValue>(ori_val);
           ans += value->GetValue();
         }
       }
 
-      tmp_tuple.add(ans / size);
+      if (tuple_set->size() == 0 || !is_calculate)
+      {
+        // 碰到上一步查询结果为空或者全是null的情况
+        add_type = AttrType::CHARS;
+        tmp_tuple.add("null", 4);
+        break;
+      }
+      else
+      {
+        tmp_tuple.add(ans / is_calculate);
+      }
       break;
     }
     case FuncType::MAX:
     {
+      if (tuple_set->size() == 0)
+      {
+        // 碰到上一步查询结果为空的情况
+        add_type = AttrType::CHARS;
+        tmp_tuple.add("null", 4);
+        break;
+      }
+
+      bool is_calculate = false;
+
       auto ans = tuple_set->get(0).get_pointer(index);
+      if (!ans->is_null())
+      {
+        is_calculate = true;
+      }
       for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
       {
-
         auto value = tuple_set->get(tuple_i).get_pointer(index);
+
+        if (value->is_null())
+        {
+          continue;
+        }
+
+        is_calculate = true;
 
         if (value->compare(*ans) > 0)
         {
+          is_calculate = true;
           ans = value;
         }
       }
 
       // 增加Scheme
       // tmp_scheme.add_if_not_exists(type, add_scheme_name.c_str(), add_attr_name.c_str());
-      add_type = type;
+      if (!is_calculate)
+      {
+        add_type = AttrType::CHARS;
+        tmp_tuple.add("null", 4);
+        break;
+      }
+      else
+      {
+        add_type = type;
 
-      if (type == AttrType::FLOATS)
-      {
-        tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->GetValue());
+        if (type == AttrType::FLOATS)
+        {
+          tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->GetValue());
+        }
+        else if (type == AttrType::INTS)
+        {
+          tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
+        }
+        else // AttrType::CHARS和DATES一样计算
+        {
+          tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
+                        std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
+        }
       }
-      else if (type == AttrType::INTS)
-      {
-        tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
-      }
-      else // AttrType::CHARS和DATES一样计算
-      {
-        tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
-                      std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
-      }
-
       break;
     }
     case FuncType::MIN:
     {
+      if (tuple_set->size() == 0)
+      {
+        // 碰到上一步查询结果为空的情况
+        add_type = AttrType::CHARS;
+        tmp_tuple.add("null", 4);
+        break;
+      }
+
+      bool is_calculate = false;
       auto ans = tuple_set->get(0).get_pointer(index);
+      if (!ans->is_null())
+      {
+        is_calculate = true;
+      }
       for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
       {
-
         auto value = tuple_set->get(tuple_i).get_pointer(index);
+
+        if (value->is_null())
+        {
+          continue;
+        }
+
+        is_calculate = true;
 
         if (value->compare(*ans) < 0)
         {
-
           ans = value;
         }
       }
 
       // 增加Scheme
       // tmp_scheme.add_if_not_exists(type, add_scheme_name.c_str(), add_attr_name.c_str());
-      add_type = type;
+      if (!is_calculate)
+      {
+        add_type = AttrType::CHARS;
+        tmp_tuple.add("null", 4);
+        break;
+      }
+      else
+      {
+        add_type = type;
 
-      if (type == AttrType::FLOATS)
-      {
-        tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->GetValue());
+        if (type == AttrType::FLOATS)
+        {
+          tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->GetValue());
+        }
+        else if (type == AttrType::INTS)
+        {
+          tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
+        }
+        else // AttrType::CHARS和DATES一样计算
+        {
+          tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
+                        std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
+        }
       }
-      else if (type == AttrType::INTS)
-      {
-        tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
-      }
-      else // AttrType::CHARS和DATES一样计算
-      {
-        tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
-                      std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
-      }
-
       break;
     }
     default:
@@ -906,8 +982,8 @@ bool match_table(const Selects &selects, const char *table_name_in_condition, co
 {
   if (table_name_in_condition != nullptr)
   {
-      LOG_INFO("table_name_in_condition: %s", table_name_in_condition);
-      LOG_INFO("table_name_to_match: %s", table_name_to_match);
+    LOG_INFO("table_name_in_condition: %s", table_name_in_condition);
+    LOG_INFO("table_name_to_match: %s", table_name_to_match);
     return 0 == strcmp(table_name_in_condition, table_name_to_match);
   }
 
@@ -986,24 +1062,31 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   {
     const RelAttr &attr = selects.attributes[i];
 
-    // 检查一下select中的表是否在from中  
-    if (rel_num > 1) {  // 多表
-        bool table_name_in_from = false;
-        for (int j = 0; j < rel_num; j++) {
-            if ((nullptr == attr.relation_name) || (0 == strcmp(attr.relation_name, selects.relations[j]))) {
-                table_name_in_from = true;
-                break;
-            }
+    // 检查一下select中的表是否在from中
+    if (rel_num > 1)
+    { // 多表
+      bool table_name_in_from = false;
+      for (int j = 0; j < rel_num; j++)
+      {
+        if ((nullptr == attr.relation_name) || (0 == strcmp(attr.relation_name, selects.relations[j])))
+        {
+          table_name_in_from = true;
+          break;
         }
-        if (table_name_in_from == false) {
-            LOG_WARN("Table [%s] not in from", attr.relation_name);
-            return RC::SCHEMA_TABLE_NOT_EXIST;
-        }
-    } else if (rel_num == 1) {
-        if ((attr.relation_name != nullptr) && (0 != strcmp(attr.relation_name, selects.relations[0]))) {
-            LOG_WARN("Table [%s] not in from", attr.relation_name);
-            return RC::SCHEMA_TABLE_NOT_EXIST;
-        }
+      }
+      if (table_name_in_from == false)
+      {
+        LOG_WARN("Table [%s] not in from", attr.relation_name);
+        return RC::SCHEMA_TABLE_NOT_EXIST;
+      }
+    }
+    else if (rel_num == 1)
+    {
+      if ((attr.relation_name != nullptr) && (0 != strcmp(attr.relation_name, selects.relations[0])))
+      {
+        LOG_WARN("Table [%s] not in from", attr.relation_name);
+        return RC::SCHEMA_TABLE_NOT_EXIST;
+      }
     }
 
     // 确定该属性与这张表有关
@@ -1038,45 +1121,58 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     const Condition &condition = selects.conditions[i];
 
     // 检查where中的表名是否在from中
-    if (rel_num == 1) {
-        if (((condition.left_is_attr == 1) && (nullptr != condition.left_attr.relation_name) && (0 != strcmp(condition.left_attr.relation_name, table_name))) ||
-            ((condition.right_is_attr == 1) && (nullptr != condition.right_attr.relation_name) && (0 != strcmp(condition.right_attr.relation_name, table_name)))) {
-            LOG_WARN("Table name in where but not in from");
-            return RC::SCHEMA_TABLE_NOT_EXIST;
+    if (rel_num == 1)
+    {
+      if (((condition.left_is_attr == 1) && (nullptr != condition.left_attr.relation_name) && (0 != strcmp(condition.left_attr.relation_name, table_name))) ||
+          ((condition.right_is_attr == 1) && (nullptr != condition.right_attr.relation_name) && (0 != strcmp(condition.right_attr.relation_name, table_name))))
+      {
+        LOG_WARN("Table name in where but not in from");
+        return RC::SCHEMA_TABLE_NOT_EXIST;
+      }
+    }
+    else if (rel_num > 1)
+    {
+      if (condition.left_is_attr == 1)
+      {
+        bool left_is_found = false;
+        for (int j = 0; j < rel_num; j++)
+        {
+          if (0 == strcmp(condition.left_attr.relation_name, selects.relations[j]))
+          {
+            left_is_found = true;
+            break;
+          }
         }
-    } else if (rel_num > 1) {
-        if (condition.left_is_attr == 1) {
-            bool left_is_found = false;
-            for (int j = 0; j < rel_num; j++) {
-                if (0 == strcmp(condition.left_attr.relation_name, selects.relations[j])) {
-                    left_is_found = true;
-                    break;
-                }
-            }
-            if (left_is_found == false) {
-                LOG_WARN("Table name %s appears in where but not in from", condition.left_attr.relation_name);
-                return RC::SCHEMA_TABLE_NOT_EXIST;
-            }
+        if (left_is_found == false)
+        {
+          LOG_WARN("Table name %s appears in where but not in from", condition.left_attr.relation_name);
+          return RC::SCHEMA_TABLE_NOT_EXIST;
         }
-        if (condition.right_is_attr == 1) {
-            bool right_is_found = false;
-            for (int j = 0; j < rel_num; j++) {
-                if (0 == strcmp(condition.right_attr.relation_name, selects.relations[j])) {
-                    right_is_found = true;
-                    break;
-                }
-            }
-            if (right_is_found == false) {
-                LOG_WARN("Table name %s appears in where but not in from", condition.right_attr.relation_name);
-                return RC::SCHEMA_TABLE_NOT_EXIST;
-            }
+      }
+      if (condition.right_is_attr == 1)
+      {
+        bool right_is_found = false;
+        for (int j = 0; j < rel_num; j++)
+        {
+          if (0 == strcmp(condition.right_attr.relation_name, selects.relations[j]))
+          {
+            right_is_found = true;
+            break;
+          }
         }
+        if (right_is_found == false)
+        {
+          LOG_WARN("Table name %s appears in where but not in from", condition.right_attr.relation_name);
+          return RC::SCHEMA_TABLE_NOT_EXIST;
+        }
+      }
     }
 
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
         (condition.left_is_attr == 0 && condition.right_is_attr == 1 && match_table(selects, condition.right_attr.relation_name, table_name)) || // 左边是值，右边是属性名
-        (condition.left_is_attr == 1 && condition.right_is_attr == 1 && match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name))) { // 左右都是属性名，并且表名都符合
+        (condition.left_is_attr == 1 && condition.right_is_attr == 1 && match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name)))
+    { // 左右都是属性名，并且表名都符合
       DefaultConditionFilter *condition_filter = new DefaultConditionFilter();
       // 这个init函数里检查了where子句中的列名是否存在
       RC rc = condition_filter->init(*table, condition);
@@ -1090,15 +1186,16 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         return rc;
       }
       condition_filters.push_back(condition_filter);
-
-    } else if (first && condition.left_is_attr == 1 && condition.right_is_attr == 1) {
-        // 多表时不考虑condition_filter
-        schema.clear();
-        TupleSchema::from_table(table, schema);
-        first = false;
+    }
+    else if (first && condition.left_is_attr == 1 && condition.right_is_attr == 1)
+    {
+      // 多表时不考虑condition_filter
+      schema.clear();
+      TupleSchema::from_table(table, schema);
+      first = false;
     }
 
   } // for
-    LOG_INFO("condition_filters count: %d", condition_filters.size());
-    return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
+  LOG_INFO("condition_filters count: %d", condition_filters.size());
+  return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
 }

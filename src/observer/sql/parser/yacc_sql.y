@@ -118,6 +118,7 @@ ParserContext *get_context(yyscan_t scanner)
         LE
         GE
         NE
+		IS
 
 %union {
   struct _Attr *attr;
@@ -451,6 +452,11 @@ select_attr:
     ;
 attr_list:
     /* empty */
+	| COMMA STAR {  // select *
+			RelAttr attr;
+			relation_attr_init(&attr, NULL, "*", NULL, 0);
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+		}
     | COMMA ID attr_list { // .., id
 			RelAttr attr;
 			relation_attr_init(&attr, NULL, $2, NULL, 0);
@@ -692,6 +698,52 @@ condition:
 			// $$->right_attr.relation_name=$5;
 			// $$->right_attr.attribute_name=$7;
     }
+	|ID IS NULL_T {
+		RelAttr left_attr;
+		// $1 为属性名称
+		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
+
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "TEMP");
+		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+		Condition condition;
+		condition_init(&condition, IS_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	}
+	|ID IS NOT NULL_T {
+		RelAttr left_attr;
+		// $1 为属性名称
+		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
+
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "TEMP");
+		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+		Condition condition;
+		condition_init(&condition, IS_NOT_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	}
+	|ID DOT ID IS NULL_T {
+		RelAttr left_attr;
+		// $1为表名，$3为属性名
+		relation_attr_init(&left_attr, $1, $3, NULL, 0);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "TEMP");
+		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+		Condition condition;
+		condition_init(&condition, IS_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	}
+	|ID DOT ID IS NOT NULL_T {
+		RelAttr left_attr;
+		// $1为表名，$3为属性名
+		relation_attr_init(&left_attr, $1, $3, NULL, 0);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "TEMP");
+		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+		Condition condition;
+		condition_init(&condition, IS_NOT_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	}
     ;
 
 comOp:

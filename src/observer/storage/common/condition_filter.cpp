@@ -42,7 +42,7 @@ DefaultConditionFilter::~DefaultConditionFilter()
 
 RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op)
 {
-  if (attr_type < CHARS || attr_type > DATES)
+  if (attr_type < CHARS || attr_type > NULLS)
   {
     LOG_ERROR("Invalid condition with unsupported attribute type: %d", attr_type);
     return RC::INVALID_ARGUMENT;
@@ -125,6 +125,10 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   }
 
   // 校验和转换
+  if (condition.comp == CompOp::IS_NULL || condition.comp == CompOp::IS_NOT_NULL)
+  {
+    return init(left, right, type_left, condition.comp);
+  }
   //  if (!field_type_compare_compatible_table[type_left][type_right]) {
   //    // 不能比较的两个字段， 要把信息传给客户端
   //    return RC::SCHEMA_FIELD_TYPE_MISMATCH;
@@ -132,52 +136,24 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   // NOTE：这里没有实现不同类型的数据比较，比如整数跟浮点数之间的对比
   // 但是选手们还是要实现。这个功能在预选赛中会出现
   // CompOp cmp_op = condition.comp;
-  if (type_left != type_right)
+  // 有可能出现有一侧为null类型，这种情况是可以查询的，非语法错误
+  if (type_left != type_right && type_left != AttrType::NULLS && type_right != AttrType::NULLS)
   {
     // TODO: 不知道咋实现int和float比较
-    // if (type_left == AttrType::INTS && type_right == AttrType::FLOATS && condition.right_is_attr == 0)
-    // {
-    //   支持(int)age > 1.1
-    //   type_right = AttrType::INTS;
-    //   float ori_v = *(float *)condition.right_value.data;
-    //   int v = (int)ori_v;
-    //   if (v * 1.0 != ori_v) {
-    //     ++v;
-    //     if (cmp_op == CompOp::GREAT_THAN) {
-    //       // >1.1 -> >= 2
-    //       cmp_op = CompOp::GREAT_THAN;
-    //     } else if (cmp_op == CompOp::LESS_EQUAL) {
-    //       // <=1.1 -> <2
-    //       cmp_op = CompOp::LESS_THAN;
-    //     }
-    //     //其余情况：>=1.1 -> >= 2
-    //     // <1.1 -> <2
-    //   }
-    //   delete right.value;
-    //   right.value = malloc(sizeof(v));
-    //   memcpy(right.value, &v, sizeof(v));
-    // }
-    // else if (type_left == AttrType::FLOATS && type_right == AttrType::INTS && condition.right_is_attr == 0)
-    // {
-    //   // 支持(float)score > 60;
-    //   type_right = AttrType::FLOATS;
-    //   int ori_v = *(int *)condition.right_value.data;
-    //   float v = ori_v * 1.0;
-    //   LOG_INFO("v = %f", v);
-    //   delete right.value;
-    //   right.value = malloc(sizeof(v));
-    //   memcpy(right.value, &v, sizeof(v));
-    //   LOG_INFO("right.value = %f", *(float *)right.value);
-    // }
-    // else
-    // {
+    LOG_INFO("RC::SCHEMA_FIELD_TYPE_MISMATCH");
     return RC::SCHEMA_FIELD_TYPE_MISMATCH;
-    // }
   }
 
-  return init(left, right, type_left, condition.comp);
+  // 两侧只要有一侧的类型为null，则传递null类型
+  if (type_right == AttrType::NULLS || type_left == AttrType::NULLS)
+  {
+    return init(left, right, AttrType::NULLS, CompOp::EQUAL_TO);
+  }
+  else
+  {
+    return init(left, right, type_left, condition.comp);
+  }
 }
-
 
 bool DefaultConditionFilter::filter(const Record &rec) const
 {
@@ -251,6 +227,12 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     // cmp_result = (int)(left - right);
   }
   break;
+  case NULLS:
+  {
+    // 任何值与null值比较都返回false
+    cmp_result = -1;
+  }
+  break;
   default:
   {
   }
@@ -270,7 +252,32 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     return cmp_result >= 0;
   case GREAT_THAN:
     return cmp_result > 0;
-
+  case IS_NULL:
+  {
+    int len = strlen(left_value) < 4 ? strlen(left_value):4;
+    if (strncmp(left_value, "Eu83", len) == 0)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  } 
+  break;
+  case IS_NOT_NULL:
+  {
+    int len = strlen(left_value) < 4 ? strlen(left_value):4;
+    if (strncmp(left_value, "Eu83", len) == 0)
+    {
+      return false;
+    }
+    else
+    {
+      return true;
+    }
+  } 
+  break;
   default:
     break;
   }
