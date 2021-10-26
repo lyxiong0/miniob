@@ -218,6 +218,7 @@ RC Table::insert_record(Trx *trx, Record *record)
   {
     trx->init_trx_info(this, *record);
   }
+  // 插入到record中，并获取对应的rid
   rc = record_handler_->insert_record(record->data, table_meta_.record_size(), &record->rid);
   if (rc != RC::SUCCESS)
   {
