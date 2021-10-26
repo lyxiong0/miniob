@@ -463,7 +463,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       end_trx_if_need(session, trx, false);
       return rc;
     }
-
+    LOG_INFO("成功创建selection_executor");
     select_nodes.push_back(select_node);
   }
     LOG_INFO("select_nodes.size: %d", select_nodes.size());
@@ -478,14 +478,14 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   for (SelectExeNode *&node : select_nodes) {
     TupleSet tuple_set;
     // excute里设置了聚合函数的type，type定义于tuple.h文件
-
+    LOG_INFO("开始执行select_node->execute函数");
     rc = node->execute(tuple_set);
-
-    tuple_set.get_schema().print(std::cout);
-    LOG_INFO("tuple_set's size: %d", tuple_set.size());
-
-    if (rc != RC::SUCCESS) {
-    for (SelectExeNode *&tmp_node : select_nodes) {
+    LOG_INFO("node->execute完毕并返回 rc=%d",rc);
+    if (rc != RC::SUCCESS)
+    {
+      LOG_INFO("node->execute失败 rc=%d",rc);
+      for (SelectExeNode *&tmp_node : select_nodes)
+      {
         delete tmp_node;
     }
     end_trx_if_need(session, trx, false);
@@ -553,21 +553,21 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   std::vector<TupleSet> results;
 
   // 处理聚合函数
-  AttrFunction *attr_function = new AttrFunction;
-  for (int i = selects.attr_num - 1; i >= 0; i--)
+  if (result.size() > 0)
   {
-    const RelAttr &attr = selects.attributes[i];
-
-    if (attr.window_function_name != nullptr)
+    // 上一步有结果才进行聚合
+    AttrFunction *attr_function = new AttrFunction;
+    for (int i = selects.attr_num - 1; i >= 0; i--)
     {
-      // 注意这里attr.relation_name可能为nullptr
-      FuncType function_type = judge_function_type(attr.window_function_name);
-      attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
+      const RelAttr &attr = selects.attributes[i];
+
+      if (attr.window_function_name != nullptr)
+      {
+        // 注意这里attr.relation_name可能为nullptr
+        FuncType function_type = judge_function_type(attr.window_function_name);
+        attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
+      }
     }
-  }
-  
-  if (attr_function->get_size() > 0)
-  {
 
     rc = do_aggregation(&result, attr_function, results);
 
@@ -812,12 +812,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         rc = RC::GENERIC_ERROR;
         break;
       }
-
-      if (tuple_set->size() == 0) {
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
       // 增加Scheme
       // tmp_scheme.add_if_not_exists(AttrType::FLOATS, add_scheme_name.c_str(), add_attr_name.c_str());
       add_type = AttrType::FLOATS;
@@ -846,11 +840,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     }
     case FuncType::MAX:
     {
-      if (tuple_set->size() == 0) {
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
       auto ans = tuple_set->get(0).get_pointer(index);
       for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
       {
@@ -885,11 +874,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     }
     case FuncType::MIN:
     {
-      if (tuple_set->size() == 0) {
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
       auto ans = tuple_set->get(0).get_pointer(index);
       for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
       {
@@ -1010,6 +994,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 {
   // 列出跟这张表关联的Attr
   // 1. 找到表
+  
   TupleSchema schema;
   Table *table = DefaultHandler::get_default().find_table(db, table_name);
 
@@ -1024,6 +1009,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   // selects.conditions where中的 condition
 
   // 2. 遍历Select中所有属性
+  
   int rel_num = selects.relation_num;
   for (int i = selects.attr_num - 1; i >= 0; i--)
   {
@@ -1081,22 +1067,24 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
       }
     }
   }
-
+  
   bool first = true; // 标记是不是第一次遇到多表连接语句
 
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
   std::vector<DefaultConditionFilter *> condition_filters;
   for (size_t i = 0; i < selects.condition_num; i++) {
     const Condition &condition = selects.conditions[i];
-
+    
     // 检查where中的表名是否在from中
     if (rel_num == 1) {
+      // strcmp的参数如果为null会出现segmentation 错误
         if (((condition.left_is_attr == 1) && (nullptr != condition.left_attr.relation_name) && (0 != strcmp(condition.left_attr.relation_name, table_name))) ||
             ((condition.right_is_attr == 1) && (nullptr != condition.right_attr.relation_name) && (0 != strcmp(condition.right_attr.relation_name, table_name)))) {
             LOG_WARN("Table name in where but not in from");
             return RC::SCHEMA_TABLE_NOT_EXIST;
         }
     } else if (rel_num > 1) {
+      
         if (condition.left_is_attr == 1) {
             // where中的表名必须出现，不存在*
             if (nullptr == condition.left_attr.relation_name) {
@@ -1133,7 +1121,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
             }
         }
     }
-
+    LOG_INFO("create selection executor 3.2 ");
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
         (condition.left_is_attr == 0 && condition.right_is_attr == 1 && match_table(selects, condition.right_attr.relation_name, table_name)) || // 左边是值，右边是属性名

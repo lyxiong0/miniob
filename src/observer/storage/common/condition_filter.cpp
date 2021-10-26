@@ -64,6 +64,7 @@ RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrT
 
 RC DefaultConditionFilter::init(Table &table, const Condition &condition)
 {
+  LOG_INFO("condition init 开始");
   const TableMeta &table_meta = table.table_meta();
   ConDesc left;
   ConDesc right;
@@ -132,6 +133,7 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   // NOTE：这里没有实现不同类型的数据比较，比如整数跟浮点数之间的对比
   // 但是选手们还是要实现。这个功能在预选赛中会出现
   // CompOp cmp_op = condition.comp;
+  LOG_INFO("condition init中，type_left = %d, type_right = %d",type_left,type_right);
   if (type_left != type_right)
   {
     // TODO: 不知道咋实现int和float比较
@@ -181,6 +183,8 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
 
 bool DefaultConditionFilter::filter(const Record &rec) const
 {
+  // 根据record的type来判断比较
+
   char *left_value = nullptr;
   char *right_value = nullptr;
 

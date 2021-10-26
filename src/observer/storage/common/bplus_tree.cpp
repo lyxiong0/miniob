@@ -224,11 +224,12 @@ RC BplusTreeHandler::find_leaf(const char *pkey,PageNum *leaf_page) {
   if(rc!=SUCCESS){
     return rc;
   }
-
+  // pdata->page_data
   rc = disk_buffer_pool_->get_data(&page_handle, &pdata);
   if(rc!=SUCCESS){
     return rc;
   }
+  // 根据page_data的位置获取对应的index_node
   node = get_index_node(pdata);
   while(0 == node->is_leaf){
     for(i = 0; i < node->key_num; i++){
@@ -248,6 +249,7 @@ RC BplusTreeHandler::find_leaf(const char *pkey,PageNum *leaf_page) {
     if(rc!=SUCCESS){
       return rc;
     }
+    // 根据节点key的比较不断更新节点 直到找到leaf节点
     node = get_index_node(pdata);
   }
   rc = disk_buffer_pool_->get_page_num(&page_handle, leaf_page);
@@ -1722,12 +1724,15 @@ RC BplusTreeScanner::close() {
 }
 
 RC BplusTreeScanner::next_entry(RID *rid) {
+  LOG_INFO("开始调用BplusTreeScanner::next_entry");
   RC rc;
   if(!opened_){
     return RC::RECORD_CLOSED;
   }
   rc = get_next_idx_in_memory(rid);//和RM中一样，有可能有错误，一次只查当前页和当前页的下一页，有待确定
+  LOG_INFO("BplusTreeScanner::next_entry初次调用get_next_idx_in_memory返回rc %d",rc);
   if(rc == RC::RECORD_NO_MORE_IDX_IN_MEM){
+    
     rc = find_idx_pages();
     if(rc != SUCCESS){
       return rc;
@@ -1781,6 +1786,7 @@ RC BplusTreeScanner::find_idx_pages() {
 }
 
 RC BplusTreeScanner::get_next_idx_in_memory(RID *rid) {
+  LOG_INFO("开始调用BplusTreeScanner::get_next_idx_in_memory");
   char *pdata;
   IndexNode *node;
   RC rc;
@@ -1793,6 +1799,7 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid) {
   }
 
   for( ; next_index_of_page_handle_ < pinned_page_count_; next_index_of_page_handle_++){
+    //根据pdata获取更新的node
     rc = index_handler_.disk_buffer_pool_->get_data(page_handles_ + next_index_of_page_handle_, &pdata);
     if(rc != SUCCESS){
       LOG_ERROR("Failed to get data from disk buffer pool. rc=%s", strrc);
@@ -1800,6 +1807,7 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid) {
     }
 
     node = index_handler_.get_index_node(pdata);
+    // 在node内部不断进行扫描比较
     for( ; index_in_node_ < node->key_num; index_in_node_++){
       if(satisfy_condition(node->keys + index_in_node_ * index_handler_.file_header_.key_length)){
         memcpy(rid,node->rids+index_in_node_,sizeof(RID));
@@ -1813,6 +1821,7 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid) {
   return RC::RECORD_NO_MORE_IDX_IN_MEM;
 }
 bool BplusTreeScanner::satisfy_condition(const char *pkey) {
+  LOG_INFO("BplusTreeScanner::调用satisfy_condition");
   int i1=0,i2=0;
   float f1=0,f2=0;
   const char *s1=nullptr,*s2=nullptr;
