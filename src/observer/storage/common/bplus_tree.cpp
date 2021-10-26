@@ -802,7 +802,7 @@ RC BplusTreeHandler::insert_into_new_root(PageNum left_page, const char *pkey, P
 }
 
 RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid) {
-  LOG_INFO("call bplustree insert_entry");
+  
   RC rc;
   PageNum leaf_page;
   BPPageHandle page_handle;
@@ -862,7 +862,6 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid) {
     free(key);
     
   }
-  LOG_INFO("BplusTreeHandler::insert_entry ends and the tree is following");
   print();
   return SUCCESS;
 }
@@ -1724,13 +1723,11 @@ RC BplusTreeScanner::close() {
 }
 
 RC BplusTreeScanner::next_entry(RID *rid) {
-  LOG_INFO("开始调用BplusTreeScanner::next_entry");
   RC rc;
   if(!opened_){
     return RC::RECORD_CLOSED;
   }
   rc = get_next_idx_in_memory(rid);//和RM中一样，有可能有错误，一次只查当前页和当前页的下一页，有待确定
-  LOG_INFO("BplusTreeScanner::next_entry初次调用get_next_idx_in_memory返回rc %d",rc);
   if(rc == RC::RECORD_NO_MORE_IDX_IN_MEM){
     
     rc = find_idx_pages();
@@ -1786,7 +1783,6 @@ RC BplusTreeScanner::find_idx_pages() {
 }
 
 RC BplusTreeScanner::get_next_idx_in_memory(RID *rid) {
-  LOG_INFO("开始调用BplusTreeScanner::get_next_idx_in_memory");
   char *pdata;
   IndexNode *node;
   RC rc;
@@ -1821,7 +1817,8 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid) {
   return RC::RECORD_NO_MORE_IDX_IN_MEM;
 }
 bool BplusTreeScanner::satisfy_condition(const char *pkey) {
-  LOG_INFO("BplusTreeScanner::调用satisfy_condition");
+  // i2,f2,s2表示条件中的内容，i1,f1,s1表示搜寻出的记录中的对应属性的值
+  // com_op_表示的是条件中的比较符号，不关乎属性在前还是值在前
   int i1=0,i2=0;
   float f1=0,f2=0;
   const char *s1=nullptr,*s2=nullptr;

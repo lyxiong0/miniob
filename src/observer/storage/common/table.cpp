@@ -594,7 +594,7 @@ std::vector<const char *> Table::get_index_names()
 
 RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_name)
 {
-  LOG_INFO("create_index starts");
+  // LOG_INFO("create_index starts");
   if (index_name == nullptr || common::is_blank(index_name) ||
       attribute_name == nullptr || common::is_blank(attribute_name))
   {

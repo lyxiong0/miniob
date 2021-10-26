@@ -436,7 +436,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       end_trx_if_need(session, trx, false);
       return rc;
     }
-    LOG_INFO("成功创建selection_executor");
+    
     select_nodes.push_back(select_node);
   }
 
@@ -453,12 +453,11 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   {
     TupleSet tuple_set;
     // excute里设置了聚合函数的type，type定义于tuple.h文件
-    LOG_INFO("开始执行select_node->execute函数");
+    
     rc = node->execute(tuple_set);
-    LOG_INFO("node->execute完毕并返回 rc=%d",rc);
+    
     if (rc != RC::SUCCESS)
     {
-      LOG_INFO("node->execute失败 rc=%d",rc);
       for (SelectExeNode *&tmp_node : select_nodes)
       {
         delete tmp_node;
@@ -1066,7 +1065,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
             }
         }
         if (condition.right_is_attr == 1) {
-          LOG_INFO("create selection executor 3.1.2.2 ");
+          
             bool right_is_found = false;
             for (int j = 0; j < rel_num; j++) {
                 if (0 == strcmp(condition.right_attr.relation_name, selects.relations[j])) {
@@ -1080,7 +1079,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
             }
         }
     }
-    LOG_INFO("create selection executor 3.2 ");
+    
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
         (condition.left_is_attr == 0 && condition.right_is_attr == 1 && match_table(selects, condition.right_attr.relation_name, table_name)) || // 左边是值，右边是属性名
