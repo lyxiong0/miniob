@@ -183,21 +183,6 @@ int check_date_data_convert(const char *s,int &t){
 }
   
 
-  bool match_null(const char *s)
-  {
-    std::string str = s;
-    std::regex format_("^[Nn][Uu][Ll][Ll]$");
-
-    if (std::regex_match(str, format_))
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-  }
-
   void value_init_string(Value *value, const char *v)
   {
     if (check_date_format(v))
@@ -219,7 +204,7 @@ int check_date_data_convert(const char *s,int &t){
         value->data = strdup(v);
       }
     }
-    else if (match_null(v))
+    else if (strcmp(v, "Eu83") == 0)
     {
       std::cout << "满足null格式" << std::endl;
       value->type = NULLS;

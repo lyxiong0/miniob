@@ -376,7 +376,7 @@ value:
 	}
 	|NULL_T {
 		// null不需要加双引号，当作字符串插入
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
 	}
     |SSS {
 		$1 = substr($1,1,strlen($1)-2);
@@ -710,7 +710,7 @@ condition:
 		condition_init(&condition, IS_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
-	|ID IS NOT NULL_T {
+	|ID IS NOT NULL_T { // id is not null
 		RelAttr left_attr;
 		// $1 为属性名称
 		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
@@ -720,6 +720,26 @@ condition:
 
 		Condition condition;
 		condition_init(&condition, IS_NOT_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	}
+	|NULL_T IS NULL_T { // null is null
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
+		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
+		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+		Condition condition;
+		condition_init(&condition, IS_NULL, 0, NULL, left_value, 0, NULL, right_value);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	}
+	|NULL_T IS NOT NULL_T { // null is not null
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
+		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
+		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+		Condition condition;
+		condition_init(&condition, IS_NOT_NULL, 0, NULL, left_value, 0, NULL, right_value);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
 	|ID DOT ID IS NULL_T {

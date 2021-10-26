@@ -871,12 +871,13 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
 
       bool is_calculate = false;
 
-      auto ans = tuple_set->get(0).get_pointer(index);
-      if (!ans->is_null())
+      int tuple_i = 0;
+      auto ans = tuple_set->get(tuple_i).get_pointer(index);
+      while (ans->is_null())
       {
-        is_calculate = true;
+        ans = tuple_set->get(tuple_i++).get_pointer(index);
       }
-      for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
+      for (; tuple_i < tuple_set->size(); ++tuple_i)
       {
         auto value = tuple_set->get(tuple_i).get_pointer(index);
 
@@ -933,12 +934,13 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       }
 
       bool is_calculate = false;
-      auto ans = tuple_set->get(0).get_pointer(index);
-      if (!ans->is_null())
+      int tuple_i = 0;
+      auto ans = tuple_set->get(tuple_i).get_pointer(index);
+      while (ans->is_null())
       {
-        is_calculate = true;
+        ans = tuple_set->get(tuple_i++).get_pointer(index);
       }
-      for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
+      for (; tuple_i < tuple_set->size(); ++tuple_i)
       {
         auto value = tuple_set->get(tuple_i).get_pointer(index);
 

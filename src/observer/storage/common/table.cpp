@@ -378,6 +378,7 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
 
     if (value.type == AttrType::NULLS)
     {
+      LOG_INFO("make nulls");
       const char *v = "Eu83";
       memcpy(record + field->offset(), v, 4);
     }
@@ -604,20 +605,20 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   if (index_name == nullptr || common::is_blank(index_name) ||
       attribute_name == nullptr || common::is_blank(attribute_name))
   {
-    LOG_ERROR("INVALID_ARGUMENT");
+    LOG_ERROR("create_index - INVALID_ARGUMENT");
     return RC::INVALID_ARGUMENT;
   }
   if (table_meta_.index(index_name) != nullptr ||
       table_meta_.find_index_by_field(attribute_name))
   {
-    LOG_ERROR("SCHEMA_INDEX_EXIST");
+    LOG_ERROR("create_index - SCHEMA_INDEX_EXIST");
     return RC::SCHEMA_INDEX_EXIST;
   }
 
   const FieldMeta *field_meta = table_meta_.field(attribute_name);
   if (!field_meta)
   {
-    LOG_ERROR("SCHEMA_FIELD_MISSING");
+    LOG_ERROR("create_index - SCHEMA_FIELD_MISSING");
     return RC::SCHEMA_FIELD_MISSING;
   }
 

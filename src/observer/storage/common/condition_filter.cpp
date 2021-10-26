@@ -258,6 +258,9 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   case IS_NULL:
   {
     int len = strlen(left_value) < 4 ? strlen(left_value):4;
+    if (strcmp(right_value, "Eu83") == 0) {
+      return true; // 出现 null is null
+    }
     if (strncmp(left_value, "Eu83", len) == 0)
     {
       return true;
@@ -271,6 +274,9 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   case IS_NOT_NULL:
   {
     int len = strlen(left_value) < 4 ? strlen(left_value):4;
+    if (strcmp(right_value, "Eu83") == 0) {
+      return false; // 出现 null is not null
+    }
     if (strncmp(left_value, "Eu83", len) == 0)
     {
       return false;
