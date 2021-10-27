@@ -202,19 +202,19 @@ int check_date_data_convert(const char *s,int &t){
   {
     if (check_date_format(v))
     {
-      LOG_INFO("成功匹配日期格式开始检查具体日期");
+      // LOG_INFO("成功匹配日期格式开始检查具体日期");
       // 转换为数字
       int t=1;
       int date_num = check_date_data_convert(v,t);
       if(t){
-        LOG_INFO("通过具体日期检测，将输入值作为dates处理");
+        //LOG_INFO("通过具体日期检测，将输入值作为dates处理");
         value->type = DATES;
         value->data = malloc(sizeof(date_num));  
         memcpy(value->data, &date_num, sizeof(date_num));
       }else{
         //没有通过具体日期检测  因为后面插入表格的时候会有table_meta与value_type的检测，就不用再这里将解析识别为错误，
         // 对于不通过日期检测的字符串解析为正常字符串
-        LOG_INFO("成功匹配日期格式但没有通过具体日期检测，将输入值作为char处理");
+        //LOG_INFO("成功匹配日期格式但没有通过具体日期检测，将输入值作为char处理");
         value->type = CHARS;
         value->data = strdup(v);
       }
@@ -227,7 +227,7 @@ int check_date_data_convert(const char *s,int &t){
     }
     else
     {
-      LOG_INFO("没有成功匹配日期格式将输入值作为char处理");     
+      //LOG_INFO("没有成功匹配日期格式将输入值作为char处理");     
       value->type = CHARS;
       value->data = strdup(v);
     }
@@ -237,25 +237,20 @@ int check_date_data_convert(const char *s,int &t){
                       int left_is_attr, RelAttr *left_attr, Value *left_value,
                       int right_is_attr, RelAttr *right_attr, Value *right_value)
   {
-    // LOG_INFO("condition_init function starts and right_value.type=%d",right_value->type);
     condition->comp = comp;
     condition->is_valid=true;
     condition->left_is_attr = left_is_attr;
     if (left_is_attr)
     {
-      //LOG_INFO("left_is_attr=true and attr.relation=%s attr.attribute_name=%s ",left_attr->relation_name,left_attr->attribute_name);
       condition->left_attr = *left_attr;
     }
     else
     {
-      // check the date format
-      //LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data)
         condition->left_value = *left_value;
     }
     condition->right_is_attr = right_is_attr;
     if (right_is_attr)
     {
-      //LOG_INFO("right_is_attr=true and attr.relation=%s attr.attribute_name=%s ",right_attr->relation_name,right_attr->attribute_name);
       condition->right_attr = *right_attr;
     }
     else
