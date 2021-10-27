@@ -608,6 +608,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
     for (int i = selects.order_num - 1; i >= 0; i--)
     {
+      int cnt = 0;
       const RelAttr &attr = selects.order_attrs[i];
       const TupleSchema &schema = result.get_schema();
       // 确定该属性与这张表有关
@@ -618,23 +619,33 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       }
       else
       {
+        // 不带属性名，可能出现二义性问题
+        const char *last_table_name = nullptr;
         const int size = schema.fields().size();
 
-        for (index = 0; index < size; ++index)
+        for (int i = 0; i < size; ++i)
         {
-          if (strcmp(attr.attribute_name, schema.field(index).field_name()) == 0)
+          if (strcmp(attr.attribute_name, schema.field(i).field_name()) == 0)
           {
-            break;
+            if (cnt == 0)
+            {
+              ++cnt;
+              last_table_name = schema.field(i).table_name();
+              index = i;
+            }
+            else
+            {
+              if (last_table_name != schema.field(i).table_name())
+              {
+                ++cnt;
+                break;
+              }
+            }
           }
-        }
-
-        if (index == size)
-        {
-          index = -1; //未查找到
         }
       }
 
-      if (index == -1)
+      if (index == -1 || cnt > 1)
       {
         // 有order信息但没有提取出来，说明出现错误的列名
         for (SelectExeNode *&tmp_node : select_nodes)
