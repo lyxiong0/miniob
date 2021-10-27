@@ -248,6 +248,10 @@ void DefaultStorageStage::handle_event(StageEvent *event)
     snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
   }
   break;
+  // case SCF_DROP_INDEX: {
+  //   // TODO: 实现
+  // }
+  // break;
   case SCF_DROP_TABLE:
   { // drop table
     const DropTable &drop_table = sql->sstr.drop_table;
