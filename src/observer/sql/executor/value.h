@@ -41,7 +41,7 @@ public:
 
   void to_string(std::ostream &os) const override
   {
-    os << value_ << " ";
+    os << value_;
   }
 
   int compare(const TupleValue &other) const override
@@ -87,9 +87,7 @@ public:
       ftos[s_end + 1] = '\0';
     }
     
-
-    // os << value_;
-    os << ftos << " ";
+    os << ftos;
   }
 
   int compare(const TupleValue &other) const override
@@ -132,7 +130,7 @@ public:
 
   void to_string(std::ostream &os) const override
   {
-    os << value_ << " ";
+    os << value_;
   }
 
   int compare(const TupleValue &other) const override

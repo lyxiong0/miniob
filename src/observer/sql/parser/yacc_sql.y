@@ -118,7 +118,9 @@ ParserContext *get_context(yyscan_t scanner)
         LE
         GE
         NE
-
+        INNER
+        JOIN
+        
 %union {
   struct _Attr *attr;
   struct _Condition *condition1;
