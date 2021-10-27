@@ -2314,13 +2314,12 @@ bool BplusTreeScanner::satisfy_condition(const char *pkey)
     break;
   case IS_NULL:
   {
-    int len = strlen(pkey) < 4 ? strlen(pkey) : 4;
-    if (strcmp(value_, "Eu83") == 0)
+    if (strlen(value_) >=4 && strncmp(value_, "Eu83", 4) == 0)
     {
       return true; // 出现 null is null
     }
 
-    if (strncmp(pkey, "Eu83", len) == 0)
+    if (strlen(pkey) >=4 && strncmp(pkey, "Eu83", 4) == 0)
     {
       return true;
     }
@@ -2332,13 +2331,12 @@ bool BplusTreeScanner::satisfy_condition(const char *pkey)
   break;
   case IS_NOT_NULL:
   {
-    int len = strlen(pkey) < 4 ? strlen(pkey) : 4;
-    if (strcmp(value_, "Eu83") == 0)
+    if (strlen(value_) >=4 && strncmp(value_, "Eu83", 4) == 0)
     {
       return false; // 出现 null is not null
     }
 
-    if (strncmp(pkey, "Eu83", len) == 0)
+    if (strlen(pkey) >=4 && strncmp(pkey, "Eu83", 4) == 0)
     {
       return false;
     }
