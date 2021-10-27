@@ -1119,51 +1119,44 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 {
   // 列出跟这张表关联的Attr
   // 1. 找到表
-
+  
   TupleSchema schema;
   Table *table = DefaultHandler::get_default().find_table(db, table_name);
 
   // 2. 遍历Select中所有属性
   bool attrIsStar = false;
   // int rel_num = selects.relation_num;
-  for (int i = selects.attr_num - 1; i >= 0; i--)
-  {
+  for (int i = selects.attr_num - 1; i >= 0; i--) {
     const RelAttr &attr = selects.attributes[i];
 
     // 确定该属性与这张表有关
-    if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name))
-    {
+    if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name)) {
       // 对应select *的情况
-      if (0 == strcmp("*", attr.attribute_name) || isdigit(attr.attribute_name[0]) || attr.attribute_name[0] == '-')
-      {
+      if (0 == strcmp("*", attr.attribute_name) || isdigit(attr.attribute_name[0]) || attr.attribute_name[0] == '-') {
         TupleSchema::from_table(table, schema); // 列出这张表所有字段
         attrIsStar = true;
         break; // 没有校验，给出* 之后，再写字段的错误
-      }
-      else
-      { // 对应select age/ select t1.age的情况
+      } else { // 对应select age/ select t1.age的情况
         RC rc = schema_add_field(table, attr.attribute_name, schema);
-        if (rc != RC::SUCCESS)
-        {
+        if (rc != RC::SUCCESS) {
           return rc;
         }
       }
     }
   } // for selects.attr_num
 
+
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
   // 构造schema, 包括select和where中需要的列
   std::vector<DefaultConditionFilter *> condition_filters;
-  for (size_t i = 0; i < selects.condition_num; i++)
-  {
+  for (size_t i = 0; i < selects.condition_num; i++) {
     const Condition &condition = selects.conditions[i];
     
     // 这里其实已经做了下推，即先在单张表上进行了过滤
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
         (condition.left_is_attr == 0 && condition.right_is_attr == 1 && match_table(selects, condition.right_attr.relation_name, table_name)) || // 左边是值，右边是属性名
-        (condition.left_is_attr == 1 && condition.right_is_attr == 1 && match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name)))
-    { // 左右都是属性名，并且表名都符合
+        (condition.left_is_attr == 1 && condition.right_is_attr == 1 && match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name))) { // 左右都是属性名，并且表名都符合
       DefaultConditionFilter *condition_filter = new DefaultConditionFilter();
       // 这个init函数里检查了where子句中的列名是否存在
       RC rc = condition_filter->init(*table, condition);
@@ -1177,33 +1170,35 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         return rc;
       }
       condition_filters.push_back(condition_filter);
-    }
-    else if (condition.left_is_attr == 1 && condition.right_is_attr == 1)
-    {
-      // 如果select中不是*，需要把where中比较的列也添加到schema中
-      if (attrIsStar == false)
-      {
-        if (0 == strcmp(condition.left_attr.relation_name, table_name))
-        {
-          RC rc = schema_add_field(table, condition.left_attr.attribute_name, schema);
-          if (rc != RC::SUCCESS)
-          {
-            return rc;
-          }
+
+    } else if (condition.left_is_attr == 1 && condition.right_is_attr == 1) {
+        // 如果select中不是*，需要把where中比较的列也添加到schema中
+        if (attrIsStar == false) {
+            if (0 == strcmp(condition.left_attr.relation_name, table_name)) {
+                RC rc = schema_add_field(table, condition.left_attr.attribute_name, schema);
+                if (rc != RC::SUCCESS) {
+                    return rc;
+                }                
+            }
+            if (0 == strcmp(condition.right_attr.relation_name, table_name)) {
+                RC rc = schema_add_field(table, condition.right_attr.attribute_name, schema);
+                if (rc != RC::SUCCESS) {
+                    return rc;
+                }                
+            }
         }
     }
 
   } // for
 
-  // 这里是为了处理 select t1.id from t1,t2; 这种情况
-  if (schema.empty())
-  {
-    TupleSchema::from_table(table, schema);
-  }
+    // 这里是为了处理 select t1.id from t1,t2; 这种情况
+    if (schema.empty()) {
+        TupleSchema::from_table(table, schema);
+    }
 
-  // LOG_INFO("condition_filters count: %d", condition_filters.size());
-  // LOG_INFO("schema of SelectExecNode: ");
-  // schema.print(std::cout);
+    // LOG_INFO("condition_filters count: %d", condition_filters.size());
+    // LOG_INFO("schema of SelectExecNode: ");
+    // schema.print(std::cout);
 
-  return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
+    return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
 }
