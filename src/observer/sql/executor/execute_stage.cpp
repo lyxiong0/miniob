@@ -371,8 +371,8 @@ TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, cons
         TupleValue *vb = tp.get_pointer(right_index).get();
         if (compare(va, vb, cond.comp) == false)
         {
-          valid = false;
-          break;
+            valid = false;
+            break;
         }
       }
     }
