@@ -561,6 +561,7 @@ condition:
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 			Condition condition;
+			//    x   x   left_is_attr  left_attr  left_value right_is_attr  right_attr  right_value  
 			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 			// $$ = ( Condition *)malloc(sizeof( Condition));
@@ -621,6 +622,7 @@ condition:
 			relation_attr_init(&right_attr, NULL, $3, NULL, 0);
 
 			Condition condition;
+			//    x   x   left_is_attr  left_attr  left_value right_is_attr  right_attr  right_value  
 			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 

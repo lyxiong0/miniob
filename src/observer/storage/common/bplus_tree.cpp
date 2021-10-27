@@ -992,7 +992,6 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
     rc = insert_into_leaf_after_split(leaf_page, key, rid);
     free(key);
   }
-  LOG_INFO("BplusTreeHandler::insert_entry ends and the tree is following");
   print();
   return SUCCESS;
 }
