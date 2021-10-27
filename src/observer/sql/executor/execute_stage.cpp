@@ -393,133 +393,106 @@ TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, cons
 }
 
 // 检查Select, where中的表名是否都出现在from中
-RC check_table_name(const Selects &selects, const char *db)
+RC check_table_name(const Selects &selects, const char* db)
 {
-  // 检查from中的表是否存在
-  int rel_num = selects.relation_num;
-  for (int i = 0; i < rel_num; i++)
-  {
-    Table *table = DefaultHandler::get_default().find_table(db, selects.relations[i]);
-    if (nullptr == table)
-    {
-      LOG_WARN("No such table [%s] in db [%s]", selects.relations[i], db);
-      return RC::SCHEMA_TABLE_NOT_EXIST;
+    // 检查from中的表是否存在
+    int rel_num = selects.relation_num;
+    for (int i = 0; i < rel_num; i++) {
+        Table *table = DefaultHandler::get_default().find_table(db, selects.relations[i]);
+        if (nullptr == table) {
+            LOG_WARN("No such table [%s] in db [%s]", selects.relations[i], db);
+            return RC::SCHEMA_TABLE_NOT_EXIST;
+        }
     }
-  }
 
-  // 检查select中的表是否在from中
-  for (size_t i = 0; i < selects.attr_num; i++)
-  {
-    const RelAttr &attr = selects.attributes[i];
-    if (rel_num > 1)
-    { // 多表
-      // 只有列名且不为"*"出错, id
-      if ((nullptr == attr.relation_name) && (0 != strcmp(attr.attribute_name, "*")))
-      {
-        LOG_ERROR("Table name must appear.");
-        return RC::SCHEMA_TABLE_NOT_EXIST;
-      }
-      // t1.id
-      bool table_name_in_from = false;
-      for (int j = 0; j < rel_num; j++)
-      {
-        if ((nullptr != attr.relation_name) && (0 == strcmp(attr.relation_name, selects.relations[j])))
-        {
-          table_name_in_from = true;
-          break;
+    // 检查select中的表是否在from中
+    for (size_t i = 0; i < selects.attr_num; i++) {
+        const RelAttr &attr = selects.attributes[i];
+        if (rel_num > 1) {  // 多表
+            // 只有列名且不为"*"出错, id
+            if ((nullptr == attr.relation_name) && (0 != strcmp(attr.attribute_name, "*"))) {
+                LOG_ERROR("Table name must appear.");
+                return RC::SCHEMA_TABLE_NOT_EXIST;
+            }
+            // t1.id
+            bool table_name_in_from = false;
+            for (int j = 0; j < rel_num; j++) {
+                if ((nullptr != attr.relation_name) && (0 == strcmp(attr.relation_name, selects.relations[j]))) {
+                    table_name_in_from = true;
+                    break;
+                }
+            }
+            // t1.*
+            if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+                    table_name_in_from = true;
+            }
+            if (table_name_in_from == false) {
+                LOG_WARN("Table [%s] not in from", attr.relation_name);
+                return RC::SCHEMA_TABLE_NOT_EXIST;
+            }
+        } else if (rel_num == 1) {
+            if ((attr.relation_name != nullptr) && (0 != strcmp(attr.relation_name, selects.relations[0]))) {
+                LOG_WARN("Table [%s] not in from", attr.relation_name);
+                return RC::SCHEMA_TABLE_NOT_EXIST;
+            }
         }
-      }
-      // t1.*
-      if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-      {
-        table_name_in_from = true;
-      }
-      if (table_name_in_from == false)
-      {
-        LOG_WARN("Table [%s] not in from", attr.relation_name);
-        return RC::SCHEMA_TABLE_NOT_EXIST;
-      }
     }
-    else if (rel_num == 1)
-    {
-      if ((attr.relation_name != nullptr) && (0 != strcmp(attr.relation_name, selects.relations[0])))
-      {
-        LOG_WARN("Table [%s] not in from", attr.relation_name);
-        return RC::SCHEMA_TABLE_NOT_EXIST;
-      }
-    }
-  }
 
-  // 检查where中的表名是否在from中
-  for (size_t i = 0; i < selects.condition_num; i++)
-  {
-    const Condition &condition = selects.conditions[i];
-    if (rel_num == 1)
-    {
-      // strcmp的参数如果为null会出现segmentation 错误
-      for (int i = 0; i < selects.relation_num; i++)
-      {
-        if (((condition.left_is_attr == 1) && (nullptr != condition.left_attr.relation_name) && (0 != strcmp(condition.left_attr.relation_name, selects.relations[i]))) ||
-            ((condition.right_is_attr == 1) && (nullptr != condition.right_attr.relation_name) && (0 != strcmp(condition.right_attr.relation_name, selects.relations[i]))))
-        {
-          LOG_WARN("Table name in where but not in from");
-          return RC::SCHEMA_TABLE_NOT_EXIST;
+    // 检查where中的表名是否在from中
+    for (size_t i = 0; i < selects.condition_num; i++) {
+        const Condition &condition = selects.conditions[i];
+        if (rel_num == 1) {
+            // strcmp的参数如果为null会出现segmentation 错误
+            for (int i = 0; i < selects.relation_num; i++){
+                if (((condition.left_is_attr == 1) && (nullptr != condition.left_attr.relation_name) && (0 != strcmp(condition.left_attr.relation_name, selects.relations[i]))) ||
+                    ((condition.right_is_attr == 1) && (nullptr != condition.right_attr.relation_name) && (0 != strcmp(condition.right_attr.relation_name, selects.relations[i])))) {
+                    LOG_WARN("Table name in where but not in from");
+                    return RC::SCHEMA_TABLE_NOT_EXIST;
+                }
+            }
+    } else if (rel_num > 1) {
+        if (condition.left_is_attr == 1) {
+            // LOG_INFO("condition.left_attr.relation_name: %s, %s", condition.left_attr.relation_name, condition.left_attr.attribute_name);
+            // where中的表名必须出现，不存在*
+            if (nullptr == condition.left_attr.relation_name) {
+                LOG_ERROR("Table name must appear.");
+                return RC::SCHEMA_TABLE_NOT_EXIST;
+            }
+            bool left_is_found = false;
+            for (int j = 0; j < rel_num; j++) {
+                if (0 == strcmp(condition.left_attr.relation_name, selects.relations[j])) {
+                    left_is_found = true;
+                    break;
+                }
+            }
+            if (left_is_found == false) {
+                LOG_WARN("Table name %s appears in where but not in from", condition.left_attr.relation_name);
+                return RC::SCHEMA_TABLE_NOT_EXIST;
+            }
         }
-      }
+    
+        if (condition.right_is_attr == 1) {
+            if ((rel_num > 1) && ( nullptr == condition.right_attr.relation_name)) {
+                LOG_ERROR("Table name must appear.");
+                return RC::SCHEMA_TABLE_NOT_EXIST;
+            }
+            bool right_is_found = false;
+            for (int j = 0; j < rel_num; j++) {
+                if (0 == strcmp(condition.right_attr.relation_name, selects.relations[j])) {
+                    right_is_found = true;
+                    break;
+                }
+            }
+            if (right_is_found == false) {
+                LOG_WARN("Table name %s appears in where but not in from", condition.right_attr.relation_name);
+                return RC::SCHEMA_TABLE_NOT_EXIST;
+            }
+        }
     }
-    else if (rel_num > 1)
-    {
-      if (condition.left_is_attr == 1)
-      {
-        // LOG_INFO("condition.left_attr.relation_name: %s, %s", condition.left_attr.relation_name, condition.left_attr.attribute_name);
-        // where中的表名必须出现，不存在*
-        if (nullptr == condition.left_attr.relation_name)
-        {
-          LOG_ERROR("nullptr == condition.left_attr.relation_name, Table name must appear.");
-          return RC::SCHEMA_TABLE_NOT_EXIST;
-        }
-        bool left_is_found = false;
-        for (int j = 0; j < rel_num; j++)
-        {
-          if (0 == strcmp(condition.left_attr.relation_name, selects.relations[j]))
-          {
-            left_is_found = true;
-            break;
-          }
-        }
-        if (left_is_found == false)
-        {
-          LOG_WARN("Table name %s appears in where but not in from", condition.left_attr.relation_name);
-          return RC::SCHEMA_TABLE_NOT_EXIST;
-        }
-      }
-
-      if (condition.right_is_attr == 1)
-      {
-        if (nullptr == condition.right_attr.relation_name)
-        {
-          LOG_ERROR("nullptr == condition.right_attr.relation_name, Table name must appear.");
-          return RC::SCHEMA_TABLE_NOT_EXIST;
-        }
-        bool right_is_found = false;
-        for (int j = 0; j < rel_num; j++)
-        {
-          if (0 == strcmp(condition.right_attr.relation_name, selects.relations[j]))
-          {
-            right_is_found = true;
-            break;
-          }
-        }
-        if (right_is_found == false)
-        {
-          LOG_WARN("Table name %s appears in where but not in from", condition.right_attr.relation_name);
-          return RC::SCHEMA_TABLE_NOT_EXIST;
-        }
-      }
     }
-  }
-  return RC::SUCCESS;
+    return RC::SUCCESS;
 }
+
 
 // 这里没有对输入的某些信息做合法性校验，比如查询的列名、where条件中的列名等，没有做必要的合法性校验
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
@@ -1184,7 +1157,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   for (size_t i = 0; i < selects.condition_num; i++)
   {
     const Condition &condition = selects.conditions[i];
-
+    
     // 这里其实已经做了下推，即先在单张表上进行了过滤
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
@@ -1218,19 +1191,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
             return rc;
           }
         }
-        if (0 == strcmp(condition.right_attr.relation_name, table_name))
-        {
-          RC rc = schema_add_field(table, condition.right_attr.attribute_name, schema);
-          if (rc != RC::SUCCESS)
-          {
-            return rc;
-          }
-        }
-      }
-      // 多表时不考虑condition_filter
-      // schema.clear();
-      // TupleSchema::from_table(table, schema);
-      // first = false;
     }
 
   } // for
