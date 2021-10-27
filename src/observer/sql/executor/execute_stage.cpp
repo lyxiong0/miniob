@@ -1060,10 +1060,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
                 }                
             }
         }
-        // 多表时不考虑condition_filter
-        // schema.clear();
-        // TupleSchema::from_table(table, schema);
-        // first = false;
     }
 
   } // for
