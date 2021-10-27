@@ -433,45 +433,77 @@ RC check_table_name(const Selects &selects, const char* db)
                 }
             }
     } else if (rel_num > 1) {
-        if (condition.left_is_attr == 1) {
-            // LOG_INFO("condition.left_attr.relation_name: %s, %s", condition.left_attr.relation_name, condition.left_attr.attribute_name);
-            // where中的表名必须出现，不存在*
-            if (nullptr == condition.left_attr.relation_name) {
-                LOG_ERROR("Table name must appear.");
-                return RC::SCHEMA_TABLE_NOT_EXIST;
-            }
-            bool left_is_found = false;
-            for (int j = 0; j < rel_num; j++) {
-                if (0 == strcmp(condition.left_attr.relation_name, selects.relations[j])) {
-                    left_is_found = true;
-                    break;
+            if (condition.left_is_attr == 1) {
+                // 检查列是否在
+                bool left_col_found = false;
+                for (int i = 0; i < selects.relation_num; i++){
+                    Table *table = DefaultHandler::get_default().find_table(db, selects.relations[i]);
+                    const TableMeta &table_meta = table->table_meta();
+                    const FieldMeta *field = table_meta.field(condition.left_attr.attribute_name);
+                    if (nullptr != field) {
+                        left_col_found = true;
+                        break;
+                    }
+                }
+                if (left_col_found == false) {
+                    LOG_ERROR("The column does not exist in table %s.", selects.relations[i]);
+                    return RC::SCHEMA_TABLE_NOT_EXIST;   
+                }
+                // LOG_INFO("condition.left_attr.relation_name: %s, %s", condition.left_attr.relation_name, condition.left_attr.attribute_name);
+                // where中的表名必须出现，不存在*
+                if (nullptr == condition.left_attr.relation_name) {
+                    LOG_ERROR("Table name must appear.");
+                    return RC::SCHEMA_TABLE_NOT_EXIST;
+                }
+                bool left_is_found = false;
+                for (int j = 0; j < rel_num; j++) {
+                    if (0 == strcmp(condition.left_attr.relation_name, selects.relations[j])) {
+                        left_is_found = true;
+                        break;
+                    }
+                }
+                if (left_is_found == false) {
+                    LOG_WARN("Table name %s appears in where but not in from", condition.left_attr.relation_name);
+                    return RC::SCHEMA_TABLE_NOT_EXIST;
                 }
             }
-            if (left_is_found == false) {
-                LOG_WARN("Table name %s appears in where but not in from", condition.left_attr.relation_name);
-                return RC::SCHEMA_TABLE_NOT_EXIST;
+        
+            if (condition.right_is_attr == 1) {
+                // 检查列是否在
+                bool right_col_found = false;
+                for (int i = 0; i < selects.relation_num; i++){
+                    Table *table = DefaultHandler::get_default().find_table(db, selects.relations[i]);
+                    const TableMeta &table_meta = table->table_meta();
+                    const FieldMeta *field = table_meta.field(condition.right_attr.attribute_name);
+                    if (nullptr != field) {
+                        right_col_found = true;
+                        break;
+                    }
+                }
+                if (right_col_found == false) {
+                    LOG_ERROR("The column does not exist in table %s.", selects.relations[i]);
+                    return RC::SCHEMA_TABLE_NOT_EXIST;   
+                }
+                // where中的表名必须出现，不存在*
+                if (nullptr == condition.right_attr.relation_name) {
+                    LOG_ERROR("Table name must appear.");
+                    return RC::SCHEMA_TABLE_NOT_EXIST;
+                }
+                bool right_is_found = false;
+                for (int j = 0; j < rel_num; j++) {
+                    if (0 == strcmp(condition.right_attr.relation_name, selects.relations[j])) {
+                        right_is_found = true;
+                        break;
+                    }
+                }
+                if (right_is_found == false) {
+                    LOG_WARN("Table name %s appears in where but not in from", condition.right_attr.relation_name);
+                    return RC::SCHEMA_TABLE_NOT_EXIST;
+                }
             }
         }
+    }
     
-        if (condition.right_is_attr == 1) {
-            if ((rel_num > 1) && ( nullptr == condition.right_attr.relation_name)) {
-                LOG_ERROR("Table name must appear.");
-                return RC::SCHEMA_TABLE_NOT_EXIST;
-            }
-            bool right_is_found = false;
-            for (int j = 0; j < rel_num; j++) {
-                if (0 == strcmp(condition.right_attr.relation_name, selects.relations[j])) {
-                    right_is_found = true;
-                    break;
-                }
-            }
-            if (right_is_found == false) {
-                LOG_WARN("Table name %s appears in where but not in from", condition.right_attr.relation_name);
-                return RC::SCHEMA_TABLE_NOT_EXIST;
-            }
-        }
-    }
-    }
     return RC::SUCCESS;
 }
 
@@ -1080,10 +1112,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     if (schema.empty()) {
         TupleSchema::from_table(table, schema);
     }
-
-    // LOG_INFO("condition_filters count: %d", condition_filters.size());
-    // LOG_INFO("schema of SelectExecNode: ");
-    // schema.print(std::cout);
 
     return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
 }

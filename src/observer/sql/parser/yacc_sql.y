@@ -407,8 +407,8 @@ update:			/*  update 语句的语法解析树*/
 		}
     ;
 select:				/*  select 语句的语法解析树*/
-    SELECT select_attr FROM ID rel_list where order_by SEMICOLON
-	{
+    SELECT select_attr FROM ID rel_list join_list where order_by SEMICOLON
+	    {
 			CONTEXT->ssql->flag=SCF_SELECT;//"select";
 
 			// CONTEXT->ssql->sstr.selection.relations[CONTEXT->from_length++]=$4;
@@ -424,7 +424,7 @@ select:				/*  select 语句的语法解析树*/
 			CONTEXT->from_length=0;
 			CONTEXT->select_length=0;
 			CONTEXT->value_length = 0;
-	}
+	    }
 	;
 select_attr:
     STAR {  // select *
@@ -475,6 +475,14 @@ attr_list:
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].relation_name=$2;
   	  }
   	;
+
+join_list:
+    /* empty */
+    | INNER JOIN ID ON condition condition_list{
+        selects_append_relation(&CONTEXT->ssql->sstr.selection, $3);
+    }
+    ;
+
 window_function:
 	COUNT LBRACE opt_star RBRACE 
 	{	// 只有COUNT允许COUNT(*)
