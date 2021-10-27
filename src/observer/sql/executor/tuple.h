@@ -19,6 +19,8 @@ See the Mulan PSL v2 for more details. */
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <algorithm>
+#include <iostream>
 
 #include "sql/parser/parse.h"
 #include "sql/executor/value.h"
@@ -52,6 +54,26 @@ public:
   void add(int value);
   void add(float value);
   void add(const char *s, int len);
+
+    // 以下两个函数是成对出现的
+    void merge(const Tuple& other)
+    {
+        values_.insert(values_.end(), other.values().begin(), other.values().end());
+    }
+
+    void remove(const Tuple& other)
+    {
+        auto iter = std::find(values_.begin(), values_.end(), other.get_pointer(0));
+        values_.erase(iter, values_.end());
+    }
+
+    void print(std::ostream& os) const
+    {
+        for (const auto& each : values_) {
+            each->to_string(os);
+        }
+        os << std::endl;
+    }
 
   const std::vector<std::shared_ptr<TupleValue>> &values() const
   {
@@ -141,7 +163,8 @@ public:
   }
   
   void print(std::ostream &os, bool isMultiTable=false) const;
-
+  
+    bool empty() const { return fields_.empty(); }
 public:
   static void from_table(const Table *table, TupleSchema &schema);
 
@@ -178,9 +201,6 @@ public:
 
   void swap_tuple(int i, int j)
   {
-    // Tuple tmp = std::move(tuples_[i]);
-    // tuples_[i] = std::move(tuples_[j]);
-    // tuples_[j] = std::move(tmp);
     std::swap(tuples_[i], tuples_[j]);
   }
 
