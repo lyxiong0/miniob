@@ -288,10 +288,10 @@ void TupleRecordConverter::add_record(const char *record)
     assert(field_meta != nullptr);
     // 不管什么类型都有可能插入null，所以先判断是不是null
     const char *s = record + field_meta->offset(); 
-    int len = strlen(s) < 4 ? strlen(s): 4;
 
-    if (strncmp(s, "Eu83", len) == 0)
+    if (strlen(s) == 4 && strncmp(s, "Eu83", 4) == 0)
     {
+      LOG_INFO("insert null");
       tuple.add("Eu83", 4);
     }
     else
@@ -307,6 +307,7 @@ void TupleRecordConverter::add_record(const char *record)
       case FLOATS:
       {
         float value = *(float *)(record + field_meta->offset());
+    std::cout << "s = " << value << std::endl;
         tuple.add(value);
         // 不考虑用int给float赋值
         // float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));

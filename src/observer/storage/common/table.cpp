@@ -378,7 +378,6 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
 
     if (value.type == AttrType::NULLS)
     {
-      LOG_INFO("make nulls");
       const char *v = "Eu83";
       memcpy(record + field->offset(), v, 4);
     }
