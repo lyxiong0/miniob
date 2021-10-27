@@ -237,7 +237,7 @@ int check_date_data_convert(const char *s,int &t){
                       int left_is_attr, RelAttr *left_attr, Value *left_value,
                       int right_is_attr, RelAttr *right_attr, Value *right_value)
   {
-    LOG_INFO("condition_init function starts and right_value.type=%d",right_value->type);
+    // LOG_INFO("condition_init function starts and right_value.type=%d",right_value->type);
     condition->comp = comp;
     condition->is_valid=true;
     condition->left_is_attr = left_is_attr;
