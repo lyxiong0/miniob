@@ -42,7 +42,7 @@ DefaultConditionFilter::~DefaultConditionFilter()
 
 RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op, AttrType another_attr_type)
 {
-  if (attr_type < CHARS || attr_type > NULLS)
+  if (attr_type < CHARS || attr_type > DATES)
   {
     LOG_ERROR("Invalid condition with unsupported attribute type: %d", attr_type);
     return RC::INVALID_ARGUMENT;
@@ -65,7 +65,7 @@ RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrT
 
 RC DefaultConditionFilter::init(Table &table, const Condition &condition)
 {
-  // LOG_INFO("condition init 开始");
+  LOG_INFO("condition init 开始");
   const TableMeta &table_meta = table.table_meta();
   ConDesc left;
   ConDesc right;
@@ -152,8 +152,44 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   if (type_left != type_right && type_left != AttrType::NULLS && type_right != AttrType::NULLS)
   {
     // TODO: 不知道咋实现int和float比较
-    LOG_INFO("RC::SCHEMA_FIELD_TYPE_MISMATCH");
+    // if (type_left == AttrType::INTS && type_right == AttrType::FLOATS && condition.right_is_attr == 0)
+    // {
+    //   支持(int)age > 1.1
+    //   type_right = AttrType::INTS;
+    //   float ori_v = *(float *)condition.right_value.data;
+    //   int v = (int)ori_v;
+    //   if (v * 1.0 != ori_v) {
+    //     ++v;
+    //     if (cmp_op == CompOp::GREAT_THAN) {
+    //       // >1.1 -> >= 2
+    //       cmp_op = CompOp::GREAT_THAN;
+    //     } else if (cmp_op == CompOp::LESS_EQUAL) {
+    //       // <=1.1 -> <2
+    //       cmp_op = CompOp::LESS_THAN;
+    //     }
+    //     //其余情况：>=1.1 -> >= 2
+    //     // <1.1 -> <2
+    //   }
+    //   delete right.value;
+    //   right.value = malloc(sizeof(v));
+    //   memcpy(right.value, &v, sizeof(v));
+    // }
+    // else if (type_left == AttrType::FLOATS && type_right == AttrType::INTS && condition.right_is_attr == 0)
+    // {
+    //   // 支持(float)score > 60;
+    //   type_right = AttrType::FLOATS;
+    //   int ori_v = *(int *)condition.right_value.data;
+    //   float v = ori_v * 1.0;
+    //   LOG_INFO("v = %f", v);
+    //   delete right.value;
+    //   right.value = malloc(sizeof(v));
+    //   memcpy(right.value, &v, sizeof(v));
+    //   LOG_INFO("right.value = %f", *(float *)right.value);
+    // }
+    // else
+    // {
     return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+    // }
   }
 
   return init(left, right, type_left, condition.comp, type_right);
@@ -251,33 +287,32 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     // cmp_result = (int)(left - right);
   }
   break;
-  case NULLS:
-  {
-    // 任何值与null值比较都返回false
-    cmp_result = -1;
-  }
-  break;
   default:
   {
   }
   }
 
+  bool is_null = false;
+  if (!left_is_value)
+  {
+    memcpy(&is_null, rec.data + left_.null_field_index, 1);
+    // LOG_INFO("left_.null_field_index = %d, is_null = %d", left_.null_field_index, is_null);
+  }
+
   switch (comp_op_)
   {
   case EQUAL_TO:
-  {
-    return 0 == cmp_result;
-  }
+    return 0 == cmp_result && !is_null;
   case LESS_EQUAL:
-    return cmp_result <= 0;
+    return cmp_result <= 0 && !is_null;
   case NOT_EQUAL:
-    return cmp_result != 0;
+    return cmp_result != 0 && !is_null;
   case LESS_THAN:
-    return cmp_result < 0;
+    return cmp_result < 0 && !is_null;
   case GREAT_EQUAL:
-    return cmp_result >= 0;
+    return cmp_result >= 0 && !is_null;
   case GREAT_THAN:
-    return cmp_result > 0;
+    return cmp_result > 0 && !is_null;
   case IS_NULL:
   {
     if (left_is_value)
@@ -291,9 +326,6 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     }
     else
     {
-      bool is_null = false;
-      memcpy(&is_null, rec.data + left_.null_field_index, 1);
-      // LOG_INFO("left_.null_field_index = %d, is_null = %d", left_.null_field_index, is_null);
       return is_null;
     }
   }
@@ -311,9 +343,6 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     }
     else
     {
-      bool is_null = false;
-      memcpy(&is_null, rec.data + left_.null_field_index, 1);
-      // LOG_INFO("left_.null_field_index = %d, is_null = %d", left_.null_field_index, is_null);
       return !is_null;
     }
   }

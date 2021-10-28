@@ -120,8 +120,9 @@ ParserContext *get_context(yyscan_t scanner)
         LE
         GE
         NE
-		IS
-
+        INNER
+        JOIN
+        
 %union {
   struct _Attr *attr;
   struct _Condition *condition1;
@@ -413,8 +414,8 @@ update:			/*  update 语句的语法解析树*/
 		}
     ;
 select:				/*  select 语句的语法解析树*/
-    SELECT select_attr FROM ID rel_list where order_by SEMICOLON
-	{
+    SELECT select_attr FROM ID rel_list join_list where order_by SEMICOLON
+	    {
 			CONTEXT->ssql->flag=SCF_SELECT;//"select";
 
 			// CONTEXT->ssql->sstr.selection.relations[CONTEXT->from_length++]=$4;
@@ -430,7 +431,7 @@ select:				/*  select 语句的语法解析树*/
 			CONTEXT->from_length=0;
 			CONTEXT->select_length=0;
 			CONTEXT->value_length = 0;
-	}
+	    }
 	;
 select_attr:
     STAR {  // select *
@@ -459,11 +460,6 @@ select_attr:
     ;
 attr_list:
     /* empty */
-	| COMMA STAR {  // select *
-			RelAttr attr;
-			relation_attr_init(&attr, NULL, "*", NULL, 0);
-			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
-		}
     | COMMA ID attr_list { // .., id
 			RelAttr attr;
 			relation_attr_init(&attr, NULL, $2, NULL, 0);
@@ -486,6 +482,14 @@ attr_list:
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].relation_name=$2;
   	  }
   	;
+
+join_list:
+    /* empty */
+    | INNER JOIN ID on join_list{
+        selects_append_relation(&CONTEXT->ssql->sstr.selection, $3);
+    }
+    ;
+
 window_function:
 	COUNT LBRACE opt_star RBRACE 
 	{	// 只有COUNT允许COUNT(*)
@@ -552,6 +556,14 @@ where:
 				// CONTEXT->conditions[CONTEXT->condition_length++]=*$2;
 			}
     ;
+
+on:
+    /* empty */ 
+    | ON condition condition_list {	
+				// CONTEXT->conditions[CONTEXT->condition_length++]=*$2;
+			}
+    ;
+
 condition_list:
     /* empty */
     | AND condition condition_list {
@@ -568,7 +580,6 @@ condition:
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 			Condition condition;
-			//    x   x   left_is_attr  left_attr  left_value right_is_attr  right_attr  right_value  
 			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 			// $$ = ( Condition *)malloc(sizeof( Condition));
@@ -629,7 +640,6 @@ condition:
 			relation_attr_init(&right_attr, NULL, $3, NULL, 0);
 
 			Condition condition;
-			//    x   x   left_is_attr  left_attr  left_value right_is_attr  right_attr  right_value  
 			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 
@@ -793,7 +803,6 @@ condition:
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
     ;
-
 
 comOp:
   	  EQ { CONTEXT->comp = EQUAL_TO; }

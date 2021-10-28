@@ -190,6 +190,7 @@ int CompareKey(const char *pdata, const char *pkey, AttrType attr_type, int attr
   {
     i1 = *(int *)pdata;
     i2 = *(int *)pkey;
+    LOG_INFO("i1 = %d, i2 = %d", i1, i2);
     if (i1 > i2)
       return 1;
     if (i1 < i2)
@@ -221,6 +222,7 @@ int CompareKey(const char *pdata, const char *pkey, AttrType attr_type, int attr
   {
     s1 = pdata;
     s2 = pkey;
+    LOG_INFO("s1 = %s, s2 = %s", s1, s2);
     return strncmp(s1, s2, attr_length);
   }
   break;
@@ -1894,6 +1896,7 @@ RC BplusTreeHandler::find_first_index_satisfied(CompOp compop, const char *key, 
           break;
         }
 
+
         if (tmp >= 0) {
           rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
           if (rc != SUCCESS)
@@ -1906,7 +1909,6 @@ RC BplusTreeHandler::find_first_index_satisfied(CompOp compop, const char *key, 
           {
             return rc;
           }
-          return SUCCESS;
         }
       }
 
