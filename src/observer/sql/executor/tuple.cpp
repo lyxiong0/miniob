@@ -52,19 +52,19 @@ void Tuple::add(const std::shared_ptr<TupleValue> &other)
 {
   values_.emplace_back(other);
 }
-void Tuple::add(int value)
+void Tuple::add(int value, bool is_null)
 {
-  add(new IntValue(value));
+  add(new IntValue(value, is_null));
 }
 
-void Tuple::add(float value)
+void Tuple::add(float value, bool is_null)
 {
-  add(new FloatValue(value));
+  add(new FloatValue(value, is_null));
 }
 
-void Tuple::add(const char *s, int len)
+void Tuple::add(const char *s, int len, bool is_null)
 {
-  add(new StringValue(s, len));
+  add(new StringValue(s, len, is_null));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -158,7 +158,8 @@ void TupleSchema::print(std::ostream &os, bool isMultiTable) const
     os << iter->field_name() << " | ";
   }
 
-  if (table_names.size() > 1 || isMultiTable == true) {
+  if (table_names.size() > 1 || isMultiTable == true)
+  {
     os << fields_.back().table_name() << ".";
   }
   os << fields_.back().field_name() << std::endl;
@@ -197,8 +198,10 @@ void TupleSet::clear()
   schema_.clear();
 }
 
-void TupleSet::print(std::ostream &os, bool isMultiTable) const {
-  if (schema_.fields().empty()) {
+void TupleSet::print(std::ostream &os, bool isMultiTable) const
+{
+  if (schema_.fields().empty())
+  {
     LOG_WARN("Got empty schema");
     return;
   }
@@ -279,15 +282,24 @@ void TupleRecordConverter::add_record(const char *record)
   const TupleSchema &schema = tuple_set_.schema();
   Tuple tuple;
   const TableMeta &table_meta = table_->table_meta();
+
+  auto last_field = table_meta.field(table_meta.field_num() - 1);
+  int null_field_index = last_field->offset() + last_field->len();
+
   for (const TupleField &field : schema.fields())
   {
-    const FieldMeta *field_meta = table_meta.field(field.field_name());
-    assert(field_meta != nullptr);
+    int i = table_meta.find_field_index_by_name(field.field_name());
+    assert(i != -1);
+    const FieldMeta *field_meta = table_meta.field(i);
     // 不管什么类型都有可能插入null
-    const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
-    if (strcmp(s, "null") == 0)
+    bool is_null = false;
+    // -1是因为field[0]为_trx
+    memcpy(&is_null, record + null_field_index + i - 1, 1);
+    if (is_null)
     {
-      tuple.add(s, strlen(s));
+      // 插入null
+      const char *s = "NULL";
+      tuple.add(s, 4, true);
     }
     else
     {
@@ -295,36 +307,14 @@ void TupleRecordConverter::add_record(const char *record)
       {
       case INTS:
       {
-        const char *s = record + field_meta->offset();
-        if (field_meta->nullable() && s[0] == 'n')
-        {
-          // 出现null
-          int len = field_meta->len() < strlen(s) ? field_meta->len() : strlen(s);
-          // tuple.add(s, strlen(s));
-          tuple.add(s, len);
-        }
-        else
-        {
-          int value = *(int *)(record + field_meta->offset());
-          tuple.add(value);
-        }
+        int value = *(int *)(record + field_meta->offset());
+        tuple.add(value, false);
       }
       break;
       case FLOATS:
       {
-        const char *s = record + field_meta->offset();
-        if (field_meta->nullable() && s[0] == 'n')
-        {
-          // 出现null
-          int len = field_meta->len() < strlen(s) ? field_meta->len() : strlen(s);
-          // tuple.add(s, strlen(s));
-          tuple.add(s, len);
-        }
-        else
-        {
-          float value = *(float *)(record + field_meta->offset());
-          tuple.add(value);
-        }
+        float value = *(float *)(record + field_meta->offset());
+        tuple.add(value, false);
         // 不考虑用int给float赋值
         // float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));
         // if (value > -1e-6 && value < 1e-6)
@@ -344,14 +334,14 @@ void TupleRecordConverter::add_record(const char *record)
         const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
         int len = field_meta->len() < strlen(s) ? field_meta->len() : strlen(s);
         // tuple.add(s, strlen(s));
-        tuple.add(s, len);
+        tuple.add(s, len, false);
       }
       break;
       case DATES:
       {
         int value = *(int *)(record + field_meta->offset());
-        const char *s = num2date(value).data();
-        tuple.add(s, strlen(s));
+        const char *s = num2date(value).c_str();
+        tuple.add(s, 10, false);
       }
       break;
       default:

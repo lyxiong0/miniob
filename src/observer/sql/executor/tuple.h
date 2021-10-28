@@ -51,9 +51,9 @@ public:
 
   void add(TupleValue *value);
   void add(const std::shared_ptr<TupleValue> &other);
-  void add(int value);
-  void add(float value);
-  void add(const char *s, int len);
+  void add(int value, bool is_null = false);
+  void add(float value, bool is_null = false);
+  void add(const char *s, int len, bool is_null = false);
 
     // 以下两个函数是成对出现的
     void merge(const Tuple& other)

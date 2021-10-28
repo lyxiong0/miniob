@@ -36,7 +36,7 @@ public:
     table_names_.emplace_back(table_name);
   }
 
-  std::string to_string(int i)
+  std::string to_string(int i, int rel_num)
   {
     FuncType type = attr_function_type_[i].second;
     std::string attr = attr_function_type_[i].first;
@@ -73,7 +73,8 @@ public:
       break;
     }
 
-    if (table_names_[i] != nullptr) {
+    if (table_names_[i] != nullptr && rel_num > 1) {
+      // 修改：只在多表的时候显示表名
       s = s + std::string(table_names_[i]) + std::string(".");
     }
 

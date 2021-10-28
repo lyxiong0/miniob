@@ -52,6 +52,7 @@ public:
   const FieldMeta * find_field_by_offset(int offset) const;
   int field_num() const;
   int sys_field_num() const;
+  int find_field_index_by_name(const char *name) const;
 
   const IndexMeta * index(const char *name) const;
   const IndexMeta * find_index_by_field(const char *field) const;

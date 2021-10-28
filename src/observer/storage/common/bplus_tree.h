@@ -132,7 +132,7 @@ public:
    * compOp和*value指定比较符和比较值，indexScan为初始化后的索引扫描结构指针
    * 没有带两个边界的范围扫描
    */
-  RC open(CompOp comp_op, const char *value);
+  RC open(CompOp comp_op, const char *value, int null_index = -1);
 
   /**
    * 用于继续索引扫描，获得下一个满足条件的索引项，
@@ -167,6 +167,7 @@ private:
   int next_index_of_page_handle_ = -1;          // 当前被扫描页面的操作索引
   int index_in_node_ = -1;                      // 当前B+ Tree页面上的key index
   PageNum next_page_num_ = -1;                  // 下一个将要被读入的页面号
+  int null_index_ = -1;
 };
 
 #endif //__OBSERVER_STORAGE_COMMON_INDEX_MANAGER_H_

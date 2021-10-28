@@ -39,7 +39,7 @@ static RC schema_add_field(Table *table, const char *field_name, TupleSchema &sc
 
 RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
 
-RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results);
+RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results, int rel_num);
 
 FuncType judge_function_type(char *window_function_name);
 
@@ -578,7 +578,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       }
     }
 
-    rc = do_aggregation(&result, attr_function, results);
+    rc = do_aggregation(&result, attr_function, results, selects.relation_num);
 
     if (rc != RC::SUCCESS)
     {
@@ -743,7 +743,7 @@ void quick_sort(TupleSet *tuple_set, int l, int r, OrderInfo *order_info)
  * @param results 表的聚合数结果
  * @return RC
  */
-RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results)
+RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results, int rel_num)
 {
   TupleSchema tmp_scheme;
   Tuple tmp_tuple;
@@ -756,7 +756,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     const char *attr_name = attr_function->get_attr_name(j);
     auto func_type = attr_function->get_function_type(j);
     // 获取 func_type( 字符串
-    std::string add_scheme_name = attr_function->to_string(j);
+    std::string add_scheme_name = attr_function->to_string(j, rel_num);
 
     if (strcmp(attr_name, "*") == 0)
     {
@@ -768,6 +768,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
 
     int index = -1;
     AttrType type = AttrType::UNDEFINED;
+
     if (table_name != nullptr)
     {
       index = tuple_set->get_schema().index_of_field(table_name, attr_name);
@@ -806,22 +807,19 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     {
       // 增加Scheme
       add_type = AttrType::INTS;
-      tmp_tuple.add((int)tuple_set->tuples().size());
+      // tmp_tuple.add((int)tuple_set->tuples().size());
 
-      // TODO: 考虑NULL值
-      // LOG_INFO("name = %s, nullable = %d", tuple_set->get_schema().field(index).field_name(), tuple_set->get_schema().field(index).is_nullable());
-      // int ans = 0;
+      int ans = 0;
 
-      // for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
-      // {
-      //   std::shared_ptr<StringValue> value = std::dynamic_pointer_cast<StringValue>(tuple_set->get(tuple_i).get_pointer(index));
-      //   LOG_ERROR("value->GetValue()[0] = %c", value->GetValue()[0]);
-      //   if (value->GetValue()[0] != 'n')
-      //   {
-      //     ++ans;
-      //   }
-      // }
-      // tmp_tuple.add(ans);
+      for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
+      {
+        std::shared_ptr<TupleValue> value = tuple_set->get(tuple_i).get_pointer(index);
+        if (!value->is_null())
+        {
+          ++ans;
+        }
+      }
+      tmp_tuple.add(ans);
       break;
     }
     case FuncType::AVG:
@@ -832,36 +830,69 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         rc = RC::GENERIC_ERROR;
         break;
       }
-      // 增加Scheme
-      // tmp_scheme.add_if_not_exists(AttrType::FLOATS, add_scheme_name.c_str(), add_attr_name.c_str());
       add_type = AttrType::FLOATS;
 
       int size = (int)tuple_set->tuples().size();
       float ans = 0;
+      int cnt = 0;
+
       if (type == AttrType::FLOATS)
       {
         for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
         {
-          std::shared_ptr<FloatValue> value = std::dynamic_pointer_cast<FloatValue>(tuple_set->get(tuple_i).get_pointer(index));
-          ans += value->GetValue();
+          std::shared_ptr<TupleValue> val = tuple_set->get(tuple_i).get_pointer(index);
+          if (val->is_null()) {
+            continue;
+          }
+          std::shared_ptr<FloatValue> value = std::dynamic_pointer_cast<FloatValue>(val);
+          ans += value->get_value();
+          ++cnt;
         }
       }
       else if (type == AttrType::INTS)
       {
         for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
         {
-          std::shared_ptr<IntValue> value = std::dynamic_pointer_cast<IntValue>(tuple_set->get(tuple_i).get_pointer(index));
-          ans += value->GetValue();
+          std::shared_ptr<TupleValue> val = tuple_set->get(tuple_i).get_pointer(index);
+          if (val->is_null()) {
+            continue;
+          }
+          std::shared_ptr<IntValue> value = std::dynamic_pointer_cast<IntValue>(val);
+          ans += value->get_value();
+          ++cnt;
         }
       }
 
-      tmp_tuple.add(ans / size);
+      if (size = 0 || cnt == 0) {
+        // TODO: 显示什么，NULL会影响吗
+        add_type = AttrType::CHARS;
+        tmp_tuple.add("NULL", 4);
+        break;
+      }
+
+      tmp_tuple.add(ans / cnt);
+
       break;
     }
     case FuncType::MAX:
     {
-      auto ans = tuple_set->get(0).get_pointer(index);
-      for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
+      int tuple_i = 0;
+      for (; tuple_i < tuple_set->size(); ++tuple_i) {
+        auto ans = tuple_set->get(tuple_i).get_pointer(index);
+        if (!ans->is_null()) {
+          break;
+        }
+      }
+
+      if (tuple_i == tuple_set->size()) {
+        // TODO: 显示什么，NULL会影响吗
+        add_type = AttrType::CHARS;
+        tmp_tuple.add("NULL", 4);
+        break;
+      }
+
+      auto ans = tuple_set->get(tuple_i).get_pointer(index);
+      for (; tuple_i < tuple_set->size(); ++tuple_i)
       {
 
         auto value = tuple_set->get(tuple_i).get_pointer(index);
@@ -872,30 +903,43 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         }
       }
 
-      // 增加Scheme
-      // tmp_scheme.add_if_not_exists(type, add_scheme_name.c_str(), add_attr_name.c_str());
       add_type = type;
 
       if (type == AttrType::FLOATS)
       {
-        tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->GetValue());
+        tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->get_value());
       }
       else if (type == AttrType::INTS)
       {
-        tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
+        tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->get_value());
       }
       else // AttrType::CHARS和DATES一样计算
       {
-        tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
-                      std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
+        tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->get_value(),
+                      std::dynamic_pointer_cast<StringValue>(ans)->get_len());
       }
 
       break;
     }
     case FuncType::MIN:
     {
-      auto ans = tuple_set->get(0).get_pointer(index);
-      for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
+      int tuple_i = 0;
+      for (; tuple_i < tuple_set->size(); ++tuple_i) {
+        auto ans = tuple_set->get(tuple_i).get_pointer(index);
+        if (!ans->is_null()) {
+          break;
+        }
+      }
+
+      if (tuple_i == tuple_set->size()) {
+        // TODO: 显示什么，NULL会影响吗
+        add_type = AttrType::CHARS;
+        tmp_tuple.add("NULL", 4);
+        break;
+      }
+
+      auto ans = tuple_set->get(tuple_i).get_pointer(index);
+      for (; tuple_i < tuple_set->size(); ++tuple_i)
       {
 
         auto value = tuple_set->get(tuple_i).get_pointer(index);
@@ -907,22 +951,20 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         }
       }
 
-      // 增加Scheme
-      // tmp_scheme.add_if_not_exists(type, add_scheme_name.c_str(), add_attr_name.c_str());
       add_type = type;
 
       if (type == AttrType::FLOATS)
       {
-        tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->GetValue());
+        tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->get_value());
       }
       else if (type == AttrType::INTS)
       {
-        tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
+        tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->get_value());
       }
       else // AttrType::CHARS和DATES一样计算
       {
-        tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
-                      std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
+        tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->get_value(),
+                      std::dynamic_pointer_cast<StringValue>(ans)->get_len());
       }
 
       break;
