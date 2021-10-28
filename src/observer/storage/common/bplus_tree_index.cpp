@@ -20,10 +20,9 @@ BplusTreeIndex::~BplusTreeIndex() noexcept
   close();
 }
 
-RC BplusTreeIndex::create(const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta)
-{
-  if (inited_)
-  {
+RC BplusTreeIndex::create(const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta) {
+  if (inited_) {
+    LOG_INFO("BplusTreeIndex::create - RC::RECORD_OPENNED");
     return RC::RECORD_OPENNED;
   }
 

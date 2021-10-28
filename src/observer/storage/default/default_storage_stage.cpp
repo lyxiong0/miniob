@@ -248,12 +248,14 @@ void DefaultStorageStage::handle_event(StageEvent *event)
     snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
   }
   break;
+  // case SCF_DROP_INDEX: {
+  //   // TODO: 实现
+  // }
+  // break;
   case SCF_DROP_TABLE:
   { // drop table
     const DropTable &drop_table = sql->sstr.drop_table;
     int deleted_count = 0;
-    // TODO: 目前清空整个表，实际上应该只要删除所有索引
-    // rc = handler_->delete_record(current_trx, current_db, drop_table.relation_name, 0, nullptr, &deleted_count);
     rc = handler_->drop_table(current_db, drop_table.relation_name);
     snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
   }

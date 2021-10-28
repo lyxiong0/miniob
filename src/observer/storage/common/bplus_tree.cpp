@@ -923,7 +923,6 @@ RC BplusTreeHandler::insert_into_new_root(PageNum left_page, const char *pkey, P
 
 RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
 {
-
   RC rc;
   PageNum leaf_page;
   BPPageHandle page_handle;
@@ -1919,7 +1918,6 @@ RC BplusTreeHandler::find_first_index_satisfied(CompOp compop, const char *key, 
           {
             return rc;
           }
-          return SUCCESS;
         }
       }
 
@@ -2172,6 +2170,7 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid)
     }
 
     index_in_node_ = 0;
+    // WARNING: 如果什么都没筛选到，会返回no data
   }
   return RC::RECORD_NO_MORE_IDX_IN_MEM;
 }

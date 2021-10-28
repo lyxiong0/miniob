@@ -332,7 +332,6 @@ RC Table::is_legal(const Value &value, const FieldMeta *field)
   {
     // CHARS值需要判断长度
     char *s = (char *)value.data;
-    LOG_ERROR("s = %s, len = %d, field_len = %d", s, strlen(s), field->len());
     if (strlen(s) > field->len())
     {
       LOG_ERROR("待插入CHARS类型值过长");
@@ -645,17 +644,20 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   if (index_name == nullptr || common::is_blank(index_name) ||
       attribute_name == nullptr || common::is_blank(attribute_name))
   {
+    LOG_ERROR("create_index - INVALID_ARGUMENT");
     return RC::INVALID_ARGUMENT;
   }
   if (table_meta_.index(index_name) != nullptr ||
       table_meta_.find_index_by_field(attribute_name))
   {
+    LOG_ERROR("create_index - SCHEMA_INDEX_EXIST");
     return RC::SCHEMA_INDEX_EXIST;
   }
 
   const FieldMeta *field_meta = table_meta_.field(attribute_name);
   if (!field_meta)
   {
+    LOG_ERROR("create_index - SCHEMA_FIELD_MISSING");
     return RC::SCHEMA_FIELD_MISSING;
   }
 
@@ -663,6 +665,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   RC rc = new_index_meta.init(index_name, *field_meta);
   if (rc != RC::SUCCESS)
   {
+    LOG_ERROR("fail to init index meta");
     return rc;
   }
 

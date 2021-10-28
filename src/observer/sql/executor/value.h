@@ -18,7 +18,9 @@ See the Mulan PSL v2 for more details. */
 #include <string.h>
 
 #include <string>
+#include <algorithm>
 #include <ostream>
+#include <iostream>
 
 class TupleValue
 {
@@ -87,13 +89,15 @@ public:
       --s_end;
     }
 
-    if (ftos[s_end] == '.') {
+    if (ftos[s_end] == '.')
+    {
       ftos[s_end] = '\0';
-    } else {
+    }
+    else
+    {
       ftos[s_end + 1] = '\0';
     }
     
-
     os << ftos;
   }
 
@@ -123,6 +127,11 @@ public:
   
   bool is_null() const override {
     return is_null_;
+  }
+
+  bool is_null() const override
+  {
+    return false;
   }
 
 private:

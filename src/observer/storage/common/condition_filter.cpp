@@ -137,6 +137,10 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   }
 
   // 校验和转换
+  if (condition.comp == CompOp::IS_NULL || condition.comp == CompOp::IS_NOT_NULL)
+  {
+    return init(left, right, type_left, condition.comp, type_right);
+  }
   //  if (!field_type_compare_compatible_table[type_left][type_right]) {
   //    // 不能比较的两个字段， 要把信息传给客户端
   //    return RC::SCHEMA_FIELD_TYPE_MISMATCH;
@@ -245,6 +249,12 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     }
     // 原来这个写法有问题，差值在1以内都会判断为相等
     // cmp_result = (int)(left - right);
+  }
+  break;
+  case NULLS:
+  {
+    // 任何值与null值比较都返回false
+    cmp_result = -1;
   }
   break;
   default:

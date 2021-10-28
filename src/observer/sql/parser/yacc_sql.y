@@ -119,6 +119,7 @@ ParserContext *get_context(yyscan_t scanner)
         LE
         GE
         NE
+		IS
 
 %union {
   struct _Attr *attr;
@@ -452,6 +453,11 @@ select_attr:
     ;
 attr_list:
     /* empty */
+	| COMMA STAR {  // select *
+			RelAttr attr;
+			relation_attr_init(&attr, NULL, "*", NULL, 0);
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+		}
     | COMMA ID attr_list { // .., id
 			RelAttr attr;
 			relation_attr_init(&attr, NULL, $2, NULL, 0);
@@ -781,6 +787,7 @@ condition:
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
     ;
+
 
 comOp:
   	  EQ { CONTEXT->comp = EQUAL_TO; }
