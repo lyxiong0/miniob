@@ -478,7 +478,7 @@ attr_list:
 
 join_list:
     /* empty */
-    | INNER JOIN ID ON condition condition_list{
+    | INNER JOIN ID ON condition condition_list join_list{
         selects_append_relation(&CONTEXT->ssql->sstr.selection, $3);
     }
     ;

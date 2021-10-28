@@ -350,8 +350,8 @@ void TupleRecordConverter::add_record(const char *record)
       case DATES:
       {
         int value = *(int *)(record + field_meta->offset());
-        const char *s = num2date(value).data();
-        tuple.add(s, strlen(s));
+        const char *s = num2date(value).c_str();
+        tuple.add(s, 10);
       }
       break;
       default:
