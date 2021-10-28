@@ -281,7 +281,6 @@ RC Table::insert_record(Trx *trx, int value_num, const Value *values, Record **r
     return rc;
   }
 
-
   Record record;
   record.data = record_data;
   // record.valid = true;
@@ -333,7 +332,6 @@ RC Table::is_legal(const Value &value, const FieldMeta *field)
   {
     // CHARS值需要判断长度
     char *s = (char *)value.data;
-    LOG_ERROR("s = %s, len = %d, field_len = %d", s, strlen(s), field->len());
     if (strlen(s) > field->len())
     {
       LOG_ERROR("待插入CHARS类型值过长");
@@ -378,7 +376,15 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &value = values[i];
 
-    memcpy(record + field->offset(), value.data, field->len());
+    if (value.type == AttrType::NULLS)
+    {
+      const char *v = "Eu83";
+      memcpy(record + field->offset(), v, 4);
+    }
+    else
+    {
+      memcpy(record + field->offset(), value.data, field->len());
+    }
     // 用于char 乱码问题追踪测试   如果是char则存储中只会放入4字节内容
     // if(value.type==1){
     //   LOG_INFO("调用make record函数，将value值 %s 放进内存 record中结果为 %s",value.data,record+field->offset());
@@ -598,17 +604,20 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   if (index_name == nullptr || common::is_blank(index_name) ||
       attribute_name == nullptr || common::is_blank(attribute_name))
   {
+    LOG_ERROR("create_index - INVALID_ARGUMENT");
     return RC::INVALID_ARGUMENT;
   }
   if (table_meta_.index(index_name) != nullptr ||
       table_meta_.find_index_by_field(attribute_name))
   {
+    LOG_ERROR("create_index - SCHEMA_INDEX_EXIST");
     return RC::SCHEMA_INDEX_EXIST;
   }
 
   const FieldMeta *field_meta = table_meta_.field(attribute_name);
   if (!field_meta)
   {
+    LOG_ERROR("create_index - SCHEMA_FIELD_MISSING");
     return RC::SCHEMA_FIELD_MISSING;
   }
 
@@ -616,6 +625,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   RC rc = new_index_meta.init(index_name, *field_meta);
   if (rc != RC::SUCCESS)
   {
+    LOG_ERROR("fail to init index meta");
     return rc;
   }
 
@@ -740,26 +750,31 @@ RC Table::update_record(Trx *trx, const char *attribute_name, const Value *value
   {
     // 元数据检查：判断where中表名是否与要update的表名一致
     const char *rel_name = table_meta_.name();
-    for (int i = 0; i < condition_num; i++) {
+    for (int i = 0; i < condition_num; i++)
+    {
       const Condition &cond = conditions[i];
-      if (cond.left_is_attr == 1) {
+      if (cond.left_is_attr == 1)
+      {
         const char *cond_rel_name = cond.left_attr.relation_name;
-        if (cond_rel_name != nullptr && strcmp(cond_rel_name, rel_name) != 0) {
+        if (cond_rel_name != nullptr && strcmp(cond_rel_name, rel_name) != 0)
+        {
           LOG_ERROR("update的表名和where条件中不一致");
           return RC::SCHEMA_TABLE_NAME_ILLEGAL;
         }
       }
 
-      if (cond.right_is_attr == 1) {
+      if (cond.right_is_attr == 1)
+      {
         const char *cond_rel_name = cond.right_attr.relation_name;
-        if (cond_rel_name != nullptr && strcmp(cond_rel_name, rel_name) != 0) {
+        if (cond_rel_name != nullptr && strcmp(cond_rel_name, rel_name) != 0)
+        {
           LOG_ERROR("update的表名和where条件中不一致");
           return RC::SCHEMA_TABLE_NAME_ILLEGAL;
         }
       }
     }
 
-      CompositeConditionFilter condition_filter;
+    CompositeConditionFilter condition_filter;
     rc = condition_filter.init(*this, conditions, condition_num);
     if (rc != RC::SUCCESS)
     {

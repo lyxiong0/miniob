@@ -25,6 +25,7 @@ const static Json::StaticString FIELD_FIELD_NAME("field_name");
 
 RC IndexMeta::init(const char *name, const FieldMeta &field) {
   if (nullptr == name || common::is_blank(name)) {
+    LOG_ERROR("IndexMeta::init - RC::INVALID_ARGUMENT");
     return RC::INVALID_ARGUMENT;
   }
 

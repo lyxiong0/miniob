@@ -77,6 +77,7 @@ QUOTE            [\'\"]
 [Ii][Nn][Ff][Ii][Ll][Ee]                 RETURN_TOKEN(INFILE);
 [Nn][Uu][Ll][Ll][Aa][Bb][Ll][Ee]			RETURN_TOKEN(NULLABLE);
 [Nn][Oo][Tt]								RETURN_TOKEN(NOT);
+[Ii][Ss]									RETURN_TOKEN(IS);
 [Nn][Uu][Ll][Ll]							yylval->string=strdup(yytext); RETURN_TOKEN(NULL_T);
 [Cc][Oo][Uu][Nn][Tt]					yylval->string=strdup(yytext); RETURN_TOKEN(COUNT);
 [Aa][Vv][Gg]|[Mm][Aa][Xx]|[Mm][Ii][Nn]	yylval->string=strdup(yytext); RETURN_TOKEN(OTHER_FUNCTION_TYPE);
