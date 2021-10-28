@@ -421,11 +421,11 @@ RC check_table_name(const Selects &selects, const char* db)
     }
 
     // 检查where中的表名是否在from中
-    for (int i = 0; i < selects.condition_num; i++) {
+    for (size_t i = 0; i < selects.condition_num; i++) {
         const Condition &condition = selects.conditions[i];
         if (rel_num == 1) {
             // strcmp的参数如果为null会出现segmentation 错误
-            for (int i = 0; i < selects.relation_num; i++){
+            for (size_t i = 0; i < selects.relation_num; i++){
                 if (((condition.left_is_attr == 1) && (nullptr != condition.left_attr.relation_name) && (0 != strcmp(condition.left_attr.relation_name, selects.relations[i]))) ||
                     ((condition.right_is_attr == 1) && (nullptr != condition.right_attr.relation_name) && (0 != strcmp(condition.right_attr.relation_name, selects.relations[i])))) {
                     LOG_WARN("Table name in where but not in from");
@@ -436,7 +436,7 @@ RC check_table_name(const Selects &selects, const char* db)
             if (condition.left_is_attr == 1) {
                 // 检查列是否在
                 bool left_col_found = false;
-                for (int i = 0; i < selects.relation_num; i++){
+                for (size_t i = 0; i < selects.relation_num; i++){
                     Table *table = DefaultHandler::get_default().find_table(db, selects.relations[i]);
                     const TableMeta &table_meta = table->table_meta();
                     const FieldMeta *field = table_meta.field(condition.left_attr.attribute_name);
@@ -471,7 +471,7 @@ RC check_table_name(const Selects &selects, const char* db)
             if (condition.right_is_attr == 1) {
                 // 检查列是否在
                 bool right_col_found = false;
-                for (int i = 0; i < selects.relation_num; i++){
+                for (size_t i = 0; i < selects.relation_num; i++){
                     Table *table = DefaultHandler::get_default().find_table(db, selects.relations[i]);
                     const TableMeta &table_meta = table->table_meta();
                     const FieldMeta *field = table_meta.field(condition.right_attr.attribute_name);
