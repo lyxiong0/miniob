@@ -592,7 +592,7 @@ std::vector<const char *> Table::get_index_names()
   return res;
 }
 
-RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_name)
+RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_name, int is_unique)
 {
   // LOG_INFO("create_index starts");
   if (index_name == nullptr || common::is_blank(index_name) ||
@@ -623,7 +623,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   BplusTreeIndex *index = new BplusTreeIndex();
   std::string index_file = index_data_file(base_dir_.c_str(), name(), index_name);
   // 创建对应文件
-  rc = index->create(index_file.c_str(), new_index_meta, *field_meta);
+  rc = index->create(index_file.c_str(), new_index_meta, *field_meta,is_unique);
   if (rc != RC::SUCCESS)
   {
     delete index;
@@ -631,7 +631,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
     return rc;
   }
 
-  // 遍历当前的所有数据，插入这个索引
+  // 遍历当前的所有数据，插入这个索引  就是对之前的创建index前的数据全部建立索引
   IndexInserter index_inserter(index);
   rc = scan_record(trx, nullptr, -1, &index_inserter, insert_index_record_reader_adapter);
   if (rc != RC::SUCCESS)

@@ -71,6 +71,7 @@ QUOTE            [\'\"]
 [Aa][Ss][Cc]								RETURN_TOKEN(ASC);
 [Bb][Yy]									RETURN_TOKEN(BY);
 [Dd][Aa][Tt][Ee]			               RETURN_TOKEN(DATE_T);
+[Uu][Nn][Ii][Qq][Uu][Ee]			               RETURN_TOKEN(UNIQUE);
 [Ll][Oo][Aa][Dd]			                   RETURN_TOKEN(LOAD);
 [Dd][Aa][Tt][Aa]	                       RETURN_TOKEN(DATA);
 [Ii][Nn][Ff][Ii][Ll][Ee]                 RETURN_TOKEN(INFILE);
