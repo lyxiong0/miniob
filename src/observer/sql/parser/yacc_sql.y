@@ -118,9 +118,9 @@ ParserContext *get_context(yyscan_t scanner)
         LE
         GE
         NE
-		IS
         INNER
         JOIN
+        
 %union {
   struct _Attr *attr;
   struct _Condition *condition1;
@@ -377,7 +377,7 @@ value:
 	}
 	|NULL_T {
 		// null不需要加双引号，当作字符串插入
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1);
 	}
     |SSS {
 		$1 = substr($1,1,strlen($1)-2);
@@ -408,7 +408,7 @@ update:			/*  update 语句的语法解析树*/
     ;
 select:				/*  select 语句的语法解析树*/
     SELECT select_attr FROM ID rel_list join_list where order_by SEMICOLON
-	{
+	    {
 			CONTEXT->ssql->flag=SCF_SELECT;//"select";
 
 			// CONTEXT->ssql->sstr.selection.relations[CONTEXT->from_length++]=$4;
@@ -424,7 +424,7 @@ select:				/*  select 语句的语法解析树*/
 			CONTEXT->from_length=0;
 			CONTEXT->select_length=0;
 			CONTEXT->value_length = 0;
-	}
+	    }
 	;
 select_attr:
     STAR {  // select *
@@ -453,11 +453,6 @@ select_attr:
     ;
 attr_list:
     /* empty */
-	| COMMA STAR {  // select *
-			RelAttr attr;
-			relation_attr_init(&attr, NULL, "*", NULL, 0);
-			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
-		}
     | COMMA ID attr_list { // .., id
 			RelAttr attr;
 			relation_attr_init(&attr, NULL, $2, NULL, 0);
@@ -570,7 +565,6 @@ condition:
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 			Condition condition;
-			//    x   x   left_is_attr  left_attr  left_value right_is_attr  right_attr  right_value  
 			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 			// $$ = ( Condition *)malloc(sizeof( Condition));
@@ -631,7 +625,6 @@ condition:
 			relation_attr_init(&right_attr, NULL, $3, NULL, 0);
 
 			Condition condition;
-			//    x   x   left_is_attr  left_attr  left_value right_is_attr  right_attr  right_value  
 			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 
@@ -709,94 +702,7 @@ condition:
 			// $$->right_attr.relation_name=$5;
 			// $$->right_attr.attribute_name=$7;
     }
-	|ID IS NULL_T {
-		RelAttr left_attr;
-		// $1 为属性名称
-		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
-
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "TEMP");
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|ID IS NOT NULL_T { // id is not null
-		RelAttr left_attr;
-		// $1 为属性名称
-		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
-
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "TEMP");
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NOT_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|ID DOT ID IS NULL_T {
-		RelAttr left_attr;
-		// $1为表名，$3为属性名
-		relation_attr_init(&left_attr, $1, $3, NULL, 0);
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "TEMP");
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|ID DOT ID IS NOT NULL_T {
-		RelAttr left_attr;
-		// $1为表名，$3为属性名
-		relation_attr_init(&left_attr, $1, $3, NULL, 0);
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "TEMP");
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NOT_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|NULL_T IS NULL_T { // null is null/value is not null
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
-		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NULL, 0, NULL, left_value, 0, NULL, right_value);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|value IS NOT NULL_T { // null is null/value is not null
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
-		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NULL, 0, NULL, left_value, 0, NULL, right_value);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|NULL_T IS NOT NULL_T { //  null is not null/value is null
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
-		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NOT_NULL, 0, NULL, left_value, 0, NULL, right_value);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|value IS NULL_T { //  null is not null/value is null
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "Eu83");
-		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NOT_NULL, 0, NULL, left_value, 0, NULL, right_value);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
     ;
-
 
 comOp:
   	  EQ { CONTEXT->comp = EQUAL_TO; }

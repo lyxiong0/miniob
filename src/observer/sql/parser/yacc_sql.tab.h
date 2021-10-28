@@ -101,19 +101,18 @@ extern int yydebug;
     LE = 302,                      /* LE  */
     GE = 303,                      /* GE  */
     NE = 304,                      /* NE  */
-    IS = 305,                      /* IS  */
-    INNER = 306,                   /* INNER  */
-    JOIN = 307,                    /* JOIN  */
-    NUMBER = 308,                  /* NUMBER  */
-    FLOAT = 309,                   /* FLOAT  */
-    ID = 310,                      /* ID  */
-    PATH = 311,                    /* PATH  */
-    SSS = 312,                     /* SSS  */
-    STAR = 313,                    /* STAR  */
-    STRING_V = 314,                /* STRING_V  */
-    COUNT = 315,                   /* COUNT  */
-    OTHER_FUNCTION_TYPE = 316,     /* OTHER_FUNCTION_TYPE  */
-    NULL_T = 317                   /* NULL_T  */
+    INNER = 305,                   /* INNER  */
+    JOIN = 306,                    /* JOIN  */
+    NUMBER = 307,                  /* NUMBER  */
+    FLOAT = 308,                   /* FLOAT  */
+    ID = 309,                      /* ID  */
+    PATH = 310,                    /* PATH  */
+    SSS = 311,                     /* SSS  */
+    STAR = 312,                    /* STAR  */
+    STRING_V = 313,                /* STRING_V  */
+    COUNT = 314,                   /* COUNT  */
+    OTHER_FUNCTION_TYPE = 315,     /* OTHER_FUNCTION_TYPE  */
+    NULL_T = 316                   /* NULL_T  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -133,7 +132,7 @@ union YYSTYPE
   float floats;
   char *position;
 
-#line 137 "yacc_sql.tab.h"
+#line 136 "yacc_sql.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
