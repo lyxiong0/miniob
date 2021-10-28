@@ -446,7 +446,7 @@ RC check_table_name(const Selects &selects, const char* db)
                     }
                 }
                 if (left_col_found == false) {
-                    LOG_ERROR("The column does not exist in table %s.", selects.relations[i]);
+                    LOG_ERROR("The column [%s] does not exist in table [%s].", condition.left_attr.attribute_name, selects.relations[i]);
                     return RC::SCHEMA_TABLE_NOT_EXIST;   
                 }
                 // LOG_INFO("condition.left_attr.relation_name: %s, %s", condition.left_attr.relation_name, condition.left_attr.attribute_name);
@@ -481,7 +481,7 @@ RC check_table_name(const Selects &selects, const char* db)
                     }
                 }
                 if (right_col_found == false) {
-                    LOG_ERROR("The column does not exist in table %s.", selects.relations[i]);
+                    LOG_ERROR("The column [%s] does not exist in table [%s].", condition.right_attr.attribute_name, selects.relations[i]);
                     return RC::SCHEMA_TABLE_NOT_EXIST;   
                 }
                 // where中的表名必须出现，不存在*
