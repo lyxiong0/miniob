@@ -387,7 +387,8 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
       {
       case AttrType::CHARS:
       {
-        memcpy(record + field->offset(), value.data, field->len());
+        const char *v = "NULL";
+        memcpy(record + field->offset(), v, field->len());
       }
       break;
       case AttrType::DATES:

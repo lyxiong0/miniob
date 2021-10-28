@@ -262,22 +262,27 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   }
   }
 
+  bool is_null = false;
+  if (!left_is_value)
+  {
+    memcpy(&is_null, rec.data + left_.null_field_index, 1);
+    // LOG_INFO("left_.null_field_index = %d, is_null = %d", left_.null_field_index, is_null);
+  }
+
   switch (comp_op_)
   {
   case EQUAL_TO:
-  {
-    return 0 == cmp_result;
-  }
+    return 0 == cmp_result && !is_null;
   case LESS_EQUAL:
-    return cmp_result <= 0;
+    return cmp_result <= 0 && !is_null;
   case NOT_EQUAL:
-    return cmp_result != 0;
+    return cmp_result != 0 && !is_null;
   case LESS_THAN:
-    return cmp_result < 0;
+    return cmp_result < 0 && !is_null;
   case GREAT_EQUAL:
-    return cmp_result >= 0;
+    return cmp_result >= 0 && !is_null;
   case GREAT_THAN:
-    return cmp_result > 0;
+    return cmp_result > 0 && !is_null;
   case IS_NULL:
   {
     if (left_is_value)
@@ -291,9 +296,6 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     }
     else
     {
-      bool is_null = false;
-      memcpy(&is_null, rec.data + left_.null_field_index, 1);
-      // LOG_INFO("left_.null_field_index = %d, is_null = %d", left_.null_field_index, is_null);
       return is_null;
     }
   }
@@ -311,9 +313,6 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     }
     else
     {
-      bool is_null = false;
-      memcpy(&is_null, rec.data + left_.null_field_index, 1);
-      // LOG_INFO("left_.null_field_index = %d, is_null = %d", left_.null_field_index, is_null);
       return !is_null;
     }
   }

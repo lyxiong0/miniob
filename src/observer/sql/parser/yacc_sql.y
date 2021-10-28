@@ -119,7 +119,6 @@ ParserContext *get_context(yyscan_t scanner)
         LE
         GE
         NE
-		IS
 
 %union {
   struct _Attr *attr;

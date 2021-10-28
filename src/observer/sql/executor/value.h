@@ -128,12 +128,6 @@ public:
   bool is_null() const override {
     return is_null_;
   }
-
-  bool is_null() const override
-  {
-    return false;
-  }
-
 private:
   float value_;
   bool is_null_;
