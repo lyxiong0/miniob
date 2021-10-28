@@ -259,11 +259,12 @@ TupleRecordConverter::TupleRecordConverter(Table *table, TupleSet &tuple_set) : 
 
 std::string num2date(int n)
 {
-  char str1[10];
+    const int len = 10;
+  char str1[len];
   sprintf(str1, "%d", n);
-  char str[10];
+  char str[len];
 
-  for (int i = 0, j = 0; i < 10; i++)
+  for (int i = 0, j = 0; i < len; i++)
   {
     if (i == 4 || i == 7)
     {
@@ -332,8 +333,9 @@ void TupleRecordConverter::add_record(const char *record)
       case DATES:
       {
         int value = *(int *)(record + field_meta->offset());
-        const char *s = num2date(value).data();
-        tuple.add(s, strlen(s));
+        const char *s = num2date(value).c_str();
+        //const char *s = num2date(value);
+        tuple.add(s, 10);
       }
       break;
       default:
