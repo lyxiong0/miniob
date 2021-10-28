@@ -219,7 +219,8 @@ RC Table::insert_record(Trx *trx, Record *record)
     trx->init_trx_info(this, *record);
   }
   // 插入到record中，并获取对应的rid
-  rc = record_handler_->insert_record(record->data, table_meta_.record_size(), &record->rid);
+  // 这里需要加上分配给null的大小
+  rc = record_handler_->insert_record(record->data, table_meta_.record_size() + table_meta_.field_num(), &record->rid);
   if (rc != RC::SUCCESS)
   {
     LOG_ERROR("Insert record failed. table name=%s, rc=%d:%s", table_meta_.name(), rc, strrc(rc));
@@ -280,7 +281,6 @@ RC Table::insert_record(Trx *trx, int value_num, const Value *values, Record **r
     LOG_ERROR("Failed to create a record. rc=%d:%s", rc, strrc(rc));
     return rc;
   }
-
   Record record;
   record.data = record_data;
   // record.valid = true;
@@ -369,22 +369,61 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
 
   // 复制所有字段的值
   int record_size = table_meta_.record_size();
-  char *record = new char[record_size];
+  const FieldMeta *field = table_meta_.field(value_num - 1 + normal_field_start_index);
+  int null_field_index = field->offset() + field->len();
+  // record大小增加value_num个字节，用来存放是否null值
+  char *record = new char[record_size + value_num];
 
   for (int i = 0; i < value_num; i++)
   {
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &value = values[i];
+    bool is_null;
 
-    if (value.type == AttrType::NULLS)
+    if (value.is_null)
     {
-      const char *v = "Eu83";
-      memcpy(record + field->offset(), v, 4);
+      // 如果是null值，int/float类型放0，char类型直接放null，date放int类型19700101
+      switch (field->type())
+      {
+      case AttrType::CHARS:
+      {
+        memcpy(record + field->offset(), value.data, field->len());
+      }
+      break;
+      case AttrType::DATES:
+      {
+        int v = 19700101;
+        memcpy(record + field->offset(), &v, field->len());
+      }
+      break;
+      case AttrType::FLOATS:
+      {
+        float v = 0;
+        memcpy(record + field->offset(), &v, field->len());
+      }
+      break;
+      case AttrType::INTS:
+      {
+        int v = 0;
+        memcpy(record + field->offset(), &v, field->len());
+      }
+      break;
+      default:
+        break;
+      }
+
+      // 放入null标志
+      is_null = true;
+      memcpy(record + null_field_index + i, &is_null, 1);
     }
     else
     {
       memcpy(record + field->offset(), value.data, field->len());
+      // 放入null标志
+      is_null = false;
+      memcpy(record + null_field_index + i, &is_null, 1);
     }
+    // LOG_INFO("name = %s,index = %d, is null = %d", field->name(), i, is_null);
     // 用于char 乱码问题追踪测试   如果是char则存储中只会放入4字节内容
     // if(value.type==1){
     //   LOG_INFO("调用make record函数，将value值 %s 放进内存 record中结果为 %s",value.data,record+field->offset());
@@ -547,6 +586,7 @@ RC Table::scan_record_by_index(Trx *trx, IndexScanner *scanner, ConditionFilter 
       LOG_ERROR("Failed to fetch record of rid=%d:%d, rc=%d:%s", rid.page_num, rid.slot_num, rc, strrc(rc));
       break;
     }
+    LOG_INFO("get record");
 
     if ((trx == nullptr || trx->is_visible(this, &record)) && (filter == nullptr || filter->filter(record)))
     {
@@ -806,7 +846,8 @@ RC Table::update_record(Trx *trx, const char *attribute_name, const Value *value
 RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, const Value *value)
 {
   // 1. 获得字段数据
-  const FieldMeta *field_meta = table_meta_.field(attribute_name);
+  int i = table_meta_.find_field_index_by_name(attribute_name);
+  const FieldMeta *field_meta = table_meta_.field(i);
   if (field_meta == nullptr)
   {
     // 不存在该属性
@@ -853,6 +894,11 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
     return rc;
   }
   memcpy(record->data + field_meta->offset(), value->data, field_meta->len());
+  // 更新null状态
+  auto last_field = table_meta_.field(table_meta_.field_num() - 1);
+  int null_field_index = last_field->offset() + last_field->len();
+  memcpy(record->data + null_field_index + i - 1, &value->is_null, 1);
+
   rc = record_handler_->update_record(record);
   if (rc != RC::SUCCESS)
   {
@@ -1127,7 +1173,7 @@ IndexScanner *Table::find_index_for_scan(const DefaultConditionFilter &filter)
     return nullptr;
   }
 
-  return index->create_scanner(filter.comp_op(), (const char *)value_cond_desc->value);
+  return index->create_scanner(filter.comp_op(), (const char *)value_cond_desc->value, field_cond_desc->null_field_index);
 }
 
 IndexScanner *Table::find_index_for_scan(const ConditionFilter *filter)

@@ -63,17 +63,20 @@ extern "C"
     relation_attr->window_function_name = nullptr;
   }
 
-  void value_init_integer(Value *value, int v)
+  void value_init_integer(Value *value, int v, int is_null)
   {
     value->type = INTS;
     value->data = malloc(sizeof(v));
+    value->is_null = is_null;
     memcpy(value->data, &v, sizeof(v));
   }
 
-  void value_init_float(Value *value, float v)
+  void value_init_float(Value *value, float v, int is_null)
   {
     value->type = FLOATS;
     value->data = malloc(sizeof(v));
+    value->is_null = is_null;
+
     memcpy(value->data, &v, sizeof(v));
   }
 
@@ -82,6 +85,7 @@ extern "C"
     value->type = UNDEFINED;
     free(value->data);
     value->data = nullptr;
+    value->is_null = false;
   }
   // check date 格式
   bool check_date_format(const char *s)
@@ -197,9 +201,12 @@ bool check_date_data(const char *s)
     return num;
   }
 
-  void value_init_string(Value *value, const char *v)
+  void value_init_string(Value *value, const char *v, int is_null)
   {
-    if (check_date_format(v))
+    if (is_null) {
+      value->type = NULLS;
+      value->data = strdup(v);
+    } else if (check_date_format(v))
     {
       // LOG_INFO("成功匹配日期格式开始检查具体日期");
       // 转换为数字
@@ -219,19 +226,15 @@ bool check_date_data(const char *s)
         value->type = CHARS;
         value->data = strdup(v);
       }
-    }
-    else if (strcmp(v, "Eu83") == 0)
-    {
-      std::cout << "满足null格式" << std::endl;
-      value->type = NULLS;
-      value->data = strdup(v);
-    }
+    } 
     else
     {
       //LOG_INFO("没有成功匹配日期格式将输入值作为char处理");     
       value->type = CHARS;
       value->data = strdup(v);
     }
+
+    value->is_null = is_null;
   }
 
   void condition_init(Condition *condition, CompOp comp,

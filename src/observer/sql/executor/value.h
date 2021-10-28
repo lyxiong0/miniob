@@ -38,7 +38,7 @@ private:
 class IntValue : public TupleValue
 {
 public:
-  explicit IntValue(int value) : value_(value)
+  explicit IntValue(int value, bool is_null) : value_(value), is_null_(is_null)
   {
   }
 
@@ -53,24 +53,24 @@ public:
     return value_ - int_other.value_;
   }
 
-  int GetValue()
+  int get_value()
   {
     return value_;
   }
 
-  bool is_null() const override
-  {
-    return false;
+  bool is_null() const override {
+    return is_null_;
   }
 
 private:
   int value_;
+  bool is_null_;
 };
 
 class FloatValue : public TupleValue
 {
 public:
-  explicit FloatValue(float value) : value_(value)
+  explicit FloatValue(float value, bool is_null) : value_(value), is_null_(is_null)
   {
   }
 
@@ -120,9 +120,13 @@ public:
     return 0;
   }
 
-  float GetValue()
+  float get_value()
   {
     return value_;
+  }
+  
+  bool is_null() const override {
+    return is_null_;
   }
 
   bool is_null() const override
@@ -132,15 +136,16 @@ public:
 
 private:
   float value_;
+  bool is_null_;
 };
 
 class StringValue : public TupleValue
 {
 public:
-  StringValue(const char *value, int len) : value_(value, len)
+  StringValue(const char *value, int len, bool is_null) : value_(value, len), is_null_(is_null)
   {
   }
-  explicit StringValue(const char *value) : value_(value)
+  explicit StringValue(const char *value, bool is_null) : value_(value), is_null_(is_null)
   {
   }
 
@@ -155,25 +160,23 @@ public:
     return strcmp(value_.c_str(), string_other.value_.c_str());
   }
 
-  const char *GetValue()
+  const char *get_value()
   {
     return value_.c_str();
   }
 
-  int GetLen()
+  int get_len()
   {
     return value_.size();
   }
 
-  bool is_null() const override
-  {
-    std::string tmp("Eu83");
-
-    return value_ == tmp;
+  bool is_null() const override {
+    return is_null_;
   }
 
 private:
   std::string value_;
+  bool is_null_;
 };
 
 #endif //__OBSERVER_SQL_EXECUTOR_VALUE_H_

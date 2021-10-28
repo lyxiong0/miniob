@@ -40,7 +40,7 @@ DefaultConditionFilter::~DefaultConditionFilter()
 {
 }
 
-RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op)
+RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op, AttrType another_attr_type)
 {
   if (attr_type < CHARS || attr_type > NULLS)
   {
@@ -58,6 +58,7 @@ RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrT
   right_ = right;
   attr_type_ = attr_type;
   comp_op_ = comp_op;
+  another_attr_type_ = another_attr_type;
   // LOG_INFO("default condition filter init 完成 comp_op = %d", comp_op_);
   return RC::SUCCESS;
 }
@@ -75,7 +76,9 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   if (1 == condition.left_is_attr)
   {
     left.is_attr = true;
-    const FieldMeta *field_left = table_meta.field(condition.left_attr.attribute_name);
+    int i = table_meta.find_field_index_by_name(condition.left_attr.attribute_name);
+    const FieldMeta *field_left = table_meta.field(i);
+    // const FieldMeta *field_left = table_meta.field(condition.left_attr.attribute_name);
     // 这里检查了where子句中的列名是否存在
     if (nullptr == field_left)
     {
@@ -88,6 +91,9 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
     left.value = nullptr;
 
     type_left = field_left->type();
+
+    auto last_field = table_meta.field(table_meta.field_num() - 1);
+    left.null_field_index = last_field->offset() + last_field->len() + i - 1;
   }
   else
   {
@@ -102,7 +108,9 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   if (1 == condition.right_is_attr)
   {
     right.is_attr = true;
-    const FieldMeta *field_right = table_meta.field(condition.right_attr.attribute_name);
+    int i = table_meta.find_field_index_by_name(condition.right_attr.attribute_name);
+    const FieldMeta *field_right = table_meta.field(i);
+    // const FieldMeta *field_right = table_meta.field(condition.right_attr.attribute_name);
     // 这里检查了where子句中的列名是否存在
     if (nullptr == field_right)
     {
@@ -114,6 +122,9 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
     type_right = field_right->type();
 
     right.value = nullptr;
+
+    auto last_field = table_meta.field(table_meta.field_num() - 1);
+    right.null_field_index = last_field->offset() + last_field->len() + i - 1;
   }
   else
   {
@@ -128,7 +139,7 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   // 校验和转换
   if (condition.comp == CompOp::IS_NULL || condition.comp == CompOp::IS_NOT_NULL)
   {
-    return init(left, right, type_left, condition.comp);
+    return init(left, right, type_left, condition.comp, type_right);
   }
   //  if (!field_type_compare_compatible_table[type_left][type_right]) {
   //    // 不能比较的两个字段， 要把信息传给客户端
@@ -137,7 +148,7 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   // NOTE：这里没有实现不同类型的数据比较，比如整数跟浮点数之间的对比
   // 但是选手们还是要实现。这个功能在预选赛中会出现
   // CompOp cmp_op = condition.comp;
-  // 有可能出现有一侧为null类型，这种情况是可以查询的，非语法错误
+  // LOG_INFO("condition init中，type_left = %d, type_right = %d",type_left,type_right);
   if (type_left != type_right && type_left != AttrType::NULLS && type_right != AttrType::NULLS)
   {
     // TODO: 不知道咋实现int和float比较
@@ -145,21 +156,30 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
     return RC::SCHEMA_FIELD_TYPE_MISMATCH;
   }
 
-  // 两侧只要有一侧的类型为null，则传递null类型
-  if (type_right == AttrType::NULLS || type_left == AttrType::NULLS)
-  {
-    return init(left, right, AttrType::NULLS, CompOp::EQUAL_TO);
-  }
-  else
-  {
-    return init(left, right, type_left, condition.comp);
-  }
+  return init(left, right, type_left, condition.comp, type_right);
 }
 
 bool DefaultConditionFilter::filter(const Record &rec) const
 {
   // 根据record的type来判断比较
+  AttrType main_type = UNDEFINED;
+  if (attr_type_ == AttrType::NULLS || another_attr_type_ == AttrType::NULLS)
+  {
+    // 两侧只要有一侧的类型为null，则传递null类型
+    main_type = NULLS;
+  }
+  else
+  {
+    main_type = attr_type_;
+  }
 
+  // 对于null的一般运算符，全部返回错误
+  if (main_type == AttrType::NULLS && comp_op_ != IS_NULL && comp_op_ != IS_NOT_NULL)
+  {
+    return false;
+  }
+
+  bool left_is_value = false;
   char *left_value = nullptr;
   char *right_value = nullptr;
 
@@ -170,6 +190,7 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   else
   {
     left_value = (char *)left_.value;
+    left_is_value = true;
   }
 
   if (right_.is_attr)
@@ -182,7 +203,7 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   }
 
   int cmp_result = 0;
-  switch (attr_type_)
+  switch (main_type)
   {
   case CHARS:
   { // 字符串都是定长的，直接比较
@@ -244,7 +265,9 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   switch (comp_op_)
   {
   case EQUAL_TO:
+  {
     return 0 == cmp_result;
+  }
   case LESS_EQUAL:
     return cmp_result <= 0;
   case NOT_EQUAL:
@@ -257,36 +280,45 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     return cmp_result > 0;
   case IS_NULL:
   {
-    int len = strlen(left_value) < 4 ? strlen(left_value):4;
-    if (strcmp(right_value, "Eu83") == 0) {
-      return true; // 出现 null is null
-    }
-    if (strncmp(left_value, "Eu83", len) == 0)
+    if (left_is_value)
     {
-      return true;
+      if (attr_type_ == NULLS)
+      {
+        // null is null
+        return true;
+      }
+      return false;
     }
     else
     {
-      return false;
+      bool is_null = false;
+      memcpy(&is_null, rec.data + left_.null_field_index, 1);
+      // LOG_INFO("left_.null_field_index = %d, is_null = %d", left_.null_field_index, is_null);
+      return is_null;
     }
-  } 
+  }
   break;
   case IS_NOT_NULL:
   {
-    int len = strlen(left_value) < 4 ? strlen(left_value):4;
-    if (strcmp(right_value, "Eu83") == 0) {
-      return false; // 出现 null is not null
-    }
-    if (strncmp(left_value, "Eu83", len) == 0)
+    if (left_is_value)
     {
-      return false;
+      if (attr_type_ == NULLS)
+      {
+        // null is not null
+        return false;
+      }
+      return true;
     }
     else
     {
-      return true;
+      bool is_null = false;
+      memcpy(&is_null, rec.data + left_.null_field_index, 1);
+      // LOG_INFO("left_.null_field_index = %d, is_null = %d", left_.null_field_index, is_null);
+      return !is_null;
     }
-  } 
+  }
   break;
+
   default:
     break;
   }

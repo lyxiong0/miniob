@@ -52,19 +52,19 @@ void Tuple::add(const std::shared_ptr<TupleValue> &other)
 {
   values_.emplace_back(other);
 }
-void Tuple::add(int value)
+void Tuple::add(int value, bool is_null)
 {
-  add(new IntValue(value));
+  add(new IntValue(value, is_null));
 }
 
-void Tuple::add(float value)
+void Tuple::add(float value, bool is_null)
 {
-  add(new FloatValue(value));
+  add(new FloatValue(value, is_null));
 }
 
-void Tuple::add(const char *s, int len)
+void Tuple::add(const char *s, int len, bool is_null)
 {
-  add(new StringValue(s, len));
+  add(new StringValue(s, len, is_null));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -280,16 +280,24 @@ void TupleRecordConverter::add_record(const char *record)
   const TupleSchema &schema = tuple_set_.schema();
   Tuple tuple;
   const TableMeta &table_meta = table_->table_meta();
+
+  auto last_field = table_meta.field(table_meta.field_num() - 1);
+  int null_field_index = last_field->offset() + last_field->len();
+
   for (const TupleField &field : schema.fields())
   {
-    const FieldMeta *field_meta = table_meta.field(field.field_name());
-    assert(field_meta != nullptr);
-    // 不管什么类型都有可能插入null，所以先判断是不是null
-    const char *s = record + field_meta->offset(); 
-
-    if (strlen(s) >= 4 && strncmp(s, "Eu83", 4) == 0)
+    int i = table_meta.find_field_index_by_name(field.field_name());
+    assert(i != -1);
+    const FieldMeta *field_meta = table_meta.field(i);
+    // 不管什么类型都有可能插入null
+    bool is_null = false;
+    // -1是因为field[0]为_trx
+    memcpy(&is_null, record + null_field_index + i - 1, 1);
+    if (is_null)
     {
-      tuple.add("Eu83", 4);
+      // 插入null
+      const char *s = "NULL";
+      tuple.add(s, 4, true);
     }
     else
     {
@@ -298,13 +306,13 @@ void TupleRecordConverter::add_record(const char *record)
       case INTS:
       {
         int value = *(int *)(record + field_meta->offset());
-        tuple.add(value);
+        tuple.add(value, false);
       }
       break;
       case FLOATS:
       {
         float value = *(float *)(record + field_meta->offset());
-        tuple.add(value);
+        tuple.add(value, false);
         // 不考虑用int给float赋值
         // float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));
         // if (value > -1e-6 && value < 1e-6)
@@ -324,7 +332,7 @@ void TupleRecordConverter::add_record(const char *record)
         const char *s = record + field_meta->offset(); // 现在当做Cstring来处理
         int len = field_meta->len() < strlen(s) ? field_meta->len() : strlen(s);
         // tuple.add(s, strlen(s));
-        tuple.add(s, len);
+        tuple.add(s, len, false);
       }
       break;
       case DATES:

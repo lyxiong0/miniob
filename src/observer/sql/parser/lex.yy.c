@@ -586,10 +586,10 @@ extern double atof();
 #endif // YYDEBUG
 
 #define RETURN_TOKEN(token) debug_printf("%s\n",#token);return token
-#line 589 "lex.yy.c"
+#line 590 "lex.yy.c"
 /* Prevent the need for linking with -lfl */
 
-#line 592 "lex.yy.c"
+#line 593 "lex.yy.c"
 
 #define INITIAL 0
 #define STR 1
@@ -867,7 +867,7 @@ YY_DECL
 #line 32 "lex_sql.l"
 
 
-#line 870 "lex.yy.c"
+#line 871 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1225,7 +1225,7 @@ YY_RULE_SETUP
 #line 96 "lex_sql.l"
 ECHO;
 	YY_BREAK
-#line 1228 "lex.yy.c"
+#line 1229 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(STR):
 	yyterminate();

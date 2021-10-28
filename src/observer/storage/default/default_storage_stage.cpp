@@ -394,7 +394,7 @@ RC insert_record_from_file(Table *table, std::vector<std::string> &file_values,
       }
       else
       {
-        value_init_integer(&record_values[i], int_value);
+        value_init_integer(&record_values[i], int_value, false);
       }
     }
 
@@ -414,15 +414,18 @@ RC insert_record_from_file(Table *table, std::vector<std::string> &file_values,
       }
       else
       {
-        value_init_float(&record_values[i], float_value);
+        value_init_float(&record_values[i], float_value, false);
       }
     }
     break;
     case CHARS:
     {
-      value_init_string(&record_values[i], file_value.c_str());
+      value_init_string(&record_values[i], file_value.c_str(), false);
     }
     break;
+    // case NULLS: {
+    //   value_init_string(&record_values[i], file_value.c_str(), true);
+    // }
     default:
     {
       errmsg << "Unsupported field type to loading: " << field->type();

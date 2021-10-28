@@ -931,7 +931,6 @@ RC BplusTreeHandler::insert_into_new_root(PageNum left_page, const char *pkey, P
 
 RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
 {
-  LOG_INFO("call bplustree insert_entry");
   RC rc;
   PageNum leaf_page;
   BPPageHandle page_handle;
@@ -1813,10 +1812,8 @@ RC BplusTreeHandler::find_first_index_satisfied(CompOp compop, const char *key, 
   RC rc;
   int i, tmp;
   RID rid;
-  LOG_INFO("compop = %d", compop);
-  if (compop == LESS_THAN || compop == LESS_EQUAL || compop == NOT_EQUAL || compop == CompOp::IS_NOT_NULL)
+  if (compop == LESS_THAN || compop == LESS_EQUAL || compop == NOT_EQUAL || compop == IS_NOT_NULL)
   {
-    LOG_INFO("get first page");
     rc = get_first_leaf_page(page_num);
     if (rc != SUCCESS)
     {
@@ -1864,11 +1861,40 @@ RC BplusTreeHandler::find_first_index_satisfied(CompOp compop, const char *key, 
     {
       if (compop == IS_NULL)
       {
-        LOG_INFO("data = %s", (const char*) node->keys + i * file_header_.key_length);
-        LOG_INFO("data_pkey = %s", (const char*) key);
-        tmp = CompareKey(node->keys + i * file_header_.key_length, "Eu83", AttrType::CHARS, file_header_.attr_length);
-        if (tmp >= 0)
+        // 找出所有可能是null的值
+        // 实际上是否为null依靠add_record判断
+        switch (file_header_.attr_type)
         {
+        case INTS:
+        {
+          int v = 0;
+          tmp = CompareKey(node->keys + i * file_header_.key_length, (const char *)(&v), file_header_.attr_type, file_header_.attr_length);
+        }
+        break;
+        case CHARS:
+        {
+          const char *v = "NULL";
+          tmp = CompareKey(node->keys + i * file_header_.key_length, v, file_header_.attr_type, file_header_.attr_length);
+        }
+        break;
+        case FLOATS:
+        {
+          float v = 0.0;
+          tmp = CompareKey(node->keys + i * file_header_.key_length, (const char *)(&v), file_header_.attr_type, file_header_.attr_length);
+        }
+        break;
+        case DATES:
+        {
+          int v = 19700101;
+          tmp = CompareKey(node->keys + i * file_header_.key_length, (const char *)(&v), file_header_.attr_type, file_header_.attr_length);
+        }
+        break;
+        default:
+          LOG_ERROR("Error type");
+          break;
+        }
+
+        if (tmp >= 0) {
           rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
           if (rc != SUCCESS)
           {
@@ -1883,46 +1909,42 @@ RC BplusTreeHandler::find_first_index_satisfied(CompOp compop, const char *key, 
           return SUCCESS;
         }
       }
-      else
-      {
-        tmp = CompareKey(node->keys + i * file_header_.key_length, key, file_header_.attr_type, file_header_.attr_length);
 
-        if (compop == EQUAL_TO || compop == GREAT_EQUAL)
+      tmp = CompareKey(node->keys + i * file_header_.key_length, key, file_header_.attr_type, file_header_.attr_length);
+      if (compop == EQUAL_TO || compop == GREAT_EQUAL)
+      {
+        if (tmp >= 0)
         {
-          if (tmp >= 0)
+          rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
+          if (rc != SUCCESS)
           {
-            rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
-            if (rc != SUCCESS)
-            {
-              return rc;
-            }
-            *rididx = i;
-            rc = disk_buffer_pool_->unpin_page(&page_handle);
-            if (rc != SUCCESS)
-            {
-              return rc;
-            }
-            return SUCCESS;
+            return rc;
+          }
+          *rididx = i;
+          rc = disk_buffer_pool_->unpin_page(&page_handle);
+          if (rc != SUCCESS)
+          {
+            return rc;
           }
         }
+      }
 
-        if (compop == GREAT_THAN)
+      if (compop == GREAT_THAN)
+      {
+        if (tmp > 0)
         {
-          if (tmp > 0)
+          rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
+          if (rc != SUCCESS)
           {
-            rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
-            if (rc != SUCCESS)
-            {
-              return rc;
-            }
-            *rididx = i;
-            rc = disk_buffer_pool_->unpin_page(&page_handle);
-            if (rc != SUCCESS)
-            {
-              return rc;
-            }
-            return SUCCESS;
+            return rc;
           }
+          *rididx = i;
+          rc = disk_buffer_pool_->unpin_page(&page_handle);
+          if (rc != SUCCESS)
+          {
+            return rc;
+          }
+          return SUCCESS;
         }
       }
     }
@@ -1996,7 +2018,7 @@ BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &index_handler) : index_hand
 {
 }
 
-RC BplusTreeScanner::open(CompOp comp_op, const char *value)
+RC BplusTreeScanner::open(CompOp comp_op, const char *value, int null_index)
 {
   RC rc;
   if (opened_)
@@ -2005,6 +2027,7 @@ RC BplusTreeScanner::open(CompOp comp_op, const char *value)
   }
 
   comp_op_ = comp_op;
+  null_index_ = null_index;
 
   char *value_copy = (char *)malloc(index_handler_.file_header_.attr_length);
   if (value_copy == nullptr)
@@ -2046,21 +2069,17 @@ RC BplusTreeScanner::close()
 
 RC BplusTreeScanner::next_entry(RID *rid)
 {
-  LOG_INFO("开始调用BplusTreeScanner::next_entry");
   RC rc;
   if (!opened_)
   {
     return RC::RECORD_CLOSED;
   }
   rc = get_next_idx_in_memory(rid); //和RM中一样，有可能有错误，一次只查当前页和当前页的下一页，有待确定
-  LOG_INFO("BplusTreeScanner::next_entry初次调用get_next_idx_in_memory返回rc %d", rc);
   if (rc == RC::RECORD_NO_MORE_IDX_IN_MEM)
   {
-
     rc = find_idx_pages();
     if (rc != SUCCESS)
     {
-      LOG_INFO("find_idx_pages fail: %d", rc);
       return rc;
     }
     return get_next_idx_in_memory(rid);
@@ -2069,7 +2088,6 @@ RC BplusTreeScanner::next_entry(RID *rid)
   {
     if (rc != SUCCESS)
     {
-      LOG_INFO("get_next_idx_in_memory fail");
       return rc;
     }
   }
@@ -2097,7 +2115,6 @@ RC BplusTreeScanner::find_idx_pages()
   next_index_of_page_handle_ = 0;
   pinned_page_count_ = 0;
 
-  // LOG_INFO("num_fixed_pages_ = %d, next_page_num_ = %d", num_fixed_pages_, next_page_num_);
   for (int i = 0; i < num_fixed_pages_; i++)
   {
     if (next_page_num_ <= 0)
@@ -2125,7 +2142,6 @@ RC BplusTreeScanner::find_idx_pages()
 
 RC BplusTreeScanner::get_next_idx_in_memory(RID *rid)
 {
-  LOG_INFO("开始调用BplusTreeScanner::get_next_idx_in_memory,next_index_of_page_handle_ = %d, pinned_page_count_ = %d", next_index_of_page_handle_, pinned_page_count_);
   char *pdata;
   IndexNode *node;
   RC rc;
@@ -2168,13 +2184,15 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid)
 }
 bool BplusTreeScanner::satisfy_condition(const char *pkey)
 {
-  LOG_INFO("BplusTreeScanner::调用satisfy_condition");
+  // i2,f2,s2表示条件中的内容，i1,f1,s1表示搜寻出的记录中的对应属性的值
+  // com_op_表示的是条件中的比较符号，不关乎属性在前还是值在前
   int i1 = 0, i2 = 0;
   float f1 = 0, f2 = 0;
   const char *s1 = nullptr, *s2 = nullptr;
 
-  if (comp_op_ == NO_OP)
+  if (comp_op_ == NO_OP || comp_op_ == IS_NOT_NULL)
   {
+    // TODO: 这里实际上扫描了全表，是否为null交由add_record判断，效率会很低
     return true;
   }
 
@@ -2321,39 +2339,25 @@ bool BplusTreeScanner::satisfy_condition(const char *pkey)
     }
     break;
   case IS_NULL:
-  {
-    if (strlen(value_) >=4 && strncmp(value_, "Eu83", 4) == 0)
+    switch (attr_type)
     {
-      return true; // 出现 null is null
+    case INTS:
+      flag = (i1 == 0);
+      break;
+    case DATES:
+      flag = (i1 == 19700101);
+      break;
+    case FLOATS:
+      LOG_INFO("f1 = %f", f1);
+      flag = 0 == float_compare(f1, 0.0);
+      break;
+    case CHARS:
+      flag = (strncmp(s1, "NULL", attr_length) == 0);
+      break;
+    default:
+      LOG_PANIC("Unknown attr type: %d", attr_type);
     }
-
-    if (strlen(pkey) >=4 && strncmp(pkey, "Eu83", 4) == 0)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-  }
-  break;
-  case IS_NOT_NULL:
-  {
-    if (strlen(value_) >=4 && strncmp(value_, "Eu83", 4) == 0)
-    {
-      return false; // 出现 null is not null
-    }
-
-    if (strlen(pkey) >=4 && strncmp(pkey, "Eu83", 4) == 0)
-    {
-      return false;
-    }
-    else
-    {
-      return true;
-    }
-  }
-  break;
+    break;
   default:
     LOG_PANIC("Unknown comp op: %d", comp_op_);
   }

@@ -23,6 +23,7 @@ class Table;
 
 struct ConDesc {
   bool   is_attr;     // 是否属性，false 表示是值
+  int   null_field_index;     // 如果是属性，标明null_index的位置
   int    attr_length; // 如果是属性，表示属性值长度
   int    attr_offset; // 如果是属性，表示在记录中的偏移量
   void * value;       // 如果是值类型，这里记录值的数据
@@ -45,7 +46,7 @@ public:
   DefaultConditionFilter();
   virtual ~DefaultConditionFilter();
 
-  RC init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op);
+  RC init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op, AttrType another_attr_type);
   RC init(Table &table, const Condition &condition);
 
   virtual bool filter(const Record &rec) const;
@@ -66,7 +67,8 @@ public:
 private:
   ConDesc  left_;
   ConDesc  right_;
-  AttrType attr_type_ = UNDEFINED;
+  AttrType attr_type_ = UNDEFINED; // 存放左运算符类型
+  AttrType another_attr_type_ = UNDEFINED; // 存放右运算符类型
   CompOp   comp_op_ = NO_OP;
 };
 
