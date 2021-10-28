@@ -42,6 +42,8 @@ typedef enum
   LESS_THAN,   //"<"     3
   GREAT_EQUAL, //">="    4
   GREAT_THAN,  //">"     5
+  IS_NULL,
+  IS_NOT_NULL,
   NO_OP
 } CompOp;
 
@@ -69,6 +71,7 @@ typedef struct _Value
 {
   AttrType type; // type of value
   void *data;    // value
+  int is_null; // 1:null, 0:not null
 } Value;
 
 typedef struct _Condition
@@ -230,9 +233,9 @@ extern "C"
   void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *window_function_name, int _is_desc);
   void relation_attr_destroy(RelAttr *relation_attr);
 
-  void value_init_integer(Value *value, int v);
-  void value_init_float(Value *value, float v);
-  void value_init_string(Value *value, const char *v);
+  void value_init_integer(Value *value, int v, int is_null);
+  void value_init_float(Value *value, float v, int is_null);
+  void value_init_string(Value *value, const char *v, int is_null);
   void value_destroy(Value *value);
 
   void condition_init(Condition *condition, CompOp comp, int left_is_attr, RelAttr *left_attr, Value *left_value,

@@ -45,7 +45,7 @@ public:
   virtual RC insert_entry(const char *record, const RID *rid) = 0;
   virtual RC delete_entry(const char *record, const RID *rid) = 0;
 
-  virtual IndexScanner *create_scanner(CompOp comp_op, const char *value) = 0;
+  virtual IndexScanner *create_scanner(CompOp comp_op, const char *value, int null_field_index) = 0;
 
   virtual RC sync() = 0;
 
