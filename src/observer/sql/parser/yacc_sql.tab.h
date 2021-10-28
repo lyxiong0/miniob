@@ -50,66 +50,6 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-<<<<<<< HEAD
-    SEMICOLON = 258,
-    CREATE = 259,
-    DROP = 260,
-    TABLE = 261,
-    TABLES = 262,
-    INDEX = 263,
-    SELECT = 264,
-    DESC = 265,
-    SHOW = 266,
-    SYNC = 267,
-    INSERT = 268,
-    DELETE = 269,
-    UPDATE = 270,
-    LBRACE = 271,
-    RBRACE = 272,
-    COMMA = 273,
-    TRX_BEGIN = 274,
-    TRX_COMMIT = 275,
-    TRX_ROLLBACK = 276,
-    INT_T = 277,
-    STRING_T = 278,
-    FLOAT_T = 279,
-    ORDER = 280,
-    ASC = 281,
-    BY = 282,
-    DATE_T = 283,
-    HELP = 284,
-    EXIT = 285,
-    DOT = 286,
-    INTO = 287,
-    VALUES = 288,
-    FROM = 289,
-    WHERE = 290,
-    AND = 291,
-    SET = 292,
-    ON = 293,
-    LOAD = 294,
-    DATA = 295,
-    INFILE = 296,
-    NULLABLE = 297,
-    NOT = 298,
-    EQ = 299,
-    LT = 300,
-    GT = 301,
-    LE = 302,
-    GE = 303,
-    NE = 304,
-    IS = 305,
-    NUMBER = 306,
-    FLOAT = 307,
-    ID = 308,
-    PATH = 309,
-    SSS = 310,
-    STAR = 311,
-    STRING_V = 312,
-    COUNT = 313,
-    OTHER_FUNCTION_TYPE = 314,
-    NULL_T = 315
-=======
     YYEMPTY = -2,
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
@@ -161,19 +101,17 @@ extern int yydebug;
     LE = 302,                      /* LE  */
     GE = 303,                      /* GE  */
     NE = 304,                      /* NE  */
-    INNER = 305,                   /* INNER  */
-    JOIN = 306,                    /* JOIN  */
-    NUMBER = 307,                  /* NUMBER  */
-    FLOAT = 308,                   /* FLOAT  */
-    ID = 309,                      /* ID  */
-    PATH = 310,                    /* PATH  */
-    SSS = 311,                     /* SSS  */
-    STAR = 312,                    /* STAR  */
-    STRING_V = 313,                /* STRING_V  */
-    COUNT = 314,                   /* COUNT  */
-    OTHER_FUNCTION_TYPE = 315,     /* OTHER_FUNCTION_TYPE  */
-    NULL_T = 316                   /* NULL_T  */
->>>>>>> dev
+    IS = 305,                      /* IS  */
+    NUMBER = 306,                  /* NUMBER  */
+    FLOAT = 307,                   /* FLOAT  */
+    ID = 308,                      /* ID  */
+    PATH = 309,                    /* PATH  */
+    SSS = 310,                     /* SSS  */
+    STAR = 311,                    /* STAR  */
+    STRING_V = 312,                /* STRING_V  */
+    COUNT = 313,                   /* COUNT  */
+    OTHER_FUNCTION_TYPE = 314,     /* OTHER_FUNCTION_TYPE  */
+    NULL_T = 315                   /* NULL_T  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -182,11 +120,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-<<<<<<< HEAD
 #line 123 "yacc_sql.y"
-=======
-#line 124 "yacc_sql.y"
->>>>>>> dev
 
   struct _Attr *attr;
   struct _Condition *condition1;
@@ -197,11 +131,7 @@ union YYSTYPE
   float floats;
   char *position;
 
-<<<<<<< HEAD
-#line 129 "yacc_sql.tab.h"
-=======
-#line 136 "yacc_sql.tab.h"
->>>>>>> dev
+#line 135 "yacc_sql.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

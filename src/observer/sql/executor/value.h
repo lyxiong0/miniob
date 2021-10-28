@@ -97,12 +97,7 @@ public:
     {
       ftos[s_end + 1] = '\0';
     }
-<<<<<<< HEAD
-
-    // os << value_;
-=======
     
->>>>>>> dev
     os << ftos;
   }
 
@@ -151,19 +146,7 @@ public:
 
   void to_string(std::ostream &os) const override
   {
-<<<<<<< HEAD
-    std::string tmp("Eu83");
-    if (value_ == tmp)
-    {
-      os << "NULL";
-    }
-    else
-    {
-      os << value_;
-    }
-=======
     os << value_;
->>>>>>> dev
   }
 
   int compare(const TupleValue &other) const override

@@ -256,140 +256,122 @@ void end_trx_if_need(Session *session, Trx *trx, bool all_right)
 }
 
 // 回溯法求笛卡尔积
-void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tuple &tmp)
+void backtrack(TupleSet& ans, const std::vector<TupleSet>& sets, int index, Tuple& tmp)
 {
-  if (index == -1)
-  {
-    Tuple t;
-    for (const auto &each : tmp.values())
-    {
-      t.add(each);
-    }
-    ans.add(std::move(t));
-  }
-  else
-  {
-    int len = sets[index].size();
-    for (int i = 0; i < len; i++)
-    {
-      tmp.merge(sets[index].get(i));
-      backtrack(ans, sets, index - 1, tmp);
-      tmp.remove(sets[index].get(i));
-    }
-  }
-}
-
-bool compare(const TupleValue *value_a, const TupleValue *value_b, CompOp op)
-{
-  bool compare_result = false;
-  switch (op)
-  {
-  case EQUAL_TO:
-    compare_result = (value_a->compare(*value_b) == 0);
-    break;
-  case LESS_EQUAL:
-    compare_result = (value_a->compare(*value_b) <= 0);
-    break;
-  case NOT_EQUAL:
-    compare_result = (value_a->compare(*value_b) != 0);
-    break;
-  case LESS_THAN:
-    compare_result = (value_a->compare(*value_b) < 0);
-    break;
-  case GREAT_EQUAL:
-    compare_result = (value_a->compare(*value_b) >= 0);
-    break;
-  case GREAT_THAN:
-    compare_result = (value_a->compare(*value_b) > 0);
-    break;
-  default:
-    break;
-  }
-  return compare_result;
-}
-
-TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, const char *db)
-{
-  // 先根据所有的tuple_set构造一个包含所有列的TupleSet
-  TupleSchema total_schema;
-  TupleSet total_set;
-  for (auto it = sets.rbegin(); it != sets.rend(); it++)
-  {
-    // it->get_schema().print(std::cout, true);
-    total_schema.append(it->get_schema());
-  }
-  total_set.set_schema(total_schema);
-
-  // LOG_INFO("total_schema");
-  // total_schema.print(std::cout);
-
-  int len_sets = sets.size();
-  Tuple tmp;
-  backtrack(total_set, sets, len_sets - 1, tmp);
-
-  total_set.print(std::cout, true);
-
-  // 根据Select中的列构造输出的schema
-  TupleSchema final_schema;
-  TupleSet final_set;
-  for (int i = selects.attr_num - 1; i >= 0; i--)
-  {
-    const RelAttr &attr = selects.attributes[i];
-    if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-    {
-      final_schema.append(total_schema);
-    }
-    else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-    {
-      Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-      TupleSchema::from_table(table, final_schema);
-    }
-    else
-    {
-      Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-      schema_add_field(table, attr.attribute_name, final_schema);
-    }
-  }
-  // LOG_INFO("final_schema");
-  final_set.set_schema(final_schema);
-
-  // 接下来根据condition进行过滤
-  for (auto &tp : total_set.tuples())
-  {
-    bool valid = true;
-    for (size_t i = 0; i < selects.condition_num; i++)
-    {
-      Condition cond = selects.conditions[i];
-      // 只考虑两边都是attr的condition
-      if (cond.left_is_attr == 1 && cond.right_is_attr == 1)
-      {
-        int left_index = total_schema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
-        int right_index = total_schema.index_of_field(cond.right_attr.relation_name, cond.right_attr.attribute_name);
-        LOG_INFO("left index: %d", left_index);
-        LOG_INFO("right index: %d", right_index);
-        TupleValue *va = tp.get_pointer(left_index).get();
-        TupleValue *vb = tp.get_pointer(right_index).get();
-        if (compare(va, vb, cond.comp) == false)
-        {
-            valid = false;
-            break;
+    if (index == -1) {
+        Tuple t;
+        for (const auto& each : tmp.values()) {
+            t.add(each);
         }
-      }
+        ans.add(std::move(t));
+    } else {
+        int len = sets[index].size();
+        for (int i = 0; i < len; i++) {
+            tmp.merge(sets[index].get(i));
+            backtrack(ans, sets, index - 1, tmp);
+            tmp.remove(sets[index].get(i));
+        }
     }
-    // 所有condition都满足，则加入结果集
-    if (valid == true)
-    {
-      Tuple t;
-      for (const auto &s : final_schema.fields())
-      {
-        int index = total_schema.index_of_field(s.table_name(), s.field_name());
-        t.add(tp.get_pointer(index));
-      }
-      final_set.add(std::move(t));
+}
+
+bool compare(const TupleValue* value_a, const TupleValue* value_b, CompOp op)
+{
+    bool compare_result = false;
+    switch (op) {
+        case EQUAL_TO:
+            compare_result = (value_a->compare(*value_b) == 0);
+            break;
+        case LESS_EQUAL:
+            compare_result = (value_a->compare(*value_b) <= 0);
+            break;
+        case NOT_EQUAL:
+            compare_result = (value_a->compare(*value_b) != 0);
+            break;
+        case LESS_THAN:
+            compare_result = (value_a->compare(*value_b) < 0);
+            break;
+        case GREAT_EQUAL:
+            compare_result = (value_a->compare(*value_b) >= 0);
+            break;
+        case GREAT_THAN:
+            compare_result = (value_a->compare(*value_b) > 0);
+            break;
+        default:
+            break;
     }
-  }
-  // final_set.print(std::cout, true);
-  return final_set;
+    return compare_result;
+}
+
+TupleSet do_join(const std::vector<TupleSet>& sets, const Selects &selects, const char *db)
+{
+    // 先根据所有的tuple_set构造一个包含所有列的TupleSet
+    TupleSchema total_schema;
+    TupleSet total_set;
+    for (auto it = sets.rbegin(); it != sets.rend(); it++) {
+        // it->get_schema().print(std::cout, true);
+        total_schema.append(it->get_schema());
+    }
+    total_set.set_schema(total_schema);
+
+    // LOG_INFO("total_schema");
+    // total_schema.print(std::cout);
+
+    int len_sets = sets.size();
+    Tuple tmp;
+    backtrack(total_set, sets, len_sets - 1, tmp);
+
+    total_set.print(std::cout, true);
+
+
+    // 根据Select中的列构造输出的schema
+    TupleSchema final_schema;
+    TupleSet final_set;
+    for (int i = selects.attr_num - 1; i >= 0; i--) {
+        const RelAttr &attr = selects.attributes[i];
+        if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+            final_schema.append(total_schema);
+        } else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+            Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+            TupleSchema::from_table(table, final_schema);
+        } else {
+            Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+            schema_add_field(table, attr.attribute_name, final_schema);
+        }
+    }
+    // LOG_INFO("final_schema");
+    final_set.set_schema(final_schema);
+
+    // 接下来根据condition进行过滤
+    for (auto& tp : total_set.tuples()) {
+        bool valid = true;
+        for (size_t i = 0; i < selects.condition_num; i++) {
+            Condition cond = selects.conditions[i];
+            // 只考虑两边都是attr的condition
+            if (cond.left_is_attr == 1 && cond.right_is_attr == 1) {
+                int left_index = total_schema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
+                int right_index = total_schema.index_of_field(cond.right_attr.relation_name, cond.right_attr.attribute_name);
+                LOG_INFO("left index: %d", left_index);
+                LOG_INFO("right index: %d", right_index);
+                TupleValue *va = tp.get_pointer(left_index).get();
+                TupleValue *vb = tp.get_pointer(right_index).get();
+                if (compare(va, vb, cond.comp) == false) {
+                    valid = false;
+                    break;
+                }
+            }
+        }
+        // 所有condition都满足，则加入结果集
+        if (valid == true) {
+            Tuple t;
+            for (const auto& s : final_schema.fields()) {
+                int index = total_schema.index_of_field(s.table_name(), s.field_name());
+                t.add(tp.get_pointer(index));
+            }
+            final_set.add(std::move(t));
+        }
+    }
+    // final_set.print(std::cout, true);
+    return final_set;
 }
 
 // 检查Select, where中的表名是否都出现在from中
@@ -439,7 +421,7 @@ RC check_table_name(const Selects &selects, const char* db)
     }
 
     // 检查where中的表名是否在from中
-    for (size_t i = 0; i < selects.condition_num; i++) {
+    for (int i = 0; i < selects.condition_num; i++) {
         const Condition &condition = selects.conditions[i];
         if (rel_num == 1) {
             // strcmp的参数如果为null会出现segmentation 错误
@@ -525,7 +507,6 @@ RC check_table_name(const Selects &selects, const char* db)
     return RC::SUCCESS;
 }
 
-
 // 这里没有对输入的某些信息做合法性校验，比如查询的列名、where条件中的列名等，没有做必要的合法性校验
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
 RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_event)
@@ -537,8 +518,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
   // 这里先检查Select语句的合法性
   rc = check_table_name(selects, db);
-  if (rc != RC::SUCCESS)
-  {
+  if (rc != RC::SUCCESS) {
     session_event->set_response("FAILURE\n");
     end_trx_if_need(session, trx, false);
     return rc;
@@ -564,52 +544,48 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       end_trx_if_need(session, trx, false);
       return rc;
     }
-
+    LOG_INFO("成功创建selection_executor");
     select_nodes.push_back(select_node);
   }
-  LOG_INFO("select_nodes.size: %d", select_nodes.size());
-  if (select_nodes.empty())
-  {
+    LOG_INFO("select_nodes.size: %d", select_nodes.size());
+
+  if (select_nodes.empty()) {
     LOG_ERROR("No table given");
     session_event->set_response("FAILURE\n");
     end_trx_if_need(session, trx, false);
     return RC::SQL_SYNTAX;
   }
-  LOG_INFO("select_nodes's size: %d", select_nodes.size());
+    LOG_INFO("select_nodes's size: %d", select_nodes.size());
 
   std::vector<TupleSet> tuple_sets;
-  for (SelectExeNode *&node : select_nodes)
-  {
+  for (SelectExeNode *&node : select_nodes) {
     TupleSet tuple_set;
     // excute里设置了聚合函数的type，type定义于tuple.h文件
-
+    LOG_INFO("开始执行select_node->execute函数");
     rc = node->execute(tuple_set);
-
+    LOG_INFO("node->execute完毕并返回 rc=%d",rc);
     if (rc != RC::SUCCESS)
     {
+      LOG_INFO("node->execute失败 rc=%d",rc);
       for (SelectExeNode *&tmp_node : select_nodes)
       {
         delete tmp_node;
-      }
-      end_trx_if_need(session, trx, false);
-      return rc;
     }
-    else
-    {
-      tuple_sets.push_back(std::move(tuple_set));
+    end_trx_if_need(session, trx, false);
+    return rc;
+    }
+    else {
+    tuple_sets.push_back(std::move(tuple_set));
     }
   }
 
-  std::stringstream ss;
-  TupleSet result;
-  bool isMultiTable = false;
-  if (tuple_sets.size() > 1)
-  { // 本次查询了多张表，需要做join操作
+    std::stringstream ss;
+    TupleSet result;
+    bool isMultiTable = false;
+  if (tuple_sets.size() > 1) { // 本次查询了多张表，需要做join操作
     isMultiTable = true;
     result = do_join(tuple_sets, selects, db);
-  }
-  else
-  {
+  } else {
     // 当前只查询一张表，直接返回结果即可
     result = std::move(tuple_sets.front());
   }
@@ -618,22 +594,23 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   // 不管是单表还是多表，到聚合这一步都应该只剩一个TupleSet
   std::vector<TupleSet> results;
 
-  AttrFunction *attr_function = new AttrFunction;
-  for (int i = selects.attr_num - 1; i >= 0; i--)
-  {
-    const RelAttr &attr = selects.attributes[i];
-
-    if (attr.window_function_name != nullptr)
-    {
-      // 注意这里attr.relation_name可能为nullptr
-      FuncType function_type = judge_function_type(attr.window_function_name);
-      attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
-    }
-  }
-
   // 处理聚合函数
-  if (attr_function->get_size() > 0)
+  if (result.size() > 0)
   {
+    // 上一步有结果才进行聚合
+    AttrFunction *attr_function = new AttrFunction;
+    for (int i = selects.attr_num - 1; i >= 0; i--)
+    {
+      const RelAttr &attr = selects.attributes[i];
+
+      if (attr.window_function_name != nullptr)
+      {
+        // 注意这里attr.relation_name可能为nullptr
+        FuncType function_type = judge_function_type(attr.window_function_name);
+        attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
+      }
+    }
+
     rc = do_aggregation(&result, attr_function, results);
 
     if (rc != RC::SUCCESS)
@@ -664,7 +641,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
     for (int i = selects.order_num - 1; i >= 0; i--)
     {
-      int cnt = 0;
       const RelAttr &attr = selects.order_attrs[i];
       const TupleSchema &schema = result.get_schema();
       // 确定该属性与这张表有关
@@ -675,36 +651,25 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       }
       else
       {
-        // 不带属性名，可能出现二义性问题
-        const char *last_table_name = nullptr;
         const int size = schema.fields().size();
 
-        for (int i = 0; i < size; ++i)
+        for (index = 0; index < size; ++index)
         {
-          if (strcmp(attr.attribute_name, schema.field(i).field_name()) == 0)
+          if (strcmp(attr.attribute_name, schema.field(index).field_name()) == 0)
           {
-            if (cnt == 0)
-            {
-              ++cnt;
-              last_table_name = schema.field(i).table_name();
-              index = i;
-            }
-            else
-            {
-              if (last_table_name != schema.field(i).table_name())
-              {
-                ++cnt;
-                break;
-              }
-            }
+            break;
           }
+        }
+
+        if (index == size)
+        {
+          index = -1; //未查找到
         }
       }
 
-      if (index == -1 || cnt > 1)
+      if (index == -1)
       {
         // 有order信息但没有提取出来，说明出现错误的列名
-        // 或者cnt>1说明出现二义性问题
         for (SelectExeNode *&tmp_node : select_nodes)
         {
           delete tmp_node;
@@ -802,7 +767,6 @@ void quick_sort(TupleSet *tuple_set, int l, int r, OrderInfo *order_info)
  */
 RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results)
 {
-
   TupleSchema tmp_scheme;
   Tuple tmp_tuple;
 
@@ -864,19 +828,22 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     {
       // 增加Scheme
       add_type = AttrType::INTS;
-      // tmp_tuple.add((int)tuple_set->tuples().size());
+      tmp_tuple.add((int)tuple_set->tuples().size());
 
-      int ans = 0;
+      // TODO: 考虑NULL值
+      // LOG_INFO("name = %s, nullable = %d", tuple_set->get_schema().field(index).field_name(), tuple_set->get_schema().field(index).is_nullable());
+      // int ans = 0;
 
-      for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
-      {
-        const std::shared_ptr<TupleValue> &value = tuple_set->get(tuple_i).get_pointer(index);
-        if (!value->is_null())
-        {
-          ++ans;
-        }
-      }
-      tmp_tuple.add(ans);
+      // for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
+      // {
+      //   std::shared_ptr<StringValue> value = std::dynamic_pointer_cast<StringValue>(tuple_set->get(tuple_i).get_pointer(index));
+      //   LOG_ERROR("value->GetValue()[0] = %c", value->GetValue()[0]);
+      //   if (value->GetValue()[0] != 'n')
+      //   {
+      //     ++ans;
+      //   }
+      // }
+      // tmp_tuple.add(ans);
       break;
     }
     case FuncType::AVG:
@@ -887,26 +854,17 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         rc = RC::GENERIC_ERROR;
         break;
       }
-
       // 增加Scheme
       // tmp_scheme.add_if_not_exists(AttrType::FLOATS, add_scheme_name.c_str(), add_attr_name.c_str());
       add_type = AttrType::FLOATS;
 
       int size = (int)tuple_set->tuples().size();
       float ans = 0;
-      int is_calculate = 0; // 防止一整列都是null
-
       if (type == AttrType::FLOATS)
       {
         for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
         {
-          const std::shared_ptr<TupleValue> &ori_val = tuple_set->get(tuple_i).get_pointer(index);
-          if (ori_val->is_null())
-          {
-            continue;
-          }
-          ++is_calculate;
-          std::shared_ptr<FloatValue> value = std::dynamic_pointer_cast<FloatValue>(ori_val);
+          std::shared_ptr<FloatValue> value = std::dynamic_pointer_cast<FloatValue>(tuple_set->get(tuple_i).get_pointer(index));
           ans += value->GetValue();
         }
       }
@@ -914,154 +872,81 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       {
         for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
         {
-          const std::shared_ptr<TupleValue> &ori_val = tuple_set->get(tuple_i).get_pointer(index);
-          if (ori_val->is_null())
-          {
-            continue;
-          }
-          ++is_calculate;
-          std::shared_ptr<IntValue> value = std::dynamic_pointer_cast<IntValue>(ori_val);
+          std::shared_ptr<IntValue> value = std::dynamic_pointer_cast<IntValue>(tuple_set->get(tuple_i).get_pointer(index));
           ans += value->GetValue();
         }
       }
 
-      if (tuple_set->size() == 0 || !is_calculate)
-      {
-        // 碰到上一步查询结果为空或者全是null的情况
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
-      else
-      {
-        tmp_tuple.add(ans / is_calculate);
-      }
+      tmp_tuple.add(ans / size);
       break;
     }
     case FuncType::MAX:
     {
-      if (tuple_set->size() == 0)
+      auto ans = tuple_set->get(0).get_pointer(index);
+      for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
       {
-        // 碰到上一步查询结果为空的情况
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
 
-      bool is_calculate = false;
-
-      int tuple_i = 0;
-      auto ans = tuple_set->get(tuple_i).get_pointer(index);
-      while (ans->is_null())
-      {
-        ans = tuple_set->get(tuple_i++).get_pointer(index);
-      }
-      for (; tuple_i < tuple_set->size(); ++tuple_i)
-      {
         auto value = tuple_set->get(tuple_i).get_pointer(index);
-
-        if (value->is_null())
-        {
-          continue;
-        }
-
-        is_calculate = true;
 
         if (value->compare(*ans) > 0)
         {
-          is_calculate = true;
           ans = value;
         }
       }
 
       // 增加Scheme
       // tmp_scheme.add_if_not_exists(type, add_scheme_name.c_str(), add_attr_name.c_str());
-      if (!is_calculate)
-      {
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
-      else
-      {
-        add_type = type;
+      add_type = type;
 
-        if (type == AttrType::FLOATS)
-        {
-          tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->GetValue());
-        }
-        else if (type == AttrType::INTS)
-        {
-          tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
-        }
-        else // AttrType::CHARS和DATES一样计算
-        {
-          tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
-                        std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
-        }
+      if (type == AttrType::FLOATS)
+      {
+        tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->GetValue());
       }
+      else if (type == AttrType::INTS)
+      {
+        tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
+      }
+      else // AttrType::CHARS和DATES一样计算
+      {
+        tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
+                      std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
+      }
+
       break;
     }
     case FuncType::MIN:
     {
-      if (tuple_set->size() == 0)
+      auto ans = tuple_set->get(0).get_pointer(index);
+      for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
       {
-        // 碰到上一步查询结果为空的情况
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
 
-      bool is_calculate = false;
-      int tuple_i = 0;
-      auto ans = tuple_set->get(tuple_i).get_pointer(index);
-      while (ans->is_null())
-      {
-        ans = tuple_set->get(tuple_i++).get_pointer(index);
-      }
-      for (; tuple_i < tuple_set->size(); ++tuple_i)
-      {
         auto value = tuple_set->get(tuple_i).get_pointer(index);
-
-        if (value->is_null())
-        {
-          continue;
-        }
-
-        is_calculate = true;
 
         if (value->compare(*ans) < 0)
         {
+
           ans = value;
         }
       }
 
       // 增加Scheme
       // tmp_scheme.add_if_not_exists(type, add_scheme_name.c_str(), add_attr_name.c_str());
-      if (!is_calculate)
-      {
-        add_type = AttrType::CHARS;
-        tmp_tuple.add("null", 4);
-        break;
-      }
-      else
-      {
-        add_type = type;
+      add_type = type;
 
-        if (type == AttrType::FLOATS)
-        {
-          tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->GetValue());
-        }
-        else if (type == AttrType::INTS)
-        {
-          tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
-        }
-        else // AttrType::CHARS和DATES一样计算
-        {
-          tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
-                        std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
-        }
+      if (type == AttrType::FLOATS)
+      {
+        tmp_tuple.add(std::dynamic_pointer_cast<FloatValue>(ans)->GetValue());
       }
+      else if (type == AttrType::INTS)
+      {
+        tmp_tuple.add(std::dynamic_pointer_cast<IntValue>(ans)->GetValue());
+      }
+      else // AttrType::CHARS和DATES一样计算
+      {
+        tmp_tuple.add(std::dynamic_pointer_cast<StringValue>(ans)->GetValue(),
+                      std::dynamic_pointer_cast<StringValue>(ans)->GetLen());
+      }
+
       break;
     }
     default:
@@ -1090,8 +975,8 @@ bool match_table(const Selects &selects, const char *table_name_in_condition, co
 {
   if (table_name_in_condition != nullptr)
   {
-    LOG_INFO("table_name_in_condition: %s", table_name_in_condition);
-    LOG_INFO("table_name_to_match: %s", table_name_to_match);
+      LOG_INFO("table_name_in_condition: %s", table_name_in_condition);
+      LOG_INFO("table_name_to_match: %s", table_name_to_match);
     return 0 == strcmp(table_name_in_condition, table_name_to_match);
   }
 
