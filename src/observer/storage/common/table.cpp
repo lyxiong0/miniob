@@ -769,7 +769,7 @@ private:
 static RC record_reader_update_adapter(Record *record, void *context)
 {
   RecordUpdater &record_updater = *(RecordUpdater *)context;
-  std::cout << record->data << std::endl;
+  // std::cout << record->data << std::endl;
 
   return record_updater.update_record(record);
 }
@@ -848,12 +848,12 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
 {
   // 1. 获得字段数据
   int i = table_meta_.find_field_index_by_name(attribute_name);
-  const FieldMeta *field_meta = table_meta_.field(i);
-  if (field_meta == nullptr)
+  if (i == -1)
   {
     // 不存在该属性
     return RC::SCHEMA_FIELD_NOT_EXIST;
   }
+  const FieldMeta *field_meta = table_meta_.field(i);
 
   RC rc = RC::SUCCESS;
   // if (trx != nullptr)

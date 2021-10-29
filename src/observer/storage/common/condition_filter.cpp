@@ -42,7 +42,7 @@ DefaultConditionFilter::~DefaultConditionFilter()
 
 RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op, AttrType another_attr_type)
 {
-  if (attr_type < CHARS || attr_type > DATES)
+  if (attr_type < CHARS || attr_type > NULLS)
   {
     LOG_ERROR("Invalid condition with unsupported attribute type: %d", attr_type);
     return RC::INVALID_ARGUMENT;
@@ -77,14 +77,14 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   {
     left.is_attr = true;
     int i = table_meta.find_field_index_by_name(condition.left_attr.attribute_name);
-    const FieldMeta *field_left = table_meta.field(i);
-    // const FieldMeta *field_left = table_meta.field(condition.left_attr.attribute_name);
-    // 这里检查了where子句中的列名是否存在
-    if (nullptr == field_left)
+    if (-1 == i)
     {
       LOG_WARN("No such field in condition. %s.%s", table.name(), condition.left_attr.attribute_name);
       return RC::SCHEMA_FIELD_MISSING;
     }
+    const FieldMeta *field_left = table_meta.field(i);
+    // const FieldMeta *field_left = table_meta.field(condition.left_attr.attribute_name);
+    // 这里检查了where子句中的列名是否存在
     left.attr_length = field_left->len();
     left.attr_offset = field_left->offset();
 
@@ -109,14 +109,14 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   {
     right.is_attr = true;
     int i = table_meta.find_field_index_by_name(condition.right_attr.attribute_name);
-    const FieldMeta *field_right = table_meta.field(i);
-    // const FieldMeta *field_right = table_meta.field(condition.right_attr.attribute_name);
-    // 这里检查了where子句中的列名是否存在
-    if (nullptr == field_right)
+    if (-1 == i)
     {
       LOG_WARN("No such field in condition. %s.%s", table.name(), condition.right_attr.attribute_name);
       return RC::SCHEMA_FIELD_MISSING;
     }
+    const FieldMeta *field_right = table_meta.field(i);
+    // const FieldMeta *field_right = table_meta.field(condition.right_attr.attribute_name);
+    // 这里检查了where子句中的列名是否存在
     right.attr_length = field_right->len();
     right.attr_offset = field_right->offset();
     type_right = field_right->type();

@@ -359,7 +359,7 @@ TupleSet do_join(const std::vector<TupleSet>& sets, const Selects &selects, cons
 
     final_set.set_schema(final_schema);
 
-    // 接下来根据condition进行过滤
+    // 取出需要的列
     for (auto& tp : total_set.tuples()) {
         Tuple t;
         for (const auto& s : final_schema.fields()) {
