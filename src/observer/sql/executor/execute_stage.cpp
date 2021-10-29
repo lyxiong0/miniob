@@ -255,26 +255,8 @@ void end_trx_if_need(Session *session, Trx *trx, bool all_right)
   }
 }
 
-// 回溯法求笛卡尔积
-void backtrack(TupleSet& ans, const std::vector<TupleSet>& sets, int index, Tuple& tmp)
-{
-    if (index == -1) {
-        Tuple t;
-        for (const auto& each : tmp.values()) {
-            t.add(each);
-        }
-        ans.add(std::move(t));
-    } else {
-        int len = sets[index].size();
-        for (int i = 0; i < len; i++) {
-            tmp.merge(sets[index].get(i));
-            backtrack(ans, sets, index - 1, tmp);
-            tmp.remove(sets[index].get(i));
-        }
-    }
-}
 
-bool compare(const TupleValue* value_a, const TupleValue* value_b, CompOp op)
+bool valueCompare(const TupleValue* value_a, const TupleValue* value_b, CompOp op)
 {
     bool compare_result = false;
     switch (op) {
@@ -302,26 +284,62 @@ bool compare(const TupleValue* value_a, const TupleValue* value_b, CompOp op)
     return compare_result;
 }
 
+// 判断Tuple是否满足条件
+bool isTupleSatisfy(const Tuple& tp, const TupleSchema& schema, const Selects &selects)
+{
+    bool valid = true;
+    for (size_t i = 0; i < selects.condition_num; i++) {
+        const Condition& cond = selects.conditions[i];
+        // 只考虑两边都是attr的condition
+        if (cond.left_is_attr == 1 && cond.right_is_attr == 1) {
+            int left_index = schema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
+            int right_index = schema.index_of_field(cond.right_attr.relation_name, cond.right_attr.attribute_name);
+            TupleValue *va = tp.get_pointer(left_index).get();
+            TupleValue *vb = tp.get_pointer(right_index).get();
+            if (valueCompare(va, vb, cond.comp) == false) {
+                valid = false;
+                break;
+            }
+        }
+    }
+    return valid;
+}
+
+// 回溯法求笛卡尔积
+void backtrack(TupleSet& ans, const std::vector<TupleSet>& sets, int index, Tuple& tmp, const Selects &selects, const TupleSchema& schema)
+{
+    if (index == -1) {
+        Tuple t;
+        for (const auto& each : tmp.values()) {
+            t.add(each);
+        }
+        // 满足条件再加入
+        if (isTupleSatisfy(t, schema, selects)) {
+            ans.add(std::move(t));
+        }
+    } else {
+        int len = sets[index].size();
+        for (int i = 0; i < len; i++) {
+            tmp.merge(sets[index].get(i));
+            backtrack(ans, sets, index - 1, tmp, selects, schema);
+            tmp.remove(sets[index].get(i));
+        }
+    }
+}
+
 TupleSet do_join(const std::vector<TupleSet>& sets, const Selects &selects, const char *db)
 {
     // 先根据所有的tuple_set构造一个包含所有列的TupleSet
     TupleSchema total_schema;
     TupleSet total_set;
     for (auto it = sets.rbegin(); it != sets.rend(); it++) {
-        // it->get_schema().print(std::cout, true);
         total_schema.append(it->get_schema());
     }
     total_set.set_schema(total_schema);
 
-    // LOG_INFO("total_schema");
-    // total_schema.print(std::cout);
-
     int len_sets = sets.size();
     Tuple tmp;
-    backtrack(total_set, sets, len_sets - 1, tmp);
-
-    total_set.print(std::cout, true);
-
+    backtrack(total_set, sets, len_sets - 1, tmp, selects, total_schema);
 
     // 根据Select中的列构造输出的schema
     TupleSchema final_schema;
@@ -338,39 +356,19 @@ TupleSet do_join(const std::vector<TupleSet>& sets, const Selects &selects, cons
             schema_add_field(table, attr.attribute_name, final_schema);
         }
     }
-    // LOG_INFO("final_schema");
+
     final_set.set_schema(final_schema);
 
     // 接下来根据condition进行过滤
     for (auto& tp : total_set.tuples()) {
-        bool valid = true;
-        for (size_t i = 0; i < selects.condition_num; i++) {
-            Condition cond = selects.conditions[i];
-            // 只考虑两边都是attr的condition
-            if (cond.left_is_attr == 1 && cond.right_is_attr == 1) {
-                int left_index = total_schema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
-                int right_index = total_schema.index_of_field(cond.right_attr.relation_name, cond.right_attr.attribute_name);
-                LOG_INFO("left index: %d", left_index);
-                LOG_INFO("right index: %d", right_index);
-                TupleValue *va = tp.get_pointer(left_index).get();
-                TupleValue *vb = tp.get_pointer(right_index).get();
-                if (compare(va, vb, cond.comp) == false) {
-                    valid = false;
-                    break;
-                }
-            }
+        Tuple t;
+        for (const auto& s : final_schema.fields()) {
+            int index = total_schema.index_of_field(s.table_name(), s.field_name());
+            t.add(tp.get_pointer(index));
         }
-        // 所有condition都满足，则加入结果集
-        if (valid == true) {
-            Tuple t;
-            for (const auto& s : final_schema.fields()) {
-                int index = total_schema.index_of_field(s.table_name(), s.field_name());
-                t.add(tp.get_pointer(index));
-            }
-            final_set.add(std::move(t));
-        }
+        final_set.add(std::move(t));
     }
-    // final_set.print(std::cout, true);
+
     return final_set;
 }
 
