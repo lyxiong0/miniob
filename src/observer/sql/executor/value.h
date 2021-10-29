@@ -49,6 +49,10 @@ public:
 
   int compare(const TupleValue &other) const override
   {
+    if (is_null_ || other.is_null()) {
+      return -1;
+    }
+
     const IntValue &int_other = (const IntValue &)other;
     return value_ - int_other.value_;
   }
@@ -103,6 +107,10 @@ public:
 
   int compare(const TupleValue &other) const override
   {
+    if (is_null_ || other.is_null()) {
+      return -1;
+    }
+
     const FloatValue &float_other = (const FloatValue &)other;
     float result = value_ - float_other.value_;
     if (result > -1e-6 && result < 1e-6)
@@ -150,6 +158,10 @@ public:
 
   int compare(const TupleValue &other) const override
   {
+    if (is_null_ || other.is_null()) {
+      return -1;
+    }
+    
     const StringValue &string_other = (const StringValue &)other;
     return strcmp(value_.c_str(), string_other.value_.c_str());
   }

@@ -111,6 +111,7 @@ ParserContext *get_context(yyscan_t scanner)
         DATA
         INFILE
 		NULLABLE
+		GROUP
 		IS
 		NOT
         EQ
@@ -408,7 +409,7 @@ update:			/*  update 语句的语法解析树*/
 		}
     ;
 select:				/*  select 语句的语法解析树*/
-    SELECT select_attr FROM ID rel_list join_list where order_by SEMICOLON
+    SELECT select_attr FROM ID rel_list join_list where group_by order_by SEMICOLON
 	    {
 			CONTEXT->ssql->flag=SCF_SELECT;//"select";
 
@@ -785,11 +786,40 @@ comOp:
     | GE { CONTEXT->comp = GREAT_EQUAL; }
     | NE { CONTEXT->comp = NOT_EQUAL; }
     ;
+
+group_by:
+	/*empty*/
+	| GROUP BY group_list {
+		;
+	}
+	;
+
+group_list:
+	group_attr{
+		;
+	}
+	| group_list COMMA group_attr {}
+	;
+
+group_attr:
+	ID {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $1, NULL, 0);
+		selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| ID DOT ID {
+		RelAttr attr;
+		relation_attr_init(&attr, $1, $3, NULL, 0);
+		selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	;
+
 order_by:
 	/*empty*/ 
 	| ORDER BY sort_list {
 	}
 	;
+
 sort_list:
 	sort_attr {
 		// order by A, B, C，实际上加入顺序为C、B、A，方便后面排序
