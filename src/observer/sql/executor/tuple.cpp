@@ -133,6 +133,23 @@ int TupleSchema::index_of_field(const char *table_name, const char *field_name) 
   return -1;
 }
 
+int TupleSchema::index_of_field(const char *field_name) const
+{
+  // 重载一个table_name = nullptr的版本，不改之前的防止原始代码出问题
+  const int size = fields_.size();
+  for (int i = 0; i < size; i++)
+  {
+    const TupleField &field = fields_[i];
+    // LOG_ERROR("field.attr_name = %s", field.field_name());
+    // LOG_ERROR("field.table_name = %s", field.table_name());
+    if (0 == strcmp(field.field_name(), field_name))
+    {
+      return i;
+    }
+  }
+  return -1;
+}
+
 void TupleSchema::print(std::ostream &os, bool isMultiTable) const
 {
   if (fields_.empty())
