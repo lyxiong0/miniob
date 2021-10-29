@@ -309,18 +309,26 @@ int check_date_data_convert(const char *s,int &t){
   }
 
   void selects_init(Selects *selects, ...);
+
   void selects_append_attribute(Selects *selects, RelAttr *rel_attr)
   {
     selects->attributes[selects->attr_num++] = *rel_attr;
   }
+
   void selects_append_relation(Selects *selects, const char *relation_name)
   {
     selects->relations[selects->relation_num++] = strdup(relation_name);
   }
+
   void selects_append_order(Selects *selects, RelAttr *rel_attr)
   {
     selects->order_attrs[selects->order_num++] = *rel_attr;
   }
+
+  void selects_append_group(Selects *selects, RelAttr *rel_attr) {
+    selects->group_attrs[selects->group_num++] = *rel_attr;
+  }
+
   // void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num)
   void selects_append_conditions(Query *sql, Condition conditions[], size_t condition_num)
   {
@@ -364,6 +372,12 @@ int check_date_data_convert(const char *s,int &t){
       relation_attr_destroy(&selects->order_attrs[i]);
     }
     selects->order_num = 0;
+
+    for (size_t i = 0; i < selects->group_num; i++)
+    {
+      relation_attr_destroy(&selects->group_attrs[i]);
+    }
+    selects->group_num = 0;
   }
 
   void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index)
