@@ -320,7 +320,7 @@ TupleSet do_join(const std::vector<TupleSet>& sets, const Selects &selects, cons
     Tuple tmp;
     backtrack(total_set, sets, len_sets - 1, tmp);
 
-    total_set.print(std::cout, true);
+    // total_set.print(std::cout, true);
 
 
     // 根据Select中的列构造输出的schema

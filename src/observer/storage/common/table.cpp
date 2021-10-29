@@ -769,7 +769,7 @@ private:
 static RC record_reader_update_adapter(Record *record, void *context)
 {
   RecordUpdater &record_updater = *(RecordUpdater *)context;
-  std::cout << record->data << std::endl;
+  // std::cout << record->data << std::endl;
 
   return record_updater.update_record(record);
 }
