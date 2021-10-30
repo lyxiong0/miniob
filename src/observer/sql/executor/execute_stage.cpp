@@ -334,60 +334,68 @@ void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tupl
   }
 }
 
-TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, const char *db)
+TupleSchema buildSchema(const Selects &selects, const TupleSchema& total_schema, const char *db)
 {
-  // 先根据所有的tuple_set构造一个包含所有列的TupleSet
-  TupleSchema total_schema;
-  TupleSet total_set;
-  for (auto it = sets.rbegin(); it != sets.rend(); it++)
-  {
-    total_schema.append(it->get_schema());
-  }
-  total_set.set_schema(total_schema);
-
-  int len_sets = sets.size();
-  Tuple tmp;
-  backtrack(total_set, sets, len_sets - 1, tmp, selects, total_schema);
-  // TODO: 这里改成直接返回TupleSet，与后续group by合并
-
-  // 根据Select中的列构造输出的schema
-  TupleSchema final_schema;
-  TupleSet final_set;
-  for (int i = selects.attr_num - 1; i >= 0; i--)
-  {
-    const RelAttr &attr = selects.attributes[i];
-    if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-    {
-      final_schema.append(total_schema);
+    TupleSchema final_schema;
+    for (int i = selects.attr_num - 1; i >= 0; i--) {
+        const RelAttr &attr = selects.attributes[i];
+        if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+            final_schema.append(total_schema);
+        } else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+            Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+            TupleSchema::from_table(table, final_schema);
+        } else {
+            Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+            schema_add_field(table, attr.attribute_name, final_schema);
+        }
     }
-    else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-    {
-      Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-      TupleSchema::from_table(table, final_schema);
+    return final_schema;
+}
+
+TupleSet do_join(const std::vector<TupleSet>& sets, const Selects &selects, const char *db)
+{
+    // 先根据所有的tuple_set构造一个包含所有列的TupleSet
+    TupleSchema total_schema;
+    TupleSet total_set;
+    for (auto it = sets.rbegin(); it != sets.rend(); it++) {
+        total_schema.append(it->get_schema());
     }
-    else
-    {
-      Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-      schema_add_field(table, attr.attribute_name, final_schema);
+    total_set.set_schema(total_schema);
+
+    int len_sets = sets.size();
+    Tuple tmp;
+    backtrack(total_set, sets, len_sets - 1, tmp, selects, total_schema);
+
+    // 根据Select中的列构造输出的schema
+    // TupleSchema final_schema;
+    // for (int i = selects.attr_num - 1; i >= 0; i--) {
+    //     const RelAttr &attr = selects.attributes[i];
+    //     if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+    //         final_schema.append(total_schema);
+    //     } else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+    //         Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+    //         TupleSchema::from_table(table, final_schema);
+    //     } else {
+    //         Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+    //         schema_add_field(table, attr.attribute_name, final_schema);
+    //     }
+    // }
+
+    TupleSet final_set;
+    TupleSchema final_schema = buildSchema(selects, total_schema, db);
+    final_set.set_schema(final_schema);
+
+    // 取出需要的列
+    for (auto& tp : total_set.tuples()) {
+        Tuple t;
+        for (const auto& s : final_schema.fields()) {
+            int index = total_schema.index_of_field(s.table_name(), s.field_name());
+            t.add(tp.get_pointer(index));
+        }
+        final_set.add(std::move(t));
     }
-  }
 
-  final_set.set_schema(final_schema);
-
-  // 取出需要的列
-  for (auto &tp : total_set.tuples())
-  {
-    Tuple t;
-
-    for (const auto &s : final_schema.fields())
-    {
-      int index = total_schema.index_of_field(s.table_name(), s.field_name());
-      t.add(tp.get_pointer(index));
-    }
-    final_set.add(std::move(t));
-  }
-
-  return final_set;
+    return final_set;
 }
 
 // 检查Select, where中的表名是否都出现在from中
