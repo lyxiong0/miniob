@@ -328,6 +328,24 @@ void backtrack(TupleSet& ans, const std::vector<TupleSet>& sets, int index, Tupl
     }
 }
 
+TupleSchema buildSchema(const Selects &selects, const TupleSchema& total_schema, const char *db)
+{
+    TupleSchema final_schema;
+    for (int i = selects.attr_num - 1; i >= 0; i--) {
+        const RelAttr &attr = selects.attributes[i];
+        if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+            final_schema.append(total_schema);
+        } else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+            Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+            TupleSchema::from_table(table, final_schema);
+        } else {
+            Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+            schema_add_field(table, attr.attribute_name, final_schema);
+        }
+    }
+    return final_schema;
+}
+
 TupleSet do_join(const std::vector<TupleSet>& sets, const Selects &selects, const char *db)
 {
     // 先根据所有的tuple_set构造一个包含所有列的TupleSet
@@ -343,21 +361,22 @@ TupleSet do_join(const std::vector<TupleSet>& sets, const Selects &selects, cons
     backtrack(total_set, sets, len_sets - 1, tmp, selects, total_schema);
 
     // 根据Select中的列构造输出的schema
-    TupleSchema final_schema;
-    TupleSet final_set;
-    for (int i = selects.attr_num - 1; i >= 0; i--) {
-        const RelAttr &attr = selects.attributes[i];
-        if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
-            final_schema.append(total_schema);
-        } else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
-            Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-            TupleSchema::from_table(table, final_schema);
-        } else {
-            Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-            schema_add_field(table, attr.attribute_name, final_schema);
-        }
-    }
+    // TupleSchema final_schema;
+    // for (int i = selects.attr_num - 1; i >= 0; i--) {
+    //     const RelAttr &attr = selects.attributes[i];
+    //     if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+    //         final_schema.append(total_schema);
+    //     } else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
+    //         Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+    //         TupleSchema::from_table(table, final_schema);
+    //     } else {
+    //         Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+    //         schema_add_field(table, attr.attribute_name, final_schema);
+    //     }
+    // }
 
+    TupleSet final_set;
+    TupleSchema final_schema = buildSchema(selects, total_schema, db);
     final_set.set_schema(final_schema);
 
       //////////////////////////至此生成全表笛卡尔积，开始group by/////////////////////////////
