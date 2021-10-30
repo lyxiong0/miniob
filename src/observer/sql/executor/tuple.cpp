@@ -19,8 +19,13 @@ See the Mulan PSL v2 for more details. */
 
 Tuple::Tuple(const Tuple &other)
 {
-  LOG_PANIC("Copy constructor of tuple is not supported");
-  exit(1);
+  // LOG_PANIC("Copy constructor of tuple is not supported");
+  // exit(1);
+  // 提前分配空间：带智能指针的vector在自动扩容的时候可能会打乱内存分配
+  values_.reserve(other.values_.size());
+  for (auto const &value : other.values_) {
+    values_.emplace_back(value->clone());
+  }
 }
 
 Tuple::Tuple(Tuple &&other) noexcept : values_(std::move(other.values_))

@@ -31,7 +31,7 @@ typedef struct
   int is_desc;                // 默认采用升序asc，=1降序
   char *relation_name;        // relation name (may be NULL) 表名
   char *attribute_name;       // attribute name              属性名
-  char *window_function_name; // 窗口函数名
+  char *agg_function_name; // 窗口函数名
 } RelAttr;
 
 typedef enum
@@ -44,6 +44,8 @@ typedef enum
   GREAT_THAN,  //">"     5
   IS_NULL,
   IS_NOT_NULL,
+  IN,
+  NOT_IN,
   NO_OP
 } CompOp;
 
@@ -232,7 +234,7 @@ extern "C"
 {
 #endif // __cplusplus
 
-  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *window_function_name, int _is_desc);
+  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *agg_function_name, int _is_desc);
   void relation_attr_destroy(RelAttr *relation_attr);
 
   void value_init_integer(Value *value, int v, int is_null);

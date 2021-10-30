@@ -26,7 +26,7 @@ RC parse(char *st, Query *sqln);
 extern "C"
 {
 #endif // __cplusplus
-  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *window_function_name, int _is_desc)
+  void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *agg_function_name, int _is_desc)
   {
     if (relation_name != nullptr)
     {
@@ -40,13 +40,13 @@ extern "C"
     relation_attr->attribute_name = strdup(attribute_name);
       LOG_ERROR("%s", attribute_name);
 
-    if (window_function_name != nullptr)
+    if (agg_function_name != nullptr)
     {
-      relation_attr->window_function_name = strdup(window_function_name);
+      relation_attr->agg_function_name = strdup(agg_function_name);
     }
     else
     {
-      relation_attr->window_function_name = nullptr;
+      relation_attr->agg_function_name = nullptr;
     }
 
     relation_attr->is_desc = _is_desc;
@@ -56,11 +56,11 @@ extern "C"
   {
     free(relation_attr->relation_name);
     free(relation_attr->attribute_name);
-    free(relation_attr->window_function_name);
+    free(relation_attr->agg_function_name);
 
     relation_attr->relation_name = nullptr;
     relation_attr->attribute_name = nullptr;
-    relation_attr->window_function_name = nullptr;
+    relation_attr->agg_function_name = nullptr;
   }
 
   void value_init_integer(Value *value, int v, int is_null)
@@ -378,6 +378,8 @@ int check_date_data_convert(const char *s,int &t){
       relation_attr_destroy(&selects->group_attrs[i]);
     }
     selects->group_num = 0;
+
+    selects->sub_query_flag = 0;
   }
 
   void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index)

@@ -22,6 +22,7 @@ See the Mulan PSL v2 for more details. */
 
 #include <cctype>
 #include <iomanip>
+#include <unordered_set>
 #include <unordered_map>
 
 class SessionEvent;
@@ -111,7 +112,7 @@ private:
 class OrderInfo
 {
 public:
-  void add(const char *attr_name, int idx, bool is_desc)
+  void add(const char *attr_name, int idx, bool is_desc = false)
   {
     is_desc_.emplace_back(is_desc);
     attr_name_.emplace_back(attr_name);
@@ -133,10 +134,37 @@ public:
     return index_[i];
   }
 
+  const std::vector<int> &indexes() {
+    return index_;
+  }
+
 private:
   // 包含一个表的排序信息
   std::vector<bool> is_desc_; // 默认为升序asc
   std::vector<const char *> attr_name_;
+  std::vector<int> index_; // attr_name对应tuple里的index
+};
+
+class GroupInfo
+{
+public:
+  void add(const char *attr_name, int idx)
+  {
+    index_.emplace_back(idx);
+    attr_names_.insert(attr_name);
+  }
+
+  const std::vector<int> &indexes() {
+    return index_;
+  }
+
+  bool is_attr_exist(const char *attr_name) {
+    return attr_names_.find(attr_name) != attr_names_.end();
+  }
+
+private:
+  // 包含一个表的排序信息
+  std::unordered_set<const char *> attr_names_;
   std::vector<int> index_; // attr_name对应tuple里的index
 };
 

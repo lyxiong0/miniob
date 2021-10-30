@@ -83,6 +83,7 @@ QUOTE            [\'\"]
 [Jj][Oo][Ii][Nn]                            RETURN_TOKEN(JOIN);
 [Ii][Ss]									RETURN_TOKEN(IS);
 [Gg][Rr][Oo][Uu][Pp]						RETURN_TOKEN(GROUP);
+[Ii][Nn]									RETURN_TOKEN(IN);
 {ID}							                       yylval->string=strdup(yytext); RETURN_TOKEN(ID);
 "("								                       RETURN_TOKEN(LBRACE);
 ")"								                       RETURN_TOKEN(RBRACE);

@@ -21,6 +21,7 @@ See the Mulan PSL v2 for more details. */
 #include <algorithm>
 #include <ostream>
 #include <iostream>
+#include <functional>
 
 class TupleValue
 {
@@ -31,6 +32,8 @@ public:
   virtual void to_string(std::ostream &os) const = 0;
   virtual int compare(const TupleValue &other) const = 0;
   virtual bool is_null() const = 0;
+  virtual size_t to_hash() const = 0;
+  virtual std::shared_ptr<TupleValue> clone() const = 0;
 
 private:
 };
@@ -49,7 +52,8 @@ public:
 
   int compare(const TupleValue &other) const override
   {
-    if (is_null_ || other.is_null()) {
+    if (is_null_ || other.is_null())
+    {
       return -1;
     }
 
@@ -62,13 +66,25 @@ public:
     return value_;
   }
 
-  bool is_null() const override {
+  bool is_null() const override
+  {
     return is_null_;
+  }
+
+  size_t to_hash() const override
+  {
+    return hash_func(value_);
+  }
+
+  std::shared_ptr<TupleValue> clone() const override
+  {
+    return std::make_shared<TupleValue>(*this);
   }
 
 private:
   int value_;
   bool is_null_;
+  std::hash<int> hash_func;
 };
 
 class FloatValue : public TupleValue
@@ -101,13 +117,14 @@ public:
     {
       ftos[s_end + 1] = '\0';
     }
-    
+
     os << ftos;
   }
 
   int compare(const TupleValue &other) const override
   {
-    if (is_null_ || other.is_null()) {
+    if (is_null_ || other.is_null())
+    {
       return -1;
     }
 
@@ -132,13 +149,26 @@ public:
   {
     return value_;
   }
-  
-  bool is_null() const override {
+
+  bool is_null() const override
+  {
     return is_null_;
   }
+
+  size_t to_hash() const override
+  {
+    return hash_func(value_);
+  }
+
+  std::shared_ptr<TupleValue> clone() const override
+  {
+    return std::make_shared<TupleValue>(*this);
+  }
+
 private:
   float value_;
   bool is_null_;
+  std::hash<float> hash_func;
 };
 
 class StringValue : public TupleValue
@@ -158,10 +188,11 @@ public:
 
   int compare(const TupleValue &other) const override
   {
-    if (is_null_ || other.is_null()) {
+    if (is_null_ || other.is_null())
+    {
       return -1;
     }
-    
+
     const StringValue &string_other = (const StringValue &)other;
     return strcmp(value_.c_str(), string_other.value_.c_str());
   }
@@ -176,13 +207,25 @@ public:
     return value_.size();
   }
 
-  bool is_null() const override {
+  bool is_null() const override
+  {
     return is_null_;
+  }
+
+  size_t to_hash() const override
+  {
+    return hash_func(value_);
+  }
+
+  std::shared_ptr<TupleValue> clone() const override
+  {
+    return std::make_shared<TupleValue>(*this);
   }
 
 private:
   std::string value_;
   bool is_null_;
+  std::hash<std::string> hash_func;
 };
 
 #endif //__OBSERVER_SQL_EXECUTOR_VALUE_H_

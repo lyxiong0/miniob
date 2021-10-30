@@ -41,7 +41,9 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 
 RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results, int rel_num);
 
-FuncType judge_function_type(char *window_function_name);
+FuncType judge_function_type(char *agg_function_name);
+
+int is_col_legal(const RelAttr &attr, const TupleSchema &schema);
 
 void quick_sort(TupleSet *tuple_set, int l, int r, OrderInfo *order_info);
 
@@ -255,8 +257,7 @@ void end_trx_if_need(Session *session, Trx *trx, bool all_right)
   }
 }
 
-
-bool valueCompare(const TupleValue* value_a, const TupleValue* value_b, CompOp op)
+bool valueCompare(const TupleValue *value_a, const TupleValue *value_b, CompOp op)
 {
   bool compare_result = false;
   switch (op)
@@ -286,154 +287,107 @@ bool valueCompare(const TupleValue* value_a, const TupleValue* value_b, CompOp o
 }
 
 // 判断Tuple是否满足条件
-bool isTupleSatisfy(const Tuple& tp, const TupleSchema& schema, const Selects &selects)
+bool isTupleSatisfy(const Tuple &tp, const TupleSchema &schema, const Selects &selects)
 {
-    bool valid = true;
-    for (size_t i = 0; i < selects.condition_num; i++) {
-        const Condition& cond = selects.conditions[i];
-        // 只考虑两边都是attr的condition
-        if (cond.left_is_attr == 1 && cond.right_is_attr == 1) {
-            int left_index = schema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
-            int right_index = schema.index_of_field(cond.right_attr.relation_name, cond.right_attr.attribute_name);
-            TupleValue *va = tp.get_pointer(left_index).get();
-            TupleValue *vb = tp.get_pointer(right_index).get();
-            if (valueCompare(va, vb, cond.comp) == false) {
-                valid = false;
-                break;
-            }
-        }
+  bool valid = true;
+  for (size_t i = 0; i < selects.condition_num; i++)
+  {
+    const Condition &cond = selects.conditions[i];
+    // 只考虑两边都是attr的condition
+    if (cond.left_is_attr == 1 && cond.right_is_attr == 1)
+    {
+      int left_index = schema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
+      int right_index = schema.index_of_field(cond.right_attr.relation_name, cond.right_attr.attribute_name);
+      TupleValue *va = tp.get_pointer(left_index).get();
+      TupleValue *vb = tp.get_pointer(right_index).get();
+      if (valueCompare(va, vb, cond.comp) == false)
+      {
+        valid = false;
+        break;
+      }
     }
-    return valid;
+  }
+  return valid;
 }
 
 // 回溯法求笛卡尔积
-void backtrack(TupleSet& ans, const std::vector<TupleSet>& sets, int index, Tuple& tmp, const Selects &selects, const TupleSchema& schema)
+void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tuple &tmp, const Selects &selects, const TupleSchema &schema)
 {
-    if (index == -1) {
-        Tuple t;
-        for (const auto& each : tmp.values()) {
-            t.add(each);
-        }
-        // 满足条件再加入
-        if (isTupleSatisfy(t, schema, selects)) {
-            ans.add(std::move(t));
-        }
-    } else {
-        int len = sets[index].size();
-        for (int i = 0; i < len; i++) {
-            tmp.merge(sets[index].get(i));
-            backtrack(ans, sets, index - 1, tmp, selects, schema);
-            tmp.remove(sets[index].get(i));
-        }
+  if (index == -1)
+  {
+    Tuple t(tmp);
+    // 满足条件再加入
+    if (isTupleSatisfy(t, schema, selects))
+    {
+      ans.add(std::move(t));
     }
+  }
+  else
+  {
+    int len = sets[index].size();
+    for (int i = 0; i < len; i++)
+    {
+      tmp.merge(sets[index].get(i));
+      backtrack(ans, sets, index - 1, tmp, selects, schema);
+      tmp.remove(sets[index].get(i));
+    }
+  }
 }
 
-TupleSet do_join(const std::vector<TupleSet>& sets, const Selects &selects, const char *db)
+TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, const char *db)
 {
-    // 先根据所有的tuple_set构造一个包含所有列的TupleSet
-    TupleSchema total_schema;
-    TupleSet total_set;
-    for (auto it = sets.rbegin(); it != sets.rend(); it++) {
-        total_schema.append(it->get_schema());
+  // 先根据所有的tuple_set构造一个包含所有列的TupleSet
+  TupleSchema total_schema;
+  TupleSet total_set;
+  for (auto it = sets.rbegin(); it != sets.rend(); it++)
+  {
+    total_schema.append(it->get_schema());
+  }
+  total_set.set_schema(total_schema);
+
+  int len_sets = sets.size();
+  Tuple tmp;
+  backtrack(total_set, sets, len_sets - 1, tmp, selects, total_schema);
+  // TODO: 这里改成直接返回TupleSet，与后续group by合并
+
+  // 根据Select中的列构造输出的schema
+  TupleSchema final_schema;
+  TupleSet final_set;
+  for (int i = selects.attr_num - 1; i >= 0; i--)
+  {
+    const RelAttr &attr = selects.attributes[i];
+    if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
+    {
+      final_schema.append(total_schema);
     }
-    total_set.set_schema(total_schema);
-
-    int len_sets = sets.size();
-    Tuple tmp;
-    backtrack(total_set, sets, len_sets - 1, tmp, selects, total_schema);
-
-    // 根据Select中的列构造输出的schema
-    TupleSchema final_schema;
-    TupleSet final_set;
-    for (int i = selects.attr_num - 1; i >= 0; i--) {
-        const RelAttr &attr = selects.attributes[i];
-        if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
-            final_schema.append(total_schema);
-        } else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*"))) {
-            Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-            TupleSchema::from_table(table, final_schema);
-        } else {
-            Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-            schema_add_field(table, attr.attribute_name, final_schema);
-        }
+    else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
+    {
+      Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+      TupleSchema::from_table(table, final_schema);
     }
-
-    final_set.set_schema(final_schema);
-
-      //////////////////////////至此生成全表笛卡尔积，开始group by/////////////////////////////
-  // if (selects.group_num > 0)
-  // {
-  //   // group by特点：不在group by中的列，在select中只能以聚合函数形式出现
-  //   // 检查group by列名是否存在
-  //   std::vector<int> group_idx; // 用于group by的列在tutal_set中的index
-  //   int n = selects.group_num;
-
-  //   for (int i = 0; i < n; ++i)
-  //   {
-  //     int cnt = 0;
-  //     const RelAttr &attr = selects.group_attrs[i];
-  //     // 确定该属性与这张表有关
-  //     int index = -1;
-
-  //     if (attr.relation_name != nullptr)
-  //     {
-  //       index = total_schema.index_of_field(attr.relation_name, attr.attribute_name);
-  //     }
-  //     else
-  //     {
-  //       // 不带属性名，可能出现二义性问题
-  //       const char *last_table_name = nullptr;
-  //       const int size = total_schema.fields().size();
-
-  //       for (int i = 0; i < size; ++i)
-  //       {
-  //         if (strcmp(attr.attribute_name, total_schema.field(i).field_name()) == 0)
-  //         {
-  //           if (cnt == 0)
-  //           {
-  //             ++cnt;
-  //             last_table_name = total_schema.field(i).table_name();
-  //             index = i;
-  //           }
-  //           else
-  //           {
-  //             if (last_table_name != total_schema.field(i).table_name())
-  //             {
-  //               ++cnt;
-  //               break;
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-
-  //     if (index == -1 || cnt > 1)
-  //     {
-  //       // 有order信息但没有提取出来，说明出现错误的列名
-  //       for (SelectExeNode *&tmp_node : select_nodes)
-  //       {
-  //         delete tmp_node;
-  //       }
-
-  //       session_event->set_response("FAILURE\n");
-  //       end_trx_if_need(session, trx, true);
-  //       return RC::GENERIC_ERROR;
-  //     }
-  //   }
-  // }
-  //////////////////////////group by结束/////////////////////////////
-
-    // 取出需要的列
-    for (auto& tp : total_set.tuples()) {
-        Tuple t;
-        for (const auto& s : final_schema.fields()) {
-            int index = total_schema.index_of_field(s.table_name(), s.field_name());
-            t.add(tp.get_pointer(index));
-        }
-        final_set.add(std::move(t));
+    else
+    {
+      Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+      schema_add_field(table, attr.attribute_name, final_schema);
     }
+  }
 
-    return final_set;
+  final_set.set_schema(final_schema);
+
+  // 取出需要的列
+  for (auto &tp : total_set.tuples())
+  {
+    Tuple t;
+
+    for (const auto &s : final_schema.fields())
+    {
+      int index = total_schema.index_of_field(s.table_name(), s.field_name());
+      t.add(tp.get_pointer(index));
+    }
+    final_set.add(std::move(t));
+  }
+
+  return final_set;
 }
 
 // 检查Select, where中的表名是否都出现在from中
@@ -693,6 +647,51 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     result = std::move(tuple_sets.front());
   }
 
+  //////////////////////////至此生成全表笛卡尔积，开始group by/////////////////////////////
+  TupleSchema final_schema;
+  TupleSet final_set;
+  if (selects.group_num > 0)
+  {
+    GroupInfo *group_info;
+    // group by特点：不在group by中的列，在select中只能以聚合函数形式出现
+    // 检查group by列名是否存在
+    std::vector<int> group_idx; // 用于group by的列在tutal_set中的index
+    int n = selects.group_num;
+
+    for (int i = 0; i < n; ++i)
+    {
+      const RelAttr &attr = selects.group_attrs[i];
+      int index = is_col_legal(attr, result.get_schema());
+
+      if (index == -1)
+      {
+        // 出现错误列名或者二义性问题
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        session_event->set_response("FAILURE\n");
+        end_trx_if_need(session, trx, true);
+        return RC::GENERIC_ERROR;
+      }
+      group_info->add(attr.attribute_name, index);
+    }
+
+    // 存放<Tuple哈希值，Tuple在TupleSet中的index>
+    std::unordered_map<size_t, std::vector<int>> tuple_to_indexes;
+    const std::vector<int> &indexes = group_info->indexes();
+    // 遍历total set，哈希分组
+    n = result.size();
+    for (int i = 0; i < n; ++i)
+    {
+      tuple_to_indexes[result.get(i).to_hash(indexes)].emplace_back(i);
+    }
+  }
+  //////////////////////////group by结束/////////////////////////////
+
+  /////////////////////////取出select中的列信息
+
   ////////////////////////////聚合函数开始/////////////////////////////
   // 不管是单表还是多表，到聚合这一步都应该只剩一个TupleSet
   std::vector<TupleSet> results;
@@ -706,10 +705,10 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     {
       const RelAttr &attr = selects.attributes[i];
 
-      if (attr.window_function_name != nullptr)
+      if (attr.agg_function_name != nullptr)
       {
         // 注意这里attr.relation_name可能为nullptr
-        FuncType function_type = judge_function_type(attr.window_function_name);
+        FuncType function_type = judge_function_type(attr.agg_function_name);
         attr_function->add_function_type(std::string(attr.attribute_name), function_type, attr.relation_name);
       }
     }
@@ -745,45 +744,12 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
     for (int i = selects.order_num - 1; i >= 0; i--)
     {
-      int cnt = 0;
       const RelAttr &attr = selects.order_attrs[i];
-      // 确定该属性与这张表有关
-      int index = -1;
-      if (attr.relation_name != nullptr)
-      {
-        index = schema.index_of_field(attr.relation_name, attr.attribute_name);
-      }
-      else
-      {
-        // 不带属性名，可能出现二义性问题
-        const char *last_table_name = nullptr;
-        const int size = schema.fields().size();
+      int index = is_col_legal(attr, schema);
 
-        for (int i = 0; i < size; ++i)
-        {
-          if (strcmp(attr.attribute_name, schema.field(i).field_name()) == 0)
-          {
-            if (cnt == 0)
-            {
-              ++cnt;
-              last_table_name = schema.field(i).table_name();
-              index = i;
-            }
-            else
-            {
-              if (last_table_name != schema.field(i).table_name())
-              {
-                ++cnt;
-                break;
-              }
-            }
-          }
-        }
-      }
-
-      if (index == -1 || cnt > 1)
+      if (index == -1)
       {
-        // 有order信息但没有提取出来，说明出现错误的列名
+        // 出现错误列名或者二义性问题
         for (SelectExeNode *&tmp_node : select_nodes)
         {
           delete tmp_node;
@@ -793,6 +759,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
         end_trx_if_need(session, trx, true);
         return RC::GENERIC_ERROR;
       }
+
       order_info->add(attr.attribute_name, index, attr.is_desc == 1);
     }
 
@@ -809,6 +776,51 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   session_event->set_response(ss.str());
   end_trx_if_need(session, trx, true);
   return rc;
+}
+
+int is_col_legal(const RelAttr &attr, const TupleSchema &schema)
+{
+  int index = -1;
+  int cnt = 0;
+
+  if (attr.relation_name != nullptr)
+  {
+    index = schema.index_of_field(attr.relation_name, attr.attribute_name);
+  }
+  else
+  {
+    // 不带属性名，可能出现二义性问题
+    const char *last_table_name = nullptr;
+    const int size = schema.fields().size();
+
+    for (int i = 0; i < size; ++i)
+    {
+      if (strcmp(attr.attribute_name, schema.field(i).field_name()) == 0)
+      {
+        if (cnt == 0)
+        {
+          ++cnt;
+          last_table_name = schema.field(i).table_name();
+          index = i;
+        }
+        else
+        {
+          if (last_table_name != schema.field(i).table_name())
+          {
+            ++cnt;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (index == -1 || cnt > 1)
+  {
+    return -1;
+  }
+
+  return index;
 }
 
 bool tuple_compare(const Tuple *lhs, const Tuple *rhs, OrderInfo *order_info)
@@ -1161,14 +1173,14 @@ static RC schema_add_field(Table *table, const char *field_name, TupleSchema &sc
   return RC::SUCCESS;
 }
 
-FuncType judge_function_type(char *window_function_name)
+FuncType judge_function_type(char *agg_function_name)
 {
-  if (window_function_name == nullptr)
+  if (agg_function_name == nullptr)
   {
     return FuncType::NOFUNC;
   }
   // 转换成小写
-  char *p = window_function_name;
+  char *p = agg_function_name;
   while (*p)
   {
     *p = tolower(*p);
@@ -1176,19 +1188,19 @@ FuncType judge_function_type(char *window_function_name)
   }
 
   // 判断
-  if (strcmp("count", window_function_name) == 0)
+  if (strcmp("count", agg_function_name) == 0)
   {
     return FuncType::COUNT;
   }
-  else if (strcmp("avg", window_function_name) == 0)
+  else if (strcmp("avg", agg_function_name) == 0)
   {
     return FuncType::AVG;
   }
-  else if (strcmp("max", window_function_name) == 0)
+  else if (strcmp("max", agg_function_name) == 0)
   {
     return FuncType::MAX;
   }
-  else if (strcmp("min", window_function_name) == 0)
+  else if (strcmp("min", agg_function_name) == 0)
   {
     return FuncType::MIN;
   }
@@ -1283,7 +1295,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         }
       }
     }
-
   } // for
 
   // 这里是为了处理 select t1.id from t1,t2; 这种情况

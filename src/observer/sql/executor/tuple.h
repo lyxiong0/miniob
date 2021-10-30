@@ -96,6 +96,15 @@ public:
     return values_[index];
   }
 
+  size_t to_hash(const std::vector<int>& idx) const {
+    size_t ans = 0;
+    for (const int &i : idx) {
+      ans ^= values_[i]->to_hash();
+    }
+
+    return ans;
+  }
+
 private:
   std::vector<std::shared_ptr<TupleValue>> values_;
   std::vector<std::string> attr_name_;
