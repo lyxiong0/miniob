@@ -2,7 +2,7 @@
 #define yyHEADER_H 1
 #define yyIN_HEADER 1
 
-#line 5 "lex.yy.h"
+#line 6 "lex.yy.h"
 
 #define  YY_INT_ALIGNED short int
 
@@ -501,9 +501,9 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 97 "lex_sql.l"
+#line 99 "lex_sql.l"
 
 
-#line 507 "lex.yy.h"
+#line 508 "lex.yy.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

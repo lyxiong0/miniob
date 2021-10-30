@@ -112,6 +112,7 @@ ParserContext *get_context(yyscan_t scanner)
         DATA
         INFILE
 		NULLABLE
+		GROUP
 		IS
 		NOT
         EQ
@@ -120,6 +121,7 @@ ParserContext *get_context(yyscan_t scanner)
         LE
         GE
         NE
+		NULL_T
         INNER
         JOIN
         
@@ -144,7 +146,6 @@ ParserContext *get_context(yyscan_t scanner)
 %token <string> STRING_V
 %token <string> COUNT 
 %token <string> OTHER_FUNCTION_TYPE
-%token <string> NULL_T
 //非终结符
 
 %type <number> type;
@@ -384,7 +385,7 @@ value:
 	}
 	|NULL_T {
 		// null不需要加双引号，当作字符串插入
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1, true);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
 	}
     |SSS {
 		$1 = substr($1,1,strlen($1)-2);
@@ -414,7 +415,7 @@ update:			/*  update 语句的语法解析树*/
 		}
     ;
 select:				/*  select 语句的语法解析树*/
-    SELECT select_attr FROM ID rel_list join_list where order_by SEMICOLON
+    SELECT select_attr FROM ID rel_list join_list where group_by order_by SEMICOLON
 	    {
 			CONTEXT->ssql->flag=SCF_SELECT;//"select";
 
@@ -722,7 +723,7 @@ condition:
 		// $1 为属性名称
 		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
 
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $3, true);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
 		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
@@ -734,7 +735,7 @@ condition:
 		// $1 为属性名称
 		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
 
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $4, true);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
 		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
@@ -745,7 +746,7 @@ condition:
 		RelAttr left_attr;
 		// $1为表名，$3为属性名
 		relation_attr_init(&left_attr, $1, $3, NULL, 0);
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $5, true);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
 		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
@@ -756,45 +757,24 @@ condition:
 		RelAttr left_attr;
 		// $1为表名，$3为属性名
 		relation_attr_init(&left_attr, $1, $3, NULL, 0);
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $6, true);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
 		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
 		condition_init(&condition, IS_NOT_NULL, 1, &left_attr, NULL, 0, NULL, right_value);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
-	|NULL_T IS NULL_T { // null is null/value is not null
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1, true);
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $3, true);
-		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NULL, 0, NULL, left_value, 0, NULL, right_value);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
 	|value IS NOT NULL_T { // null is null/value is not null
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $4, true);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
 		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
 		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
-		Condition condition;
-		condition_init(&condition, IS_NOT_NULL, 0, NULL, left_value, 0, NULL, right_value);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|NULL_T IS NOT NULL_T { //  null is not null/value is null
-		// 和上种情况一样
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1, true);
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $4, true);
-		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 		Condition condition;
 		condition_init(&condition, IS_NOT_NULL, 0, NULL, left_value, 0, NULL, right_value);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
 	|value IS NULL_T { //  null is not null/value is null
-		// 和上种情况一样
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $3, true);
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
 		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
 		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
@@ -812,11 +792,40 @@ comOp:
     | GE { CONTEXT->comp = GREAT_EQUAL; }
     | NE { CONTEXT->comp = NOT_EQUAL; }
     ;
+
+group_by:
+	/*empty*/
+	| GROUP BY group_list {
+		;
+	}
+	;
+
+group_list:
+	group_attr{
+		;
+	}
+	| group_list COMMA group_attr {}
+	;
+
+group_attr:
+	ID {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $1, NULL, 0);
+		selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| ID DOT ID {
+		RelAttr attr;
+		relation_attr_init(&attr, $1, $3, NULL, 0);
+		selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	;
+
 order_by:
 	/*empty*/ 
 	| ORDER BY sort_list {
 	}
 	;
+
 sort_list:
 	sort_attr {
 		// order by A, B, C，实际上加入顺序为C、B、A，方便后面排序

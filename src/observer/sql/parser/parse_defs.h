@@ -71,7 +71,7 @@ typedef struct _Value
 {
   AttrType type; // type of value
   void *data;    // value
-  int is_null; // 1:null, 0:not null
+  int is_null;   // 1:null, 0:not null
 } Value;
 
 typedef struct _Condition
@@ -105,6 +105,8 @@ typedef struct
   Condition conditions[MAX_NUM]; // conditions in Where clause
   size_t order_num;
   RelAttr order_attrs[MAX_NUM]; // order by数组
+  size_t group_num;
+  RelAttr group_attrs[MAX_NUM]; // group by 数组
 } Selects;
 
 // struct of insert
@@ -253,6 +255,7 @@ extern "C"
   // void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
   void selects_append_conditions(Query *sql, Condition conditions[], size_t condition_num);
   void selects_append_order(Selects *selects, RelAttr *rel_attr);
+  void selects_append_group(Selects *selects, RelAttr *rel_attr);
   void selects_destroy(Selects *selects);
 
   void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index);

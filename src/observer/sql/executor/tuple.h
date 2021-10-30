@@ -55,25 +55,26 @@ public:
   void add(float value, bool is_null = false);
   void add(const char *s, int len, bool is_null = false);
 
-    // 以下两个函数是成对出现的
-    void merge(const Tuple& other)
-    {
-        values_.insert(values_.end(), other.values().begin(), other.values().end());
-    }
+  // 以下两个函数是成对出现的
+  void merge(const Tuple &other)
+  {
+    values_.insert(values_.end(), other.values().begin(), other.values().end());
+  }
 
-    void remove(const Tuple& other)
-    {
-        auto iter = std::find(values_.begin(), values_.end(), other.get_pointer(0));
-        values_.erase(iter, values_.end());
-    }
+  void remove(const Tuple &other)
+  {
+    auto iter = std::find(values_.begin(), values_.end(), other.get_pointer(0));
+    values_.erase(iter, values_.end());
+  }
 
-    void print(std::ostream& os) const
+  void print(std::ostream &os) const
+  {
+    for (const auto &each : values_)
     {
-        for (const auto& each : values_) {
-            each->to_string(os);
-        }
-        os << std::endl;
+      each->to_string(os);
     }
+    os << std::endl;
+  }
 
   const std::vector<std::shared_ptr<TupleValue>> &values() const
   {
@@ -121,8 +122,9 @@ public:
   {
     return field_name_.c_str();
   }
-  
-  bool is_nullable() const {
+
+  bool is_nullable() const
+  {
     return nullable_;
   }
 
@@ -161,10 +163,16 @@ public:
   {
     fields_.clear();
   }
-  
-  void print(std::ostream &os, bool isMultiTable=false) const;
-  
-    bool empty() const { return fields_.empty(); }
+
+  void print(std::ostream &os, bool isMultiTable = false) const;
+
+  int index_of_field(const char *field_name) const;
+
+  bool empty() const
+  {
+    return fields_.empty();
+  }
+
 public:
   static void from_table(const Table *table, TupleSchema &schema);
 
@@ -197,7 +205,7 @@ public:
   const Tuple &get(int index) const;
   const std::vector<Tuple> &tuples() const;
 
-  void print(std::ostream &os, bool isMultiTable=false) const;
+  void print(std::ostream &os, bool isMultiTable = false) const;
 
   void swap_tuple(int i, int j)
   {

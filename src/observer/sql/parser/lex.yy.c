@@ -1238,7 +1238,7 @@ YY_RULE_SETUP
 #line 95 "lex_sql.l"
 yylval->string=strdup(yytext); RETURN_TOKEN(SSS);
 	YY_BREAK
-case 61:
+case 63:
 YY_RULE_SETUP
 #line 97 "lex_sql.l"
 printf("Unknown character [%c]\n",yytext[0]); return yytext[0];
