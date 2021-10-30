@@ -96,6 +96,8 @@ public:
   RC print();
   RC print_tree();
 protected:
+  // for unique index check is a key in the leaf node that is going to insert
+  RC is_key_duplicate(PageNum leaf_page,const char *pkey);
   RC find_leaf(const char *pkey, PageNum *leaf_page);
   RC insert_into_leaf(PageNum leaf_page, const char *pkey, const RID *rid);
   RC insert_into_leaf_after_split(PageNum leaf_page, const char *pkey, const RID *rid);

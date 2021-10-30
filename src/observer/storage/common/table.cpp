@@ -846,6 +846,7 @@ RC Table::update_record(Trx *trx, const char *attribute_name, const Value *value
 
 RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, const Value *value)
 {
+  // 这里的参数record是通过scan得到的满足filter条件的record，是原本数据库中的record
   // 1. 获得字段数据
   int i = table_meta_.find_field_index_by_name(attribute_name);
   const FieldMeta *field_meta = table_meta_.field(i);
@@ -872,12 +873,13 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
       return rc;
     }
   }
-
+  // 
   Index *index = find_index(attribute_name);
 
   // 删除索引index
   if (index != nullptr)
   {
+    // 只有data和rid完全一致才会执行删除 因为record本来就是原来里面原始的,索引在这里会被删除掉
     // RC rc = delete_entry_of_indexes(record->data, record->rid, false); // 重复代码 refer to commit_delete
     rc = index->delete_entry(record->data, &record->rid);
     if (rc != RC::SUCCESS)
@@ -894,12 +896,14 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
   {
     return rc;
   }
+  
   memcpy(record->data + field_meta->offset(), value->data, field_meta->len());
   // 更新null状态
   auto last_field = table_meta_.field(table_meta_.field_num() - 1);
   int null_field_index = last_field->offset() + last_field->len();
   memcpy(record->data + null_field_index + i - 1, &value->is_null, 1);
 
+  // 这里更新record是直接将update里的内容和对应的record剩下不用修改的内容组合成一个record然后将这个record重写到原来record的位置上
   rc = record_handler_->update_record(record);
   if (rc != RC::SUCCESS)
   {
@@ -952,7 +956,7 @@ RC Table::commit_update(Trx *trx, const RID &rid, char *new_record_data)
     return rc;
   }
 
-  // 更新record
+  // 更新record   
   strcpy(record.data, new_record_data);
   rc = record_handler_->update_record(&record);
   if (rc != RC::SUCCESS)
@@ -1125,9 +1129,18 @@ RC Table::delete_entry_of_indexes(const char *record, const RID &rid, bool error
 
 Index *Table::find_index(const char *index_name) const
 {
+  // 实际上index_name为attribute_name,传进来的就是attribute_name
   for (Index *index : indexes_)
   {
-    if (0 == strcmp(index->index_meta().name(), index_name))
+    /* indexes_z中的数据 这里的index_name=birth 但是index->index_meta().name()=idx_date
+    {_vptr.Index = 0x5555557e7b40 <vtable for BplusTreeIndex+16>, index_meta_ = {name_ = "idx_date", 
+    field_ = "birth"}, field_meta_ = {name_ = "birth", attr_type_ = DATES, attr_offset_ = 16, attr_len_ = 4, 
+    visible_ = true, nullable_ = false}}
+    */
+    // if (0 == strcmp(index->index_meta().name(), index_name))
+    int tmp =strcmp(index->index_meta().field(), index_name);
+    LOG_INFO("");
+    if (0 == tmp)
     {
       return index;
     }

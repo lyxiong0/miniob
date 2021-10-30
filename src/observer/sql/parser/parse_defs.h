@@ -96,6 +96,7 @@ typedef struct _Condition
 // WHERE column_name operator value;
 typedef struct
 {
+  
   size_t attr_num;               // Length of attrs in Select clause
   RelAttr attributes[MAX_NUM];   // attrs in Select clause
   size_t relation_num;           // Length of relations in For clause
