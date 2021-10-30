@@ -518,6 +518,7 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
   IndexScanner *index_scanner = find_index_for_scan(filter);
   if (index_scanner != nullptr)
   {
+    LOG_INFO("scan_record_by_index");
     return scan_record_by_index(trx, index_scanner, filter, limit, context, record_reader);
   }
   // filter == nullptr时，scanner会扫描所有元组
@@ -873,12 +874,30 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
       return rc;
     }
   }
-  // 
-  Index *index = find_index(attribute_name);
+  // 根据原始record和value创建一个new_record,此new_record表示一个
+  rc = is_legal(*value, field_meta);
+  if (rc != RC::SUCCESS)
+  {
+    return rc;
+  }
+  // 这里的table_meta_.record_size()包含了sys_field的4个字节 就是根据将各个属性的长度求和 // sizeof(record->rid) = 8
+  char *data =(char *)malloc(table_meta_.record_size());
+  // memcpy(data + field_meta->offset(), value->data, field_meta->len());
+  memcpy(data, record->data, table_meta_.record_size());
+  memcpy(data + field_meta->offset(), value->data, field_meta->len());
 
-  // 删除索引index
+  Index *index = find_index(attribute_name);
+  // 插入new_record的index  删除record的index
   if (index != nullptr)
   {
+    // rc = insert_entry_of_indexes(record->data, record->rid);
+    rc = index->insert_entry(data, &record->rid);
+    if (rc != RC::SUCCESS)
+    {
+      free(data);
+      LOG_ERROR("insert_entry_of_indexes fail");
+      return rc;
+    }
     // 只有data和rid完全一致才会执行删除 因为record本来就是原来里面原始的,索引在这里会被删除掉
     // RC rc = delete_entry_of_indexes(record->data, record->rid, false); // 重复代码 refer to commit_delete
     rc = index->delete_entry(record->data, &record->rid);
@@ -886,54 +905,25 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
     {
       LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
                 record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
+      free(data);
       return rc;
     }
   }
-
-  // 更新record
-  rc = is_legal(*value, field_meta);
-  if (rc != RC::SUCCESS)
-  {
-    return rc;
-  }
-  
-  memcpy(record->data + field_meta->offset(), value->data, field_meta->len());
   // 更新null状态
   auto last_field = table_meta_.field(table_meta_.field_num() - 1);
   int null_field_index = last_field->offset() + last_field->len();
   memcpy(record->data + null_field_index + i - 1, &value->is_null, 1);
-
-  // 这里更新record是直接将update里的内容和对应的record剩下不用修改的内容组合成一个record然后将这个record重写到原来record的位置上
+  // 修改对应record,将新的record写入进去
+  memcpy(record->data + field_meta->offset(), value->data, field_meta->len());
   rc = record_handler_->update_record(record);
   if (rc != RC::SUCCESS)
   {
     LOG_ERROR("Update record failed. table name=%s, rc=%d:%s", table_meta_.name(), rc, strrc(rc));
+    free(data);
     return rc;
   }
-
-  // 插入index
-  if (index != nullptr)
-  {
-    // rc = insert_entry_of_indexes(record->data, record->rid);
-    rc = index->insert_entry(record->data, &record->rid);
-    if (rc != RC::SUCCESS)
-    {
-      LOG_ERROR("insert_entry_of_indexes fail");
-      RC rc2 = delete_entry_of_indexes(record->data, record->rid, true);
-      if (rc2 != RC::SUCCESS)
-      {
-        LOG_PANIC("Failed to rollback index data when insert index entries failed. table name=%s, rc=%d:%s",
-                  name(), rc2, strrc(rc2));
-      }
-      rc2 = record_handler_->delete_record(&record->rid);
-      if (rc2 != RC::SUCCESS)
-      {
-        LOG_PANIC("Failed to rollback record data when insert index entries failed. table name=%s, rc=%d:%s",
-                  name(), rc2, strrc(rc2));
-      }
-      return rc;
-    }
-  }
+  free(data);
+  
   return rc;
 }
 

@@ -700,7 +700,6 @@ RC parse(const char *st, Query *sqln)
     LOG_INFO(" the parse function return SQL_SYNTAX");
     return SQL_SYNTAX;
   }else{
-    LOG_INFO(" the parse function return SUCCESS");
     return SUCCESS;
   }
 }
