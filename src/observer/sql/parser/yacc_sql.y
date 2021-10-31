@@ -10,6 +10,8 @@
 #include<stdlib.h>
 #include<string.h>
 
+int yydebug = 1;
+
 typedef struct ParserContext {
   Query * ssql;
   size_t select_length;
@@ -20,7 +22,7 @@ typedef struct ParserContext {
   Value values[MAX_NUM];
   Condition conditions[MAX_NUM];
   CompOp comp;
-	char id[MAX_NUM];
+  char id[MAX_NUM];
 } ParserContext;
 
 //获取子串
@@ -123,6 +125,7 @@ ParserContext *get_context(yyscan_t scanner)
 		NULL_T
         INNER
         JOIN
+		IN
         
 %union {
   struct _Attr *attr;
@@ -153,6 +156,8 @@ ParserContext *get_context(yyscan_t scanner)
 %type <number> number;
 %type <number> opt_null;
 %type <string> opt_star;
+
+%left ID
 
 %%
 
@@ -434,48 +439,38 @@ select_attr:
 			relation_attr_init(&attr, NULL, "*", NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
-    | ID attr_list { // select age
+    | ID attr_list { 
+					log_err("action ID attr_list");
+			RelAttr attr;
+			relation_attr_init(&attr, NULL, $1, NULL, 0);
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| window_function attr_list { }
+    ;
+
+id_type:
+	ID{ // select age
+			log_err("action ID attr_list");
 			RelAttr attr;
 			relation_attr_init(&attr, NULL, $1, NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
-  	| ID DOT ID attr_list { // select t1.age
+	| ID DOT ID { // select t1.age
 			RelAttr attr;
 			relation_attr_init(&attr, $1, $3, NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
-	| ID DOT STAR attr_list { // select t1.*
+	| ID DOT STAR{ // select t1.*
 			RelAttr attr;
 			relation_attr_init(&attr, $1, "*", NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
-	| window_function function_list {
-		// 放到window_function里执行
-	}
-    ;
+	;
+
 attr_list:
     /* empty */
-    | COMMA ID attr_list { // .., id
-			RelAttr attr;
-			relation_attr_init(&attr, NULL, $2, NULL, 0);
-			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
-     	  // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length].relation_name = NULL;
-        // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].attribute_name=$2;
-      }
-    | COMMA ID DOT ID attr_list {
-			RelAttr attr;
-			relation_attr_init(&attr, $2, $4, NULL, 0);
-			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
-        // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length].attribute_name=$4;
-        // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].relation_name=$2;
-  	  }
-    | COMMA ID DOT STAR attr_list {     // select t1.*, t2.*
-			RelAttr attr;
-			relation_attr_init(&attr, $2, "*", NULL, 0);
-			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
-        // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length].attribute_name=$4;
-        // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].relation_name=$2;
-  	  }
+    | COMMA id_type attr_list { }
+	| COMMA window_function attr_list { }
   	;
 
 join_list:
@@ -512,6 +507,7 @@ window_function:
 	}
 	| OTHER_FUNCTION_TYPE LBRACE ID RBRACE 
 	{
+		log_err("OTHER_FUNCTION_TYPE LBRACE ID RBRACE ");
 		RelAttr attr;
 		relation_attr_init(&attr, NULL, $3, $1, 0);
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
@@ -529,22 +525,19 @@ window_function:
 		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
 	;
+
 opt_star:
 	STAR { $$ = $1;}
 	| NUMBER {$$ = number_to_str($1);}
 	;
-function_list:
-	/* empty */
-    | COMMA window_function function_list { // .., id
-		// 不操作，留给window_function执行
-      }
-  	;
+
 rel_list:
     /* empty */
     | COMMA ID rel_list {	
 				selects_append_relation(&CONTEXT->ssql->sstr.selection, $2);
 		  }
     ;
+
 where:
     /* empty */ 
     | WHERE condition condition_list {	
@@ -586,7 +579,6 @@ condition:
 			// $$->right_attr.relation_name = NULL;
 			// $$->right_attr.attribute_name = NULL;
 			// $$->right_value = *$3;
-
 		}
 		|value comOp value 
 		{

@@ -38,7 +38,7 @@ extern "C"
     }
 
     relation_attr->attribute_name = strdup(attribute_name);
-      LOG_ERROR("%s", attribute_name);
+    LOG_ERROR("%s", attribute_name);
 
     if (agg_function_name != nullptr)
     {
@@ -378,8 +378,6 @@ int check_date_data_convert(const char *s,int &t){
       relation_attr_destroy(&selects->group_attrs[i]);
     }
     selects->group_num = 0;
-
-    selects->sub_query_flag = 0;
   }
 
   void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index)

@@ -182,6 +182,10 @@ public:
     return fields_.empty();
   }
 
+  int size() const {
+    return fields_.size();
+  }
+
 public:
   static void from_table(const Table *table, TupleSchema &schema);
 
@@ -220,6 +224,8 @@ public:
   {
     std::swap(tuples_[i], tuples_[j]);
   }
+
+  void copy_ith_to(TupleSet &lhs, int i) const;
 
 public:
   const TupleSchema &schema() const

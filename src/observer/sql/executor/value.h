@@ -22,6 +22,7 @@ See the Mulan PSL v2 for more details. */
 #include <ostream>
 #include <iostream>
 #include <functional>
+#include <memory>
 
 class TupleValue
 {
@@ -78,7 +79,7 @@ public:
 
   std::shared_ptr<TupleValue> clone() const override
   {
-    return std::make_shared<TupleValue>(*this);
+    return std::make_shared<IntValue>(*this);
   }
 
 private:
@@ -162,7 +163,7 @@ public:
 
   std::shared_ptr<TupleValue> clone() const override
   {
-    return std::make_shared<TupleValue>(*this);
+    return std::make_shared<FloatValue>(*this);
   }
 
 private:
@@ -219,7 +220,8 @@ public:
 
   std::shared_ptr<TupleValue> clone() const override
   {
-    return std::make_shared<TupleValue>(*this);
+    // 不能make_shared<基类>
+    return std::make_shared<StringValue>(*this);
   }
 
 private:
