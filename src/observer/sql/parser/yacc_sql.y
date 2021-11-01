@@ -1,4 +1,3 @@
-
 %{
 
 #include "sql/parser/parse_defs.h"
@@ -445,18 +444,13 @@ select_attr:
 			relation_attr_init(&attr, NULL, "*", NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
-    | ID attr_list { 
-					log_err("action ID attr_list");
-			RelAttr attr;
-			relation_attr_init(&attr, NULL, $1, NULL, 0);
-			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+    | id_type attr_list { 
 	}
 	| window_function attr_list { }
     ;
 
 id_type:
 	ID{ // select age
-			log_err("action ID attr_list");
 			RelAttr attr;
 			relation_attr_init(&attr, NULL, $1, NULL, 0);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);

@@ -334,31 +334,6 @@ void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tupl
   }
 }
 
-TupleSchema buildSchema(const Selects &selects, const TupleSchema &total_schema, const char *db)
-{
-  TupleSchema final_schema;
-  for (int i = selects.attr_num - 1; i >= 0; i--)
-  {
-    const RelAttr &attr = selects.attributes[i];
-    if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-    {
-      final_schema.append(total_schema);
-    }
-    else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-    {
-      Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-      TupleSchema::from_table(table, final_schema);
-    }
-    else
-    {
-      Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-      schema_add_field(table, attr.attribute_name, final_schema);
-    }
-  }
-
-  return final_schema;
-}
-
 TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, const char *db)
 {
   // 先根据所有的tuple_set构造一个包含所有列的TupleSet
@@ -621,9 +596,10 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       end_trx_if_need(session, trx, false);
       return rc;
     }
-    
+    LOG_INFO("成功创建selection_executor");
     select_nodes.push_back(select_node);
   }
+  LOG_INFO("select_nodes.size: %d", select_nodes.size());
 
   if (select_nodes.empty())
   {
@@ -639,7 +615,9 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   {
     TupleSet tuple_set;
     // excute里设置了聚合函数的type，type定义于tuple.h文件
+    LOG_INFO("开始执行select_node->execute函数");
     rc = node->execute(tuple_set);
+    LOG_INFO("node->execute完毕并返回 rc=%d", rc);
     if (rc != RC::SUCCESS)
     {
       LOG_INFO("node->execute失败 rc=%d", rc);
