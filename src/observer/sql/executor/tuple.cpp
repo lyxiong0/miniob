@@ -249,6 +249,12 @@ void TupleSet::set_schema(const TupleSchema &schema)
   schema_ = schema;
 }
 
+void TupleSet::copy_ith_to(TupleSet &lhs, int i) const {
+  // 将第i个指
+  Tuple tmp = tuples_[i];
+  lhs.add(std::move(tmp));
+}
+
 const TupleSchema &TupleSet::get_schema() const
 {
   return schema_;
