@@ -805,7 +805,9 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     TupleSchema final_schema;
     const TupleSchema &result_schema = result.get_schema();
 
-    for (int i = selects.attr_num - 1; i >= 0; i--)
+    // for (int i = selects.attr_num - 1; i >= 0; i--)
+    int n = selects.attr_num;
+    for (int i = 0; i < n; ++i)
     {
       const RelAttr &attr = selects.attributes[i];
       if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
