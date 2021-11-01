@@ -1378,7 +1378,8 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   // 2. 遍历Select中所有属性
   bool attrIsStar = false;
   // int rel_num = selects.relation_num;
-  for (int i = selects.attr_num - 1; i >= 0; i--)
+  int n = selects.attr_num;
+  for (int i = 0; i < n; ++i)
   {
     const RelAttr &attr = selects.attributes[i];
 
