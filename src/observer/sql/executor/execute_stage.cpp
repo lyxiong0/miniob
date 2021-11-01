@@ -350,45 +350,6 @@ TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, cons
   backtrack(total_set, sets, len_sets - 1, tmp, selects, total_schema);
 
   return total_set;
-
-  // 根据Select中的列构造输出的schema
-  // TupleSchema final_schema;
-  // for (int i = selects.attr_num - 1; i >= 0; i--)
-  // {
-  //   const RelAttr &attr = selects.attributes[i];
-  //   if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-  //   {
-  //     final_schema.append(total_schema);
-  //   }
-  //   else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-  //   {
-  //     Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-  //     TupleSchema::from_table(table, final_schema);
-  //   }
-  //   else
-  //   {
-  //     Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-  //     schema_add_field(table, attr.attribute_name, final_schema);
-  //   }
-  // }
-
-  // TupleSet final_set;
-  // // TupleSchema final_schema = buildSchema(selects, total_schema, db);
-  // final_set.set_schema(final_schema);
-
-  // // 取出需要的列
-  // for (auto &tp : total_set.tuples())
-  // {
-  //   Tuple t;
-  //   for (const auto &s : final_schema.fields())
-  //   {
-  //     int index = total_schema.index_of_field(s.table_name(), s.field_name());
-  //     t.add(tp.get_pointer(index));
-  //   }
-  //   final_set.add(std::move(t));
-  // }
-
-  // return final_set;
 }
 
 // 检查Select, where中的表名是否都出现在from中
@@ -805,7 +766,9 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     TupleSchema final_schema;
     const TupleSchema &result_schema = result.get_schema();
 
-    for (int i = selects.attr_num - 1; i >= 0; i--)
+    int n = selects.attr_num;
+    // for (int i = selects.attr_num - 1; i >= 0; i--)
+    for (int i = 0; i < n; ++i)
     {
       const RelAttr &attr = selects.attributes[i];
       if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
