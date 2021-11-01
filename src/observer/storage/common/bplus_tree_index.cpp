@@ -20,7 +20,7 @@ BplusTreeIndex::~BplusTreeIndex() noexcept
   close();
 }
 
-RC BplusTreeIndex::create(const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta) {
+RC BplusTreeIndex::create(const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta,int is_unique) {
   if (inited_) {
     LOG_INFO("BplusTreeIndex::create - RC::RECORD_OPENNED");
     return RC::RECORD_OPENNED;
@@ -32,9 +32,8 @@ RC BplusTreeIndex::create(const char *file_name, const IndexMeta &index_meta, co
     return rc;
   }
 
-  rc = index_handler_.create(file_name, field_meta.type(), field_meta.len());
-  if (RC::SUCCESS == rc)
-  {
+  rc = index_handler_.create(file_name, field_meta.type(), field_meta.len(),is_unique);
+  if (RC::SUCCESS == rc) {
     inited_ = true;
   }
   return rc;

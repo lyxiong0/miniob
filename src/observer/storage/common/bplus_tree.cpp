@@ -40,7 +40,8 @@ RC BplusTreeHandler::sync()
   return disk_buffer_pool_->flush_all_pages(file_id_);
 }
 // 创建以file_name为名称的index文件
-RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_length)
+// RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_length)
+RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_length,int is_unique)
 {
   BPPageHandle page_handle;
   IndexNode *root;
@@ -87,6 +88,7 @@ RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_
   file_header->node_num = 1;
   file_header->order = ((int)BP_PAGE_DATA_SIZE - sizeof(IndexFileHeader) - sizeof(IndexNode)) / (attr_length + 2 * sizeof(RID));
   file_header->root_page = page_num;
+  file_header->unique = is_unique;
 
   root = get_index_node(pdata);
   root->is_leaf = 1;
@@ -320,16 +322,23 @@ RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const
     return rc;
   }
   node = get_index_node(pdata);
-
-  for (insert_pos = 0; insert_pos < node->key_num; insert_pos++)
-  {
-    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length);
-    if (tmp == 0)
-    {
-      return RC::RECORD_DUPLICATE_KEY;
-    }
-    if (tmp < 0)
-      break;
+  for(insert_pos = 0; insert_pos < node->key_num; insert_pos++){
+    /*
+    if(file_header_.unique==1) {
+      // 只要key相同就返回错误
+      tmp = CompareKey( pkey, node->keys + insert_pos * file_header_.key_length,file_header_.attr_type, file_header_.attr_length);
+      if (tmp==0) {
+        return RC::RECORD_DUPLICATE_KEY;
+      }
+    }else {*/
+      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length);
+      if (tmp == 0) {
+        // 当key和rid完全相同时才会返回这个错误，unique——key可以借用这里进行判断
+        return RC::RECORD_DUPLICATE_KEY;
+      }
+      if(tmp < 0)
+        break;
+    // }
   }
   for (i = node->key_num; i > insert_pos; i--)
   {
@@ -921,6 +930,43 @@ RC BplusTreeHandler::insert_into_new_root(PageNum left_page, const char *pkey, P
   return SUCCESS;
 }
 
+RC BplusTreeHandler::is_key_duplicate(PageNum leaf_page,const char *pkey)
+{
+  int tmp;
+  BPPageHandle page_handle;
+  char *pdata;
+  IndexNode *node;
+  RC rc;
+  rc = disk_buffer_pool_->get_this_page(file_id_, leaf_page, &page_handle);
+  if (rc != SUCCESS)
+  {
+    return rc;
+  }
+  rc = disk_buffer_pool_->get_data(&page_handle, &pdata);
+  if (rc != SUCCESS)
+  {
+    return rc;
+  }
+  node = get_index_node(pdata);
+  // 可以优化为二分查找但是暂时没必要
+  for(int i = 0; i < node->key_num; i++){
+    tmp = CompareKey( pkey, node->keys + i * file_header_.key_length,file_header_.attr_type, file_header_.attr_length);
+    if (tmp==0) {
+      return RC::INDEX_DUPLICATED;
+    }
+    /*   确定运行成功了将这个注释去掉
+    if (tmp>0){
+      break;
+    }
+    */
+  }  
+  rc = disk_buffer_pool_->unpin_page(&page_handle);
+  if (rc != SUCCESS)
+  {
+    return rc;
+  }
+  return SUCCESS;
+}
 RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
 {
   RC rc;
@@ -961,7 +1007,15 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
     return rc;
   }
   leaf = (IndexNode *)(pdata + sizeof(IndexFileHeader));
-
+  // 首先进行unique index 判断
+  if (file_header_.unique==1){
+    rc = is_key_duplicate(leaf_page,key);
+    if (rc != SUCCESS)
+    {
+      free(key);
+      return rc;
+    }
+  }
   if (leaf->key_num < file_header_.order - 1)
   {
     rc = disk_buffer_pool_->unpin_page(&page_handle);

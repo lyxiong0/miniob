@@ -25,6 +25,7 @@ struct IndexFileHeader {
   PageNum root_page; // 初始时，root_page一定是1
   int node_num;
   int order;
+  int unique;       // 初始化时根据unique命令进行赋值 1->unique index
 };
 
 struct IndexNode {
@@ -56,7 +57,8 @@ public:
    * 此函数创建一个名为fileName的索引。
    * attrType描述被索引属性的类型，attrLength描述被索引属性的长度
    */
-  RC create(const char *file_name, AttrType attr_type, int attr_length);
+  // RC create(const char *file_name, AttrType attr_type, int attr_length);
+  RC create(const char *file_name, AttrType attr_type, int attr_length,int is_unique);
 
   /**
    * 打开名为fileName的索引文件。
@@ -94,6 +96,8 @@ public:
   RC print();
   RC print_tree();
 protected:
+  // for unique index check is a key in the leaf node that is going to insert
+  RC is_key_duplicate(PageNum leaf_page,const char *pkey);
   RC find_leaf(const char *pkey, PageNum *leaf_page);
   RC insert_into_leaf(PageNum leaf_page, const char *pkey, const RID *rid);
   RC insert_into_leaf_after_split(PageNum leaf_page, const char *pkey, const RID *rid);

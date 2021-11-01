@@ -98,6 +98,7 @@ typedef struct _Condition
 // WHERE column_name operator value;
 typedef struct
 {
+  
   size_t attr_num;               // Length of attrs in Select clause
   RelAttr attributes[MAX_NUM];   // attrs in Select clause
   size_t relation_num;           // Length of relations in For clause
@@ -163,6 +164,7 @@ typedef struct
 // struct of create_index
 typedef struct
 {
+  int is_unique;           // unique =1 means unique index
   char *index_name;     // Index name
   char *relation_name;  // Relation name
   char *attribute_name; // Attribute name
@@ -277,7 +279,7 @@ extern "C"
   void drop_table_destroy(DropTable *drop_table);
 
   void create_index_init(
-      CreateIndex *create_index, const char *index_name, const char *relation_name, const char *attr_name);
+      CreateIndex *create_index, const char *index_name, const char *relation_name, const char *attr_name, int is_unique);
   void create_index_destroy(CreateIndex *create_index);
 
   void drop_index_init(DropIndex *drop_index, const char *index_name);

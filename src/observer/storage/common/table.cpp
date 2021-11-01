@@ -518,6 +518,7 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
   IndexScanner *index_scanner = find_index_for_scan(filter);
   if (index_scanner != nullptr)
   {
+    LOG_INFO("scan_record_by_index");
     return scan_record_by_index(trx, index_scanner, filter, limit, context, record_reader);
   }
   // filter == nullptr时，scanner会扫描所有元组
@@ -639,7 +640,7 @@ std::vector<const char *> Table::get_index_names()
   return res;
 }
 
-RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_name)
+RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_name, int is_unique)
 {
   // LOG_INFO("create_index starts");
   if (index_name == nullptr || common::is_blank(index_name) ||
@@ -674,7 +675,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   BplusTreeIndex *index = new BplusTreeIndex();
   std::string index_file = index_data_file(base_dir_.c_str(), name(), index_name);
   // 创建对应文件
-  rc = index->create(index_file.c_str(), new_index_meta, *field_meta);
+  rc = index->create(index_file.c_str(), new_index_meta, *field_meta,is_unique);
   if (rc != RC::SUCCESS)
   {
     delete index;
@@ -682,7 +683,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
     return rc;
   }
 
-  // 遍历当前的所有数据，插入这个索引
+  // 遍历当前的所有数据，插入这个索引  就是对之前的创建index前的数据全部建立索引
   IndexInserter index_inserter(index);
   rc = scan_record(trx, nullptr, -1, &index_inserter, insert_index_record_reader_adapter);
   if (rc != RC::SUCCESS)
@@ -846,6 +847,7 @@ RC Table::update_record(Trx *trx, const char *attribute_name, const Value *value
 
 RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, const Value *value)
 {
+  // 这里的参数record是通过scan得到的满足filter条件的record，是原本数据库中的record
   // 1. 获得字段数据
   int i = table_meta_.find_field_index_by_name(attribute_name);
   if (i == -1)
@@ -872,64 +874,56 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
       return rc;
     }
   }
+  // 根据原始record和value创建一个new_record,此new_record表示一个
+  rc = is_legal(*value, field_meta);
+  if (rc != RC::SUCCESS)
+  {
+    return rc;
+  }
+  // 这里的table_meta_.record_size()包含了sys_field的4个字节 就是根据将各个属性的长度求和 // sizeof(record->rid) = 8
+  char *data =(char *)malloc(table_meta_.record_size());
+  // memcpy(data + field_meta->offset(), value->data, field_meta->len());
+  memcpy(data, record->data, table_meta_.record_size());
+  memcpy(data + field_meta->offset(), value->data, field_meta->len());
 
   Index *index = find_index(attribute_name);
-
-  // 删除索引index
+  // 插入new_record的index  删除record的index
   if (index != nullptr)
   {
+    // rc = insert_entry_of_indexes(record->data, record->rid);
+    rc = index->insert_entry(data, &record->rid);
+    if (rc != RC::SUCCESS)
+    {
+      free(data);
+      LOG_ERROR("insert_entry_of_indexes fail");
+      return rc;
+    }
+    // 只有data和rid完全一致才会执行删除 因为record本来就是原来里面原始的,索引在这里会被删除掉
     // RC rc = delete_entry_of_indexes(record->data, record->rid, false); // 重复代码 refer to commit_delete
     rc = index->delete_entry(record->data, &record->rid);
     if (rc != RC::SUCCESS)
     {
       LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
                 record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
+      free(data);
       return rc;
     }
   }
-
-  // 更新record
-  rc = is_legal(*value, field_meta);
-  if (rc != RC::SUCCESS)
-  {
-    return rc;
-  }
-  memcpy(record->data + field_meta->offset(), value->data, field_meta->len());
   // 更新null状态
   auto last_field = table_meta_.field(table_meta_.field_num() - 1);
   int null_field_index = last_field->offset() + last_field->len();
   memcpy(record->data + null_field_index + i - 1, &value->is_null, 1);
-
+  // 修改对应record,将新的record写入进去
+  memcpy(record->data + field_meta->offset(), value->data, field_meta->len());
   rc = record_handler_->update_record(record);
   if (rc != RC::SUCCESS)
   {
     LOG_ERROR("Update record failed. table name=%s, rc=%d:%s", table_meta_.name(), rc, strrc(rc));
+    free(data);
     return rc;
   }
-
-  // 插入index
-  if (index != nullptr)
-  {
-    // rc = insert_entry_of_indexes(record->data, record->rid);
-    rc = index->insert_entry(record->data, &record->rid);
-    if (rc != RC::SUCCESS)
-    {
-      LOG_ERROR("insert_entry_of_indexes fail");
-      RC rc2 = delete_entry_of_indexes(record->data, record->rid, true);
-      if (rc2 != RC::SUCCESS)
-      {
-        LOG_PANIC("Failed to rollback index data when insert index entries failed. table name=%s, rc=%d:%s",
-                  name(), rc2, strrc(rc2));
-      }
-      rc2 = record_handler_->delete_record(&record->rid);
-      if (rc2 != RC::SUCCESS)
-      {
-        LOG_PANIC("Failed to rollback record data when insert index entries failed. table name=%s, rc=%d:%s",
-                  name(), rc2, strrc(rc2));
-      }
-      return rc;
-    }
-  }
+  free(data);
+  
   return rc;
 }
 
@@ -952,7 +946,7 @@ RC Table::commit_update(Trx *trx, const RID &rid, char *new_record_data)
     return rc;
   }
 
-  // 更新record
+  // 更新record   
   strcpy(record.data, new_record_data);
   rc = record_handler_->update_record(&record);
   if (rc != RC::SUCCESS)
@@ -1125,9 +1119,18 @@ RC Table::delete_entry_of_indexes(const char *record, const RID &rid, bool error
 
 Index *Table::find_index(const char *index_name) const
 {
+  // 实际上index_name为attribute_name,传进来的就是attribute_name
   for (Index *index : indexes_)
   {
-    if (0 == strcmp(index->index_meta().name(), index_name))
+    /* indexes_z中的数据 这里的index_name=birth 但是index->index_meta().name()=idx_date
+    {_vptr.Index = 0x5555557e7b40 <vtable for BplusTreeIndex+16>, index_meta_ = {name_ = "idx_date", 
+    field_ = "birth"}, field_meta_ = {name_ = "birth", attr_type_ = DATES, attr_offset_ = 16, attr_len_ = 4, 
+    visible_ = true, nullable_ = false}}
+    */
+    // if (0 == strcmp(index->index_meta().name(), index_name))
+    int tmp =strcmp(index->index_meta().field(), index_name);
+    LOG_INFO("");
+    if (0 == tmp)
     {
       return index;
     }

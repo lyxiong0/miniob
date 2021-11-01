@@ -176,6 +176,7 @@ enum RC {
 
   SUCCESS = 0, /* Successful result */
   /* beginning-of-error-codes */
+  INDEX_DUPLICATED,/* for unique index that when index::insert_entry the index is already exist*/
   GENERIC_ERROR, /* Generic error */
   INVALID_ARGUMENT,/* Invalid argument */
   SQL_SYNTAX,    /* SQL Syntax error */

@@ -285,9 +285,9 @@ TupleRecordConverter::TupleRecordConverter(Table *table, TupleSet &tuple_set) : 
 {
 }
 
-void num2date(int n, char* str)
+void num2date(int n,char *str)
 {
-    const int len = 10;
+  int len = 10;
   char str1[len];
   sprintf(str1, "%d", n);
   // char str[len];
@@ -366,9 +366,15 @@ void TupleRecordConverter::add_record(const char *record)
       case DATES:
       {
         int value = *(int *)(record + field_meta->offset());
-        char *s = (char *)malloc(sizeof(char)*10);
-        num2date(value, s);
-        tuple.add(s, 10, false);
+        char *str = (char*)malloc(sizeof(char)*10);
+        num2date(value,str);
+        // const char *s = str;
+        //const char *s = num2date(value);
+        tuple.add(str, strlen(str));
+        free(str);
+
+        // const char *s = num2date(value).data();
+        // tuple.add(s, strlen(s));
       }
       break;
       default:

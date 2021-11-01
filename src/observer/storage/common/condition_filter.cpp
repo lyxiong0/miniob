@@ -65,7 +65,6 @@ RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrT
 
 RC DefaultConditionFilter::init(Table &table, const Condition &condition)
 {
-  LOG_INFO("condition init 开始");
   const TableMeta &table_meta = table.table_meta();
   ConDesc left;
   ConDesc right;
