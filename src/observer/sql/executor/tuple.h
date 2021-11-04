@@ -157,6 +157,15 @@ public:
   // void merge(const TupleSchema &other);
   void append(const TupleSchema &other);
 
+  void remove(const TupleSchema &other)
+  {
+      //if (fields_.empty() == false) {
+        while (!fields_.empty() && (0 == strcmp(fields_.back().table_name(), other.field(0).table_name()))) {
+            fields_.pop_back();
+        }
+      //}
+  }
+
   const std::vector<TupleField> &fields() const
   {
     return fields_;

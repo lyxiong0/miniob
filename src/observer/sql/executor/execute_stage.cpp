@@ -314,8 +314,53 @@ bool isTupleSatisfy(const Tuple &tp, const TupleSchema &schema, const Selects &s
 }
 
 // 回溯法求笛卡尔积
-void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tuple &tmp, const Selects &selects, const TupleSchema &schema)
+// void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tuple &tmp, const Selects &selects, const TupleSchema &schema)
+// {
+//   if (index == -1)
+//   {
+//     Tuple t(tmp);
+//     // 满足条件再加入
+//     if (isTupleSatisfy(t, schema, selects))
+//     {
+//       ans.add(std::move(t));
+//     }
+//   }
+//   else
+//   {
+//     int len = sets[index].size();
+//     for (int i = 0; i < len; i++)
+//     {
+//       tmp.merge(sets[index].get(i));
+//       backtrack(ans, sets, index - 1, tmp, selects, schema);
+//       tmp.remove(sets[index].get(i));
+//     }
+//   }
+// }
+
+// 检查condition两边的列是否再元组中
+bool conditionInTuple(const TupleSchema& schema, const Condition& cond)
+{  
+    bool left = false;
+    bool right = false;
+    auto fields = schema.fields();
+    for (const auto& each : fields) {
+        if ((0 == strcmp(cond.left_attr.relation_name, each.table_name())) && 
+            (0 == strcmp(cond.left_attr.attribute_name, each.field_name()))) {
+                left = true;
+        }
+        if ((0 == strcmp(cond.right_attr.relation_name, each.table_name())) && 
+            (0 == strcmp(cond.right_attr.attribute_name, each.field_name()))) {
+                right = true;
+        }
+    }
+    return left && right;
+}
+
+void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tuple &tmp, const Selects &selects, const TupleSchema &schema, TupleSchema& tmpSchema)
 {
+    LOG_INFO("START OF backtrack:");
+    //tmpSchema.print(std::cout, true);
+
   if (index == -1)
   {
     Tuple t(tmp);
@@ -327,18 +372,56 @@ void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tupl
   }
   else
   {
+
     int len = sets[index].size();
     for (int i = 0; i < len; i++)
     {
       tmp.merge(sets[index].get(i));
-      backtrack(ans, sets, index - 1, tmp, selects, schema);
+      tmpSchema.append(sets[index].get_schema());
+      // 在这里应该检查一下相应的condition，不满足就不用回溯
+      bool satisfied = true;
+      for (size_t i = 0; i < selects.condition_num; i++) {
+        const Condition& cond = selects.conditions[i];
+        if ((cond.left_is_attr == 1) && (cond.right_is_attr == 1)) {
+            LOG_INFO("Condition %d: %s.%s, %s.%s", i, cond.left_attr.relation_name, cond.left_attr.attribute_name, cond.right_attr.relation_name, cond.right_attr.attribute_name);
+            tmpSchema.print(std::cout, true);
+            if (conditionInTuple(tmpSchema, cond)) {
+                LOG_INFO("Yes");
+                int left_index = tmpSchema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
+                int right_index = tmpSchema.index_of_field(cond.right_attr.relation_name, cond.right_attr.attribute_name);
+                TupleValue *va = tmp.get_pointer(left_index).get();
+                TupleValue *vb = tmp.get_pointer(right_index).get();
+                if (valueCompare(va, vb, cond.comp) == false) {
+                    satisfied = false;
+                    break;
+                }
+            } else {
+                LOG_INFO("No");
+            }
+        }
+      }
+        if (satisfied) {
+            backtrack(ans, sets, index - 1, tmp, selects, schema, tmpSchema);
+        }
+    LOG_INFO("index : %d", index);
+    LOG_INFO("sets[index].get_schema()");
+    sets[index].get_schema().print(std::cout, true);
+    LOG_INFO("tmpSchema:");
+    tmpSchema.print(std::cout, true);
       tmp.remove(sets[index].get(i));
+      tmpSchema.remove(sets[index].get_schema());
     }
   }
 }
 
 TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, const char *db)
 {
+    // 构造一个表名到对应的TupleSet的下标的map
+    // std::unordered_map<std::string, int> name2set;
+    // for (int i = 0; i < sets.size(); i++) {
+    //     const char* table_name = sets[i].get_schema().field(0).table_name();
+    //     name2set[std::string(table_name, strlen(table_name))] = i;
+    // }
   // 先根据所有的tuple_set构造一个包含所有列的TupleSet
   TupleSchema total_schema;
   TupleSet total_set;
@@ -350,7 +433,8 @@ TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, cons
 
   int len_sets = sets.size();
   Tuple tmp;
-  backtrack(total_set, sets, len_sets - 1, tmp, selects, total_schema);
+  TupleSchema tmpSchema;
+  backtrack(total_set, sets, len_sets - 1, tmp, selects, total_schema, tmpSchema);
 
   return total_set;
 }
@@ -603,6 +687,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   if (tuple_sets.size() > 1)
   { // 本次查询了多张表，需要做join操作
     isMultiTable = true;
+
     result = do_join(tuple_sets, selects, db);
     if (result.get_schema().size() == 0)
     {
