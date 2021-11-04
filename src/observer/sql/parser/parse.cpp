@@ -256,7 +256,7 @@ bool check_date_data(const char *s)
 
   void condition_init(Condition *condition, CompOp comp,
                       int left_is_attr, RelAttr *left_attr, Value *left_value,
-                      int right_is_attr, RelAttr *right_attr, Value *right_value, 
+                      int right_is_attr, RelAttr *right_attr, Value *right_value,
                       Selects *sub_select)
   {
     condition->comp = comp;
@@ -272,7 +272,8 @@ bool check_date_data(const char *s)
       condition->left_value = *left_value;
     }
 
-    if (sub_select != nullptr) {
+    if (sub_select != nullptr)
+    {
       // 右侧碰到子查询
       condition->right_is_attr = 2;
       condition->sub_select = sub_select;
@@ -353,7 +354,6 @@ bool check_date_data(const char *s)
       flag = rel_attr->is_desc;
     }
 
-    
     selects->attr_num = cnt;
   }
 
@@ -367,9 +367,10 @@ bool check_date_data(const char *s)
     const char **rel_name = relation_names;
     int cnt = 0;
 
-    for (; *rel_name != nullptr; ++rel_name, ++cnt)
+    for (; strcmp(*rel_name, "NULL") != 0; ++rel_name, ++cnt)
     {
       selects->relations[cnt] = strdup(*rel_name);
+      LOG_INFO("cnt = %d, name = %s", cnt, selects->relations[cnt]);
     }
 
     selects->relation_num = cnt;
@@ -473,14 +474,17 @@ bool check_date_data(const char *s)
     deletes->relation_name = strdup(relation_name);
   }
 
-  void deletes_set_conditions(Deletes *deletes, Condition conditions[], size_t condition_num)
+  void deletes_set_conditions(Deletes *deletes, Condition *conditions)
   {
-    assert(condition_num <= sizeof(deletes->conditions) / sizeof(deletes->conditions[0]));
-    for (size_t i = 0; i < condition_num; i++)
+    Condition *cond = conditions;
+    int cnt = 0;
+
+    for (; cond->comp != NO_OP; ++cond, ++cnt)
     {
-      deletes->conditions[i] = conditions[i];
+      deletes->conditions[cnt] = *cond;
     }
-    deletes->condition_num = condition_num;
+
+    deletes->condition_num = cnt;
   }
   void deletes_destroy(Deletes *deletes)
   {
@@ -494,18 +498,24 @@ bool check_date_data(const char *s)
   }
 
   void updates_init(Updates *updates, const char *relation_name, const char *attribute_name,
-                    Value *value, Condition conditions[], size_t condition_num)
+                    Value *value)
   {
     updates->relation_name = strdup(relation_name);
     updates->attribute_name = strdup(attribute_name);
     updates->value = *value;
+  }
 
-    assert(condition_num <= sizeof(updates->conditions) / sizeof(updates->conditions[0]));
-    for (size_t i = 0; i < condition_num; i++)
+  void updates_init_condition(Updates *updates, Condition *conditions)
+  {
+    Condition *cond = conditions;
+    int cnt = 0;
+
+    for (; cond->comp != NO_OP; ++cond, ++cnt)
     {
-      updates->conditions[i] = conditions[i];
+      updates->conditions[cnt] = *cond;
     }
-    updates->condition_num = condition_num;
+
+    updates->condition_num = cnt;
   }
 
   void updates_destroy(Updates *updates)

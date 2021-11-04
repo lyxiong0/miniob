@@ -274,11 +274,11 @@ extern "C"
   void inserts_destroy(Inserts *inserts);
 
   void deletes_init_relation(Deletes *deletes, const char *relation_name);
-  void deletes_set_conditions(Deletes *deletes, Condition conditions[], size_t condition_num);
+  void deletes_set_conditions(Deletes *deletes, Condition *conditions);
   void deletes_destroy(Deletes *deletes);
 
-  void updates_init(Updates *updates, const char *relation_name, const char *attribute_name, Value *value,
-                    Condition conditions[], size_t condition_num);
+  void updates_init(Updates *updates, const char *relation_name, const char *attribute_name, Value *value);
+  void updates_init_condition(Updates *updates, Condition *conditions);
   void updates_destroy(Updates *updates);
 
   void create_table_append_attribute(CreateTable *create_table, AttrInfo *attr_info);

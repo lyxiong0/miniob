@@ -278,6 +278,7 @@ create_table:		/*create table 语句的语法解析树*/
 			CONTEXT->value_length = 0;
 		}
     ;
+	
 attr_def_list:
     /* empty */
     | COMMA attr_def attr_def_list {    }
@@ -412,19 +413,22 @@ delete:		/*  delete 语句的语法解析树*/
 		{
 			CONTEXT->ssql->flag = SCF_DELETE;//"delete";
 			deletes_init_relation(&CONTEXT->ssql->sstr.deletion, $3);
-			deletes_set_conditions(&CONTEXT->ssql->sstr.deletion, 
-					CONTEXT->conditions, CONTEXT->condition_length);
-			CONTEXT->condition_length = 0;	
+			// 处理where
+			if ($4 != NULL) {
+				deletes_set_conditions(&CONTEXT->ssql->sstr.selection, $4); // where
+			}
     }
     ;
+
 update:			/*  update 语句的语法解析树*/
     UPDATE ID SET ID EQ value where SEMICOLON
 		{
 			CONTEXT->ssql->flag = SCF_UPDATE;//"update";
 			Value *value = &CONTEXT->values[0];
-			updates_init(&CONTEXT->ssql->sstr.update, $2, $4, value, 
-					CONTEXT->conditions, CONTEXT->condition_length);
-			CONTEXT->condition_length = 0;
+			updates_init(&CONTEXT->ssql->sstr.update, $2, $4, value);
+			if ($7 != NULL) {
+				updates_init_condition(&CONTEXT->ssql->sstr.update, $7);
+			}
 		}
     ;
 
@@ -545,14 +549,15 @@ opt_star:
 from_rel:
 	FROM ID rel_list {
 		CONTEXT->rels[CONTEXT->rel_length++] = $2;
-		$$ = ( char **)malloc(sizeof(char*) * CONTEXT->rel_length);
-		memcpy($$, CONTEXT->rels, sizeof(char*) * CONTEXT->rel_length);
+		CONTEXT->rels[CONTEXT->rel_length++] = "NULL";
+		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->rel_length);
+		memcpy($$, CONTEXT->rels, sizeof(const char*) * CONTEXT->rel_length);
 		CONTEXT->rel_length = 0;
 	}
 	;
 
 rel_list:
-    /* empty */
+    /* empty */ {}
     | COMMA ID rel_list {	
 		CONTEXT->rels[CONTEXT->rel_length++] = $2;
 	}
