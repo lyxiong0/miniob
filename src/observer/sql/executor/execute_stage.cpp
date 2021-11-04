@@ -725,7 +725,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     TupleSet sub_res;
     CompOp comp = condition.comp;
     do_select(db, *condition.sub_select, session_event, sub_res, true);
-    sub_res.print(ss, isMultiTable);
     // sub_res.print(std::cout);
     // result.print(std::cout);
 
