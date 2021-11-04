@@ -250,7 +250,7 @@ void TupleSet::set_schema(const TupleSchema &schema)
 }
 
 void TupleSet::copy_ith_to(TupleSet &lhs, int i) const {
-  // 将第i个指
+  // 将第i个值
   Tuple tmp = tuples_[i];
   lhs.add(std::move(tmp));
 }

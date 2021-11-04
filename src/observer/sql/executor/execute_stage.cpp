@@ -724,7 +724,10 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     has_subselect = true;
     TupleSet sub_res;
     CompOp comp = condition.comp;
-    do_select(db, *condition.sub_select, session_event, sub_res, true);
+    rc = do_select(db, *condition.sub_select, session_event, sub_res, true);
+    if (rc != RC::SUCCESS) {
+      break;
+    }
     // sub_res.print(std::cout);
     // result.print(std::cout);
 
@@ -739,7 +742,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     const std::shared_ptr<TupleValue> &right_data = sub_res.get(0).get_pointer(0);
 
     // 如果左侧是列，提取index
-    int index;
+    int index = -1;
     if (condition.left_is_attr)
     {
       const char *rel_name = condition.left_attr.relation_name;
@@ -777,6 +780,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     // 判断左右两侧类型是否可以比较
     if (left_type == AttrType::FLOATS || left_type == AttrType::INTS)
     {
+      // INTS和FLOATS可以互相比较
       if (right_type != AttrType::INTS && right_type != AttrType::FLOATS)
       {
         rc = RC::GENERIC_ERROR;
@@ -838,7 +842,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
       for (int j = 0; j < n; ++j)
       {
-        target_set.insert(sub_res.get(j).get(0).to_hash());
+        target_set.insert(sub_res.get(j).get_pointer(0)->to_hash());
       }
 
       // 查询验证
@@ -888,13 +892,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         // 左侧是列
         TupleSet tmp_res;
         tmp_res.set_schema(result.get_schema());
-        AttrType left_type = result.get_schema().field(index).type();
-
-        const char *attr_name = condition.left_attr.attribute_name;
-        if (strcmp(attr_name, "COL1") == 0) {
-          sub_res.print(ss, false);
-          tmp_res.print(ss, false);
-        }
 
         int n = result.size();
         for (int j = 0; j < n; ++j)
@@ -912,10 +909,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         }
 
         result = std::move(tmp_res);
-
-        if (strcmp(attr_name, "COL1") == 0) {
-          result.print(ss, false);
-        }
       }
     }
 
@@ -1116,12 +1109,17 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     final_set.set_schema(final_schema);
 
     // 取出需要的列
-    for (auto &tp : result.tuples())
+    for (const Tuple &tp : result.tuples())
     {
       Tuple t;
-      for (const auto &s : final_schema.fields())
+      for (const TupleField &s : final_schema.fields())
       {
-        int index = result_schema.index_of_field(s.table_name(), s.field_name());
+        int index = -1;
+        if (s.table_name() != nullptr) {
+          index = result_schema.index_of_field(s.table_name(), s.field_name());
+        } else {
+          index = result_schema.index_of_field(s.field_name());
+        }
         t.add(tp.get_pointer(index));
       }
       final_set.add(std::move(t));
