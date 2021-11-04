@@ -2394,7 +2394,6 @@ bool BplusTreeScanner::satisfy_condition(const char *pkey)
       flag = (i1 == 19700101);
       break;
     case FLOATS:
-      LOG_INFO("f1 = %f", f1);
       flag = 0 == float_compare(f1, 0.0);
       break;
     case CHARS:

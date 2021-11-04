@@ -388,11 +388,10 @@ void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tupl
         const Condition &cond = selects.conditions[i];
         if ((cond.left_is_attr == 1) && (cond.right_is_attr == 1))
         {
-          LOG_INFO("Condition %d: %s.%s, %s.%s", i, cond.left_attr.relation_name, cond.left_attr.attribute_name, cond.right_attr.relation_name, cond.right_attr.attribute_name);
+          // LOG_INFO("Condition %d: %s.%s, %s.%s", i, cond.left_attr.relation_name, cond.left_attr.attribute_name, cond.right_attr.relation_name, cond.right_attr.attribute_name);
           // tmpSchema.print(std::cout, true);
           if (conditionInTuple(tmpSchema, cond))
           {
-            LOG_INFO("Yes");
             int left_index = tmpSchema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
             int right_index = tmpSchema.index_of_field(cond.right_attr.relation_name, cond.right_attr.attribute_name);
             TupleValue *va = tmp.get_pointer(left_index).get();
@@ -405,7 +404,6 @@ void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tupl
           }
           else
           {
-            LOG_INFO("No");
           }
         }
       }
@@ -734,6 +732,10 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     has_subselect = true;
     TupleSet sub_res;
     CompOp comp = condition.comp;
+    if (comp == CompOp::NOT_IN)
+    {
+      result.print(ss, false);
+    }
     rc = do_select(db, *condition.sub_select, session_event, sub_res, true);
     if (rc != RC::SUCCESS)
     {
@@ -910,8 +912,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
         if (comp == CompOp::NOT_IN)
         {
-          sub_res.print(ss, false);
-          tmp_res.print(ss, false);
+          // sub_res.print(ss, false);
+          // tmp_res.print(ss, false);
         }
 
         int n = result.size();
@@ -1600,8 +1602,6 @@ bool match_table(const Selects &selects, const char *table_name_in_condition, co
 {
   if (table_name_in_condition != nullptr)
   {
-    LOG_INFO("table_name_in_condition: %s", table_name_in_condition);
-    LOG_INFO("table_name_to_match: %s", table_name_to_match);
     return 0 == strcmp(table_name_in_condition, table_name_to_match);
   }
 
