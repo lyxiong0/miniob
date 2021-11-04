@@ -276,7 +276,8 @@ bool check_date_data(const char *s)
     {
       // 右侧碰到子查询
       condition->right_is_attr = 2;
-      condition->sub_select = sub_select;
+      condition->sub_select = (Selects *)malloc(sizeof(Selects));
+      *condition->sub_select = std::move(*sub_select);
       return;
     }
 
@@ -290,6 +291,8 @@ bool check_date_data(const char *s)
       condition->right_value = *right_value;
     }
   }
+
+
   void condition_destroy(Condition *condition)
   {
     if (condition->left_is_attr)

@@ -732,19 +732,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     has_subselect = true;
     TupleSet sub_res;
     CompOp comp = condition.comp;
-    if (comp == CompOp::NOT_IN)
-    {
-      result.print(ss, false);
-    }
+
     rc = do_select(db, *condition.sub_select, session_event, sub_res, true);
     if (rc != RC::SUCCESS)
     {
       break;
-    }
-
-    if (comp == CompOp::NOT_IN)
-    {
-      sub_res.print(ss, false);
     }
     // sub_res.print(std::cout);
     // result.print(std::cout);
@@ -909,12 +901,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         // 左侧是列
         TupleSet tmp_res;
         tmp_res.set_schema(result.get_schema());
-
-        if (comp == CompOp::NOT_IN)
-        {
-          // sub_res.print(ss, false);
-          // tmp_res.print(ss, false);
-        }
 
         int n = result.size();
         for (int j = 0; j < n; ++j)
