@@ -913,7 +913,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
         result = std::move(tmp_res);
 
-        const char *attr_name = condition.left_attr.attribute_name;
         if (strcmp(attr_name, "COL1") == 0) {
           result.print(ss, false);
         }
