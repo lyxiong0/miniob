@@ -384,7 +384,7 @@ void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tupl
         const Condition& cond = selects.conditions[i];
         if ((cond.left_is_attr == 1) && (cond.right_is_attr == 1)) {
             LOG_INFO("Condition %d: %s.%s, %s.%s", i, cond.left_attr.relation_name, cond.left_attr.attribute_name, cond.right_attr.relation_name, cond.right_attr.attribute_name);
-            tmpSchema.print(std::cout, true);
+            // tmpSchema.print(std::cout, true);
             if (conditionInTuple(tmpSchema, cond)) {
                 LOG_INFO("Yes");
                 int left_index = tmpSchema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
@@ -403,11 +403,11 @@ void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tupl
         if (satisfied) {
             backtrack(ans, sets, index - 1, tmp, selects, schema, tmpSchema);
         }
-    LOG_INFO("index : %d", index);
-    LOG_INFO("sets[index].get_schema()");
-    sets[index].get_schema().print(std::cout, true);
-    LOG_INFO("tmpSchema:");
-    tmpSchema.print(std::cout, true);
+    // LOG_INFO("index : %d", index);
+    // LOG_INFO("sets[index].get_schema()");
+    // sets[index].get_schema().print(std::cout, true);
+    // LOG_INFO("tmpSchema:");
+    // tmpSchema.print(std::cout, true);
       tmp.remove(sets[index].get(i));
       tmpSchema.remove(sets[index].get_schema());
     }
@@ -726,7 +726,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     CompOp comp = condition.comp;
     do_select(db, *condition.sub_select, session_event, sub_res, true);
     sub_res.print(std::cout);
-    result.print(std::cout);
+    // result.print(std::cout);
 
     // 如果查询结果不为单列则不合法
     if (sub_res.get_schema().size() != 1)

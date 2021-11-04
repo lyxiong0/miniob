@@ -824,6 +824,32 @@ condition:
 		condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 2, NULL, NULL, $3);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
+	| sub_select comOp value {
+		// 反过来，当作正的解析
+		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+		Condition condition;
+		condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 2, NULL, NULL, $1);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	}
+	| sub_select comOp ID{
+		// 反过来，当作正的解析
+		RelAttr left_attr;
+		relation_attr_init(&left_attr, NULL, $3, NULL, 0);
+
+		Condition condition;
+		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	}
+	| sub_select comOp ID DOT ID {
+		// 反过来，当作正的解析
+		RelAttr left_attr;
+		relation_attr_init(&left_attr, $3, $5, NULL, 0);
+
+		Condition condition;
+		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	}
     ;
 
 comOp:
