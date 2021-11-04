@@ -890,6 +890,12 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         tmp_res.set_schema(result.get_schema());
         AttrType left_type = result.get_schema().field(index).type();
 
+        const char *attr_name = condition.left_attr.attribute_name;
+        if (strcmp(attr_name, "COL1") == 0) {
+          sub_res.print(ss, false);
+          tmp_res.print(ss, false);
+        }
+
         int n = result.size();
         for (int j = 0; j < n; ++j)
         {
@@ -906,6 +912,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         }
 
         result = std::move(tmp_res);
+
+        const char *attr_name = condition.left_attr.attribute_name;
+        if (strcmp(attr_name, "COL1") == 0) {
+          result.print(ss, false);
+        }
       }
     }
 
