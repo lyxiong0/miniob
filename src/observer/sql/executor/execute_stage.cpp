@@ -725,7 +725,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     TupleSet sub_res;
     CompOp comp = condition.comp;
     do_select(db, *condition.sub_select, session_event, sub_res, true);
-    sub_res.print(std::cout);
+    sub_res.print(ss, isMultiTable);
+    // sub_res.print(std::cout);
     // result.print(std::cout);
 
     // 如果查询结果不为单列则不合法
@@ -812,7 +813,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         // 左侧是列
         TupleSet tmp_res;
-        tmp_res.set_schema(result.get_schema());
+        TupleSchema tmp_schema;
+        tmp_schema.append(result.get_schema());
+        tmp_res.set_schema(tmp_schema);
 
         int n = result.size();
         for (int j = 0; j < n; ++j)
@@ -1060,11 +1063,10 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   ////////////////////////////聚合函数结束/////////////////////////////
 
   // 有两种情况需要二次提取列
-  // 1. 多表且没有group by
+  // 1. 多表且没有group by，如果有group by，提取列已经在聚合里完成
   // 2. 单表且有子查询操作
   if ((selects.relation_num > 1 && selects.group_num == 0) || (selects.relation_num == 1 && has_subselect))
   {
-    // 如果有group by，提取列已经在聚合里完成
     TupleSchema final_schema;
     const TupleSchema &result_schema = result.get_schema();
 
