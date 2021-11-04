@@ -338,28 +338,31 @@ bool isTupleSatisfy(const Tuple &tp, const TupleSchema &schema, const Selects &s
 // }
 
 // 检查condition两边的列是否再元组中
-bool conditionInTuple(const TupleSchema& schema, const Condition& cond)
-{  
-    bool left = false;
-    bool right = false;
-    auto fields = schema.fields();
-    for (const auto& each : fields) {
-        if ((0 == strcmp(cond.left_attr.relation_name, each.table_name())) && 
-            (0 == strcmp(cond.left_attr.attribute_name, each.field_name()))) {
-                left = true;
-        }
-        if ((0 == strcmp(cond.right_attr.relation_name, each.table_name())) && 
-            (0 == strcmp(cond.right_attr.attribute_name, each.field_name()))) {
-                right = true;
-        }
+bool conditionInTuple(const TupleSchema &schema, const Condition &cond)
+{
+  bool left = false;
+  bool right = false;
+  auto fields = schema.fields();
+  for (const auto &each : fields)
+  {
+    if ((0 == strcmp(cond.left_attr.relation_name, each.table_name())) &&
+        (0 == strcmp(cond.left_attr.attribute_name, each.field_name())))
+    {
+      left = true;
     }
-    return left && right;
+    if ((0 == strcmp(cond.right_attr.relation_name, each.table_name())) &&
+        (0 == strcmp(cond.right_attr.attribute_name, each.field_name())))
+    {
+      right = true;
+    }
+  }
+  return left && right;
 }
 
-void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tuple &tmp, const Selects &selects, const TupleSchema &schema, TupleSchema& tmpSchema)
+void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tuple &tmp, const Selects &selects, const TupleSchema &schema, TupleSchema &tmpSchema)
 {
-    LOG_INFO("START OF backtrack:");
-    //tmpSchema.print(std::cout, true);
+  LOG_INFO("START OF backtrack:");
+  // tmpSchema.print(std::cout, true);
 
   if (index == -1)
   {
@@ -380,34 +383,41 @@ void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tupl
       tmpSchema.append(sets[index].get_schema());
       // 在这里应该检查一下相应的condition，不满足就不用回溯
       bool satisfied = true;
-      for (size_t i = 0; i < selects.condition_num; i++) {
-        const Condition& cond = selects.conditions[i];
-        if ((cond.left_is_attr == 1) && (cond.right_is_attr == 1)) {
-            LOG_INFO("Condition %d: %s.%s, %s.%s", i, cond.left_attr.relation_name, cond.left_attr.attribute_name, cond.right_attr.relation_name, cond.right_attr.attribute_name);
-            // tmpSchema.print(std::cout, true);
-            if (conditionInTuple(tmpSchema, cond)) {
-                LOG_INFO("Yes");
-                int left_index = tmpSchema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
-                int right_index = tmpSchema.index_of_field(cond.right_attr.relation_name, cond.right_attr.attribute_name);
-                TupleValue *va = tmp.get_pointer(left_index).get();
-                TupleValue *vb = tmp.get_pointer(right_index).get();
-                if (valueCompare(va, vb, cond.comp) == false) {
-                    satisfied = false;
-                    break;
-                }
-            } else {
-                LOG_INFO("No");
+      for (size_t i = 0; i < selects.condition_num; i++)
+      {
+        const Condition &cond = selects.conditions[i];
+        if ((cond.left_is_attr == 1) && (cond.right_is_attr == 1))
+        {
+          LOG_INFO("Condition %d: %s.%s, %s.%s", i, cond.left_attr.relation_name, cond.left_attr.attribute_name, cond.right_attr.relation_name, cond.right_attr.attribute_name);
+          // tmpSchema.print(std::cout, true);
+          if (conditionInTuple(tmpSchema, cond))
+          {
+            LOG_INFO("Yes");
+            int left_index = tmpSchema.index_of_field(cond.left_attr.relation_name, cond.left_attr.attribute_name);
+            int right_index = tmpSchema.index_of_field(cond.right_attr.relation_name, cond.right_attr.attribute_name);
+            TupleValue *va = tmp.get_pointer(left_index).get();
+            TupleValue *vb = tmp.get_pointer(right_index).get();
+            if (valueCompare(va, vb, cond.comp) == false)
+            {
+              satisfied = false;
+              break;
             }
+          }
+          else
+          {
+            LOG_INFO("No");
+          }
         }
       }
-        if (satisfied) {
-            backtrack(ans, sets, index - 1, tmp, selects, schema, tmpSchema);
-        }
-    // LOG_INFO("index : %d", index);
-    // LOG_INFO("sets[index].get_schema()");
-    // sets[index].get_schema().print(std::cout, true);
-    // LOG_INFO("tmpSchema:");
-    // tmpSchema.print(std::cout, true);
+      if (satisfied)
+      {
+        backtrack(ans, sets, index - 1, tmp, selects, schema, tmpSchema);
+      }
+      // LOG_INFO("index : %d", index);
+      // LOG_INFO("sets[index].get_schema()");
+      // sets[index].get_schema().print(std::cout, true);
+      // LOG_INFO("tmpSchema:");
+      // tmpSchema.print(std::cout, true);
       tmp.remove(sets[index].get(i));
       tmpSchema.remove(sets[index].get_schema());
     }
@@ -416,12 +426,12 @@ void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tupl
 
 TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, const char *db)
 {
-    // 构造一个表名到对应的TupleSet的下标的map
-    // std::unordered_map<std::string, int> name2set;
-    // for (int i = 0; i < sets.size(); i++) {
-    //     const char* table_name = sets[i].get_schema().field(0).table_name();
-    //     name2set[std::string(table_name, strlen(table_name))] = i;
-    // }
+  // 构造一个表名到对应的TupleSet的下标的map
+  // std::unordered_map<std::string, int> name2set;
+  // for (int i = 0; i < sets.size(); i++) {
+  //     const char* table_name = sets[i].get_schema().field(0).table_name();
+  //     name2set[std::string(table_name, strlen(table_name))] = i;
+  // }
   // 先根据所有的tuple_set构造一个包含所有列的TupleSet
   TupleSchema total_schema;
   TupleSet total_set;
@@ -725,8 +735,14 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     TupleSet sub_res;
     CompOp comp = condition.comp;
     rc = do_select(db, *condition.sub_select, session_event, sub_res, true);
-    if (rc != RC::SUCCESS) {
+    if (rc != RC::SUCCESS)
+    {
       break;
+    }
+
+    if (comp == CompOp::NOT_IN)
+    {
+      sub_res.print(ss, false);
     }
     // sub_res.print(std::cout);
     // result.print(std::cout);
@@ -764,7 +780,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         break;
       }
     }
-
 
     // 提取左侧类型
     AttrType left_type;
@@ -892,6 +907,12 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         // 左侧是列
         TupleSet tmp_res;
         tmp_res.set_schema(result.get_schema());
+
+        if (comp == CompOp::NOT_IN)
+        {
+          sub_res.print(ss, false);
+          tmp_res.print(ss, false);
+        }
 
         int n = result.size();
         for (int j = 0; j < n; ++j)
@@ -1115,9 +1136,12 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       for (const TupleField &s : final_schema.fields())
       {
         int index = -1;
-        if (s.table_name() != nullptr) {
+        if (s.table_name() != nullptr)
+        {
           index = result_schema.index_of_field(s.table_name(), s.field_name());
-        } else {
+        }
+        else
+        {
           index = result_schema.index_of_field(s.field_name());
         }
         t.add(tp.get_pointer(index));
