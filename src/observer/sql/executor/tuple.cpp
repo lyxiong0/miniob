@@ -370,7 +370,7 @@ void TupleRecordConverter::add_record(const char *record)
         num2date(value,str);
         // const char *s = str;
         //const char *s = num2date(value);
-        tuple.add(str, strlen(str));
+        tuple.add(str, 10);
         free(str);
 
         // const char *s = num2date(value).data();

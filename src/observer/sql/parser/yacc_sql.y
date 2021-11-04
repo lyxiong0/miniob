@@ -410,26 +410,26 @@ value:
     
 delete:		/*  delete 语句的语法解析树*/
     DELETE FROM ID where SEMICOLON 
-		{
-			CONTEXT->ssql->flag = SCF_DELETE;//"delete";
-			deletes_init_relation(&CONTEXT->ssql->sstr.deletion, $3);
-			// 处理where
-			if ($4 != NULL) {
-				deletes_set_conditions(&CONTEXT->ssql->sstr.selection, $4); // where
-			}
+	{
+		CONTEXT->ssql->flag = SCF_DELETE;//"delete";
+		deletes_init_relation(&CONTEXT->ssql->sstr.deletion, $3);
+		// 处理where
+		if ($4 != NULL) {
+			deletes_set_conditions(&CONTEXT->ssql->sstr.selection, $4); // where
+		}
     }
     ;
 
 update:			/*  update 语句的语法解析树*/
     UPDATE ID SET ID EQ value where SEMICOLON
-		{
-			CONTEXT->ssql->flag = SCF_UPDATE;//"update";
-			Value *value = &CONTEXT->values[0];
-			updates_init(&CONTEXT->ssql->sstr.update, $2, $4, value);
-			if ($7 != NULL) {
-				updates_init_condition(&CONTEXT->ssql->sstr.update, $7);
-			}
+	{
+		CONTEXT->ssql->flag = SCF_UPDATE;//"update";
+		Value *value = &CONTEXT->values[0];
+		updates_init(&CONTEXT->ssql->sstr.update, $2, $4, value);
+		if ($7 != NULL) {
+			updates_init_condition(&CONTEXT->ssql->sstr.update, $7);
 		}
+	}
     ;
 
 
