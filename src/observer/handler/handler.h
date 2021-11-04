@@ -15,7 +15,7 @@ See the Mulan PSL v2 for more details. */
 #ifndef __OBSERVER_HANDLER_HANDLER_H__
 #define __OBSERVER_HANDLER_HANDLER_H__
 
-#define MAX_NUM 20
+#define MAX_NUM 21
 #define MAX_REL_NAME 20
 #define MAX_ATTR_NAME 20
 #define MAX_ERROR_MESSAGE 20
@@ -27,7 +27,7 @@ See the Mulan PSL v2 for more details. */
 #include "rc.h"
 
 //属性结构体
-typedef struct {
+typedef struct _RelAttr{
   char *relName;  // relation name (may be NULL) 表名
   char *attrName; // attribute name              属性名
 } RelAttr;

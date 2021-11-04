@@ -26,7 +26,7 @@ See the Mulan PSL v2 for more details. */
 #define MAX_DATA 50
 
 //属性结构体
-typedef struct
+typedef struct _RelAttr
 {
   int is_desc;                // 默认采用升序asc，=1降序
   char *relation_name;        // relation name (may be NULL) 表名
@@ -76,40 +76,47 @@ typedef struct _Value
   int is_null;   // 1:null, 0:not null
 } Value;
 
+// Condition conditions[MAX_NUM]需要先定义完整结构体Condition
+// 但Selects *sub_select可以只有声明
+typedef struct _Selects Selects;
+
 typedef struct _Condition
 {
-  bool is_valid;      // added for check if date value is valid
-  int left_is_attr;   // TRUE if left-hand side is an attribute
-                      // 1时，操作符左边是属性名，0时，是属性值
-  Value left_value;   // left-hand side value if left_is_attr = FALSE
-                      // left_is_attr = 0时，操作符左侧的属性值
-  RelAttr left_attr;  // left-hand side attribute
-                      // left_is_attr = 0时，操作符左侧的属性名
+  int left_is_attr;   // 1时，操作符左边是属性名，0时，是属性值
+  Value left_value;   // left_is_attr = 0时，操作符左侧的属性值
+  RelAttr left_attr;  // left_is_attr = 0时，操作符左侧的属性名
+                      
   CompOp comp;        // comparison operator
-  int right_is_attr;  // TRUE if right-hand side is an attribute
-                      // 1时，操作符右边是属性名，0时，是属性值
+
+  int right_is_attr;  // 1时，操作符右边是属性名，0时，是属性值
   RelAttr right_attr; // right-hand side attribute if right_is_attr = TRUE 右边的属性
   Value right_value;  // right-hand side value if right_is_attr = FALSE
+  Selects *sub_select; 
 } Condition;
 
 // struct of select
 // SELECT column_name,column_name
 // FROM table_name
 // WHERE column_name operator value;
-typedef struct
+struct _Selects
 {
   
   size_t attr_num;               // Length of attrs in Select clause
   RelAttr attributes[MAX_NUM];   // attrs in Select clause
+
   size_t relation_num;           // Length of relations in For clause
   char *relations[MAX_NUM];      // relations in From clause
+
   size_t condition_num;          // Length of conditions in Where clause
   Condition conditions[MAX_NUM]; // conditions in Where clause
+
   size_t order_num;
   RelAttr order_attrs[MAX_NUM]; // order by数组
+
   size_t group_num;
   RelAttr group_attrs[MAX_NUM]; // group by 数组
-} Selects;
+};
+
 
 // struct of insert
 typedef struct
@@ -245,7 +252,7 @@ extern "C"
   void value_destroy(Value *value);
 
   void condition_init(Condition *condition, CompOp comp, int left_is_attr, RelAttr *left_attr, Value *left_value,
-                      int right_is_attr, RelAttr *right_attr, Value *right_value);
+                      int right_is_attr, RelAttr *right_attr, Value *right_value, Selects *sub_select);
   void condition_destroy(Condition *condition);
 
   void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, TrueOrFalse is_nullable);
@@ -253,12 +260,15 @@ extern "C"
 
   void selects_init(Selects *selects, ...);
   void selects_append_attribute(Selects *selects, RelAttr *rel_attr);
+  void selects_append_attributes(Selects *selects, RelAttr *rel_attrs);
   void selects_append_relation(Selects *selects, const char *relation_name);
+  void selects_append_relations(Selects *selects, const char **relation_names);
   // void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
-  void selects_append_conditions(Query *sql, Condition conditions[], size_t condition_num);
+  void selects_append_conditions(Selects *selects, Condition *conditions);
   void selects_append_order(Selects *selects, RelAttr *rel_attr);
   void selects_append_group(Selects *selects, RelAttr *rel_attr);
   void selects_destroy(Selects *selects);
+  void print_name(const char *name);
 
   void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index);
   void inserts_destroy(Inserts *inserts);

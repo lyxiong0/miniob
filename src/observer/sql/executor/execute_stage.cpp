@@ -37,11 +37,13 @@ using namespace common;
 
 static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema);
 
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
-
 RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results, int rel_num);
 
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
+
 FuncType judge_function_type(char *agg_function_name);
+
+bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const std::shared_ptr<TupleValue> &right_data, CompOp op, const std::shared_ptr<TupleValue> &left_value);
 
 int is_col_legal(const RelAttr &attr, const TupleSchema &schema);
 
@@ -144,7 +146,8 @@ void ExecuteStage::handle_request(common::StageEvent *event)
   {
   case SCF_SELECT:
   { // select
-    do_select(current_db, sql, exe_event->sql_event()->session_event());
+    TupleSet tmp;
+    do_select(current_db, sql->sstr.selection, exe_event->sql_event()->session_event(), tmp);
     exe_event->done_immediate();
   }
   break;
@@ -350,45 +353,6 @@ TupleSet do_join(const std::vector<TupleSet> &sets, const Selects &selects, cons
   backtrack(total_set, sets, len_sets - 1, tmp, selects, total_schema);
 
   return total_set;
-
-  // 根据Select中的列构造输出的schema
-  // TupleSchema final_schema;
-  // for (int i = selects.attr_num - 1; i >= 0; i--)
-  // {
-  //   const RelAttr &attr = selects.attributes[i];
-  //   if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-  //   {
-  //     final_schema.append(total_schema);
-  //   }
-  //   else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-  //   {
-  //     Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-  //     TupleSchema::from_table(table, final_schema);
-  //   }
-  //   else
-  //   {
-  //     Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-  //     schema_add_field(table, attr.attribute_name, final_schema);
-  //   }
-  // }
-
-  // TupleSet final_set;
-  // // TupleSchema final_schema = buildSchema(selects, total_schema, db);
-  // final_set.set_schema(final_schema);
-
-  // // 取出需要的列
-  // for (auto &tp : total_set.tuples())
-  // {
-  //   Tuple t;
-  //   for (const auto &s : final_schema.fields())
-  //   {
-  //     int index = total_schema.index_of_field(s.table_name(), s.field_name());
-  //     t.add(tp.get_pointer(index));
-  //   }
-  //   final_set.add(std::move(t));
-  // }
-
-  // return final_set;
 }
 
 // 检查Select, where中的表名是否都出现在from中
@@ -560,12 +524,11 @@ RC check_table_name(const Selects &selects, const char *db)
 
 // 这里没有对输入的某些信息做合法性校验，比如查询的列名、where条件中的列名等，没有做必要的合法性校验
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
-RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_event)
+RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_ret)
 {
   RC rc = RC::SUCCESS;
   Session *session = session_event->get_client()->session;
   Trx *trx = session->current_trx();
-  const Selects &selects = sql->sstr.selection;
 
   // 这里先检查Select语句的合法性
   rc = check_table_name(selects, db);
@@ -661,6 +624,220 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   }
 
   // result.print(std::cout);
+
+  // 在此执行子查询操作
+  bool has_subselect = false;
+  for (size_t i = 0; i < selects.condition_num; i++)
+  {
+    const Condition &condition = selects.conditions[i];
+    // 查看是否有子查询
+    if (condition.right_is_attr != 2)
+    {
+      continue;
+    }
+    // 处理子查询
+    has_subselect = true;
+    TupleSet sub_res;
+    CompOp comp = condition.comp;
+    do_select(db, *condition.sub_select, session_event, sub_res, true);
+    sub_res.print(std::cout);
+    result.print(std::cout);
+
+    // 如果查询结果不为单列则不合法
+    if (sub_res.get_schema().size() != 1)
+    {
+      continue;
+    }
+
+    // 提取右侧类型和TupleValue
+    AttrType right_type = sub_res.get_schema().field(0).type();
+    const std::shared_ptr<TupleValue> &right_data = sub_res.get(0).get_pointer(0);
+
+    // 如果左侧是列，提取index
+    int index;
+    if (condition.left_is_attr)
+    {
+      const char *rel_name = condition.left_attr.relation_name;
+      const char *attr_name = condition.left_attr.attribute_name;
+
+      if (rel_name != nullptr)
+      {
+        index = result.get_schema().index_of_field(rel_name, attr_name);
+      }
+      else
+      {
+        index = result.get_schema().index_of_field(attr_name);
+      }
+
+      if (index == -1)
+      {
+        // 出现错误的列名
+        rc = RC::GENERIC_ERROR;
+        break;
+      }
+    }
+
+
+    // 提取左侧类型
+    AttrType left_type;
+    if (condition.left_is_attr)
+    {
+      left_type = result.get_schema().field(index).type();
+    }
+    else
+    {
+      left_type = condition.left_value.type;
+    }
+
+    // 判断左右两侧类型是否可以比较
+    if (left_type == AttrType::FLOATS || left_type == AttrType::INTS)
+    {
+      if (right_type != AttrType::INTS && right_type != AttrType::FLOATS)
+      {
+        rc = RC::GENERIC_ERROR;
+        break;
+      }
+    }
+    else if (left_type != right_type)
+    {
+      rc = RC::GENERIC_ERROR;
+      break;
+    }
+
+    // 开始处理操作符
+    if (comp != CompOp::NOT_IN && comp != CompOp::IN_SUB)
+    {
+      // 处理比较操作符，超过一行则不合法
+      if (sub_res.size() > 1)
+      {
+        continue;
+      }
+
+      if (condition.left_is_attr == 0)
+      {
+        // 左侧也是值
+        bool cmp_res = cmp_value(condition.left_value.type, right_type, condition.left_value.data, right_data, condition.comp, right_data);
+
+        if (!cmp_res)
+        {
+          result.clear_tuples();
+        }
+      }
+      else
+      {
+        // 左侧是列
+        TupleSet tmp_res;
+        tmp_res.set_schema(result.get_schema());
+
+        int n = result.size();
+        for (int j = 0; j < n; ++j)
+        {
+          // 遍历result，找出满足条件的tuple
+          if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
+          {
+            result.copy_ith_to(tmp_res, j);
+          }
+        }
+
+        result = std::move(tmp_res);
+      }
+    }
+    else
+    {
+      // 处理操作符in/not in，用哈希表
+      // 生成哈希表
+      std::unordered_set<size_t> target_set;
+      int n = sub_res.size();
+
+      for (int j = 0; j < n; ++j)
+      {
+        target_set.insert(sub_res.get(j).get(0).to_hash());
+      }
+
+      // 查询验证
+      if (condition.left_is_attr == 0)
+      {
+        // 左侧是值
+        bool in_target;
+        switch (condition.left_value.type)
+        {
+        case AttrType::CHARS:
+        {
+          std::string v = std::string((const char *)condition.left_value.data);
+          std::hash<std::string> hash_func;
+          in_target = target_set.find(hash_func(v)) != target_set.end();
+          break;
+        }
+        case AttrType::DATES:
+        case AttrType::INTS:
+        {
+          int v = *(int *)condition.left_value.data;
+          std::hash<int> hash_func;
+          in_target = target_set.find(hash_func(v)) != target_set.end();
+          break;
+        }
+        case AttrType::FLOATS:
+        {
+          int v = *(float *)condition.left_value.data;
+          std::hash<float> hash_func;
+          in_target = target_set.find(hash_func(v)) != target_set.end();
+          break;
+        }
+        default:
+          break;
+        }
+
+        if (comp == CompOp::IN_SUB && !in_target)
+        {
+          result.clear_tuples();
+        }
+        else if (comp == CompOp::NOT_IN && in_target)
+        {
+          result.clear_tuples();
+        }
+      }
+      else
+      {
+        // 左侧是列
+        TupleSet tmp_res;
+        tmp_res.set_schema(result.get_schema());
+        AttrType left_type = result.get_schema().field(index).type();
+
+        int n = result.size();
+        for (int j = 0; j < n; ++j)
+        {
+          // 遍历result，找出满足条件的tuple
+          bool in_target = target_set.find(result.get(j).get_pointer(index)->to_hash()) != target_set.end();
+          if (comp == CompOp::IN_SUB && in_target)
+          {
+            result.copy_ith_to(tmp_res, j);
+          }
+          else if (comp == CompOp::NOT_IN && !in_target)
+          {
+            result.copy_ith_to(tmp_res, j);
+          }
+        }
+
+        result = std::move(tmp_res);
+      }
+    }
+
+    rc = RC::SUCCESS;
+  }
+
+  // 子查询结束
+
+  if (rc != RC::SUCCESS)
+  {
+    for (SelectExeNode *&tmp_node : select_nodes)
+    {
+      delete tmp_node;
+    }
+
+    session_event->set_response("FAILURE\n");
+    end_trx_if_need(session, trx, true);
+    return RC::GENERIC_ERROR;
+  }
 
   // ATTENTION: 现在假设group by里出现的列一定出现在result.schema里
   // tuple_to_indexes记录<group by哈希值，在result中对应的列>
@@ -797,10 +974,11 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   }
   ////////////////////////////聚合函数结束/////////////////////////////
 
-
-  if (tuple_sets.size() > 1 && selects.group_num == 0)
+  // 有两种情况需要二次提取列
+  // 1. 多表且没有group by
+  // 2. 单表且有子查询操作
+  if ((selects.relation_num > 1 && selects.group_num == 0) || (selects.relation_num == 1 && has_subselect))
   {
-    // 多表的提取列在这里执行
     // 如果有group by，提取列已经在聚合里完成
     TupleSchema final_schema;
     const TupleSchema &result_schema = result.get_schema();
@@ -810,18 +988,29 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     for (int i = 0; i < n; ++i)
     {
       const RelAttr &attr = selects.attributes[i];
-      if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
+      if (0 == strcmp(attr.attribute_name, "*"))
       {
-        final_schema.append(result_schema);
-      }
-      else if ((nullptr != attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
-      {
-        Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
-        TupleSchema::from_table(table, final_schema);
+        if (nullptr == attr.relation_name)
+        {
+          final_schema.append(result_schema);
+        }
+        else
+        {
+          Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+          TupleSchema::from_table(table, final_schema);
+        }
       }
       else
       {
-        Table *table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+        Table *table = nullptr;
+        if (nullptr == attr.relation_name)
+        {
+          table = DefaultHandler::get_default().find_table(db, selects.relations[0]);
+        }
+        else
+        {
+          table = DefaultHandler::get_default().find_table(db, attr.relation_name);
+        }
         schema_add_field(table, attr.attribute_name, final_schema);
       }
     }
@@ -877,15 +1066,23 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     quick_sort(&result, 0, result.size() - 1, order_info);
   }
 
-  result.print(ss, isMultiTable);
+  if (!is_ret)
+  {
+    result.print(ss, isMultiTable);
+    session_event->set_response(ss.str());
+    end_trx_if_need(session, trx, true);
+  }
+  else
+  {
+    // 子查询情况，将结果返回
+    ret_tuple_set = std::move(result);
+  }
 
   for (SelectExeNode *&tmp_node : select_nodes)
   {
     delete tmp_node;
   }
 
-  session_event->set_response(ss.str());
-  end_trx_if_need(session, trx, true);
   return rc;
 }
 
@@ -1346,7 +1543,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 {
   // 列出跟这张表关联的Attr
   // 1. 找到表
-
   TupleSchema schema;
   TupleSchema group_schema;
   Table *table = DefaultHandler::get_default().find_table(db, table_name);
@@ -1431,6 +1627,21 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   {
     const Condition &condition = selects.conditions[i];
 
+    if (condition.right_is_attr == 2)
+    {
+      // 如果select中不是*，需要把where中比较的列也添加到schema中
+      // 出现子查询
+      if (attrIsStar == false && condition.left_is_attr && (condition.left_attr.relation_name == nullptr || 0 == strcmp(condition.left_attr.relation_name, table_name)))
+      {
+        RC rc = schema_add_field(table, condition.left_attr.attribute_name, schema);
+        if (rc != RC::SUCCESS)
+        {
+          return rc;
+        }
+      }
+      continue;
+    }
+
     // 这里其实已经做了下推，即先在单张表上进行了过滤
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
@@ -1483,4 +1694,117 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   }
 
   return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
+}
+
+bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const std::shared_ptr<TupleValue> &right_data, CompOp op, const std::shared_ptr<TupleValue> &left_value)
+{
+  int ans;
+
+  switch (left_type)
+  {
+  case AttrType::CHARS:
+  {
+    const char *left;
+    if (left_data != nullptr)
+    {
+      left = (const char *)left_data;
+    }
+    else
+    {
+      left = std::dynamic_pointer_cast<StringValue>(left_value)->get_value();
+    }
+    const char *right = std::dynamic_pointer_cast<StringValue>(right_data)->get_value();
+    ans = strcmp(left, right);
+    break;
+  }
+  case AttrType::DATES:
+  {
+    int left;
+    if (left_data != nullptr)
+    {
+      left = *(int *)left_data;
+    }
+    else
+    {
+      left = std::dynamic_pointer_cast<IntValue>(left_value)->get_value();
+    }
+    ans = left - std::dynamic_pointer_cast<IntValue>(right_data)->get_value();
+    break;
+  }
+  case AttrType::INTS:
+  case AttrType::FLOATS:
+  {
+    // 都转换成float比较
+    float left;
+    if (left_type == AttrType::INTS)
+    {
+      if (left_data != nullptr)
+      {
+        left = *(int *)left_data;
+      }
+      else
+      {
+        // TODO: core dump
+        left = 1.0 * std::dynamic_pointer_cast<IntValue>(left_value)->get_value();
+      }
+    }
+    else
+    {
+      if (left_data != nullptr)
+      {
+        left = *(float *)left_data;
+      }
+      else
+      {
+        left = std::dynamic_pointer_cast<FloatValue>(left_value)->get_value();
+      }
+    }
+
+    float right;
+    if (right_type == AttrType::FLOATS)
+    {
+      right = std::dynamic_pointer_cast<FloatValue>(right_data)->get_value();
+    }
+    else
+    {
+      right = 1.0 * std::dynamic_pointer_cast<IntValue>(right_data)->get_value();
+    }
+
+    float sub_res = left - right;
+    if (sub_res > -1e-6 && sub_res < 1e-6)
+    {
+
+      ans = 0;
+    }
+    else
+    {
+      ans = sub_res > 0 ? 1 : -1;
+    }
+
+    break;
+  }
+
+  default:
+    LOG_ERROR("错误的比较类型");
+    break;
+  }
+
+  switch (op)
+  {
+  case CompOp::EQUAL_TO:
+    return ans == 0;
+  case CompOp::GREAT_EQUAL:
+    return ans >= 0;
+  case CompOp::GREAT_THAN:
+    return ans > 0;
+  case CompOp::LESS_EQUAL:
+    return ans <= 0;
+  case CompOp::LESS_THAN:
+    return ans < 0;
+  case CompOp::NOT_EQUAL:
+    return ans != 0;
+  default:
+    LOG_ERROR("错误的运算符");
+    break;
+  }
 }
