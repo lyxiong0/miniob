@@ -2623,7 +2623,7 @@ yyreduce:
 #line 872 "yacc_sql.y"
                                                   {
 		(yyval.selnode) = (Selects*)malloc(sizeof(Selects));
-		// !:结构体malloc，后面要不跟上memcpy要不用memset全部默认初始化
+		// 结构体malloc，后面要不跟上memcpy要不用memset全部默认初始化
 		memset((yyval.selnode), 0, sizeof(Selects));
 
 		selects_append_relations((yyval.selnode), (yyvsp[-1].relation)); // from_rel
