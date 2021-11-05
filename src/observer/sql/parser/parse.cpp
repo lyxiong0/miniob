@@ -399,6 +399,16 @@ bool check_date_data(const char *s)
     }
   }
 
+  void selects_append_conditions_with_num(Selects *selects, Condition conditions[], size_t condition_num)
+  {
+    assert(condition_num <= sizeof(selects->conditions) / sizeof(selects->conditions[0]));
+    for (size_t i = 0; i < condition_num; i++)
+    {
+      selects->conditions[selects->condition_num + i] = conditions[i];
+    }
+    selects->condition_num += condition_num;
+  }
+
   void selects_destroy(Selects *selects)
   {
     for (size_t i = 0; i < selects->attr_num; i++)

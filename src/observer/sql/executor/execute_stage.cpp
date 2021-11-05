@@ -386,6 +386,10 @@ void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tupl
       for (size_t i = 0; i < selects.condition_num; i++)
       {
         const Condition &cond = selects.conditions[i];
+        if (cond.right_is_attr == 2)
+        {
+          continue;
+        }
         if ((cond.left_is_attr == 1) && (cond.right_is_attr == 1))
         {
           // LOG_INFO("Condition %d: %s.%s, %s.%s", i, cond.left_attr.relation_name, cond.left_attr.attribute_name, cond.right_attr.relation_name, cond.right_attr.attribute_name);
@@ -626,8 +630,12 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   rc = check_table_name(selects, db);
   if (rc != RC::SUCCESS)
   {
-    session_event->set_response("FAILURE\n");
-    end_trx_if_need(session, trx, false);
+    // 如果是子查询，抛出给主查询处理
+    if (!is_ret)
+    {
+      session_event->set_response("FAILURE\n");
+      end_trx_if_need(session, trx, false);
+    }
     return rc;
   }
 
@@ -642,13 +650,16 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     rc = create_selection_executor(trx, selects, db, table_name, *select_node);
     if (rc != RC::SUCCESS)
     {
-      session_event->set_response("FAILURE\n");
       delete select_node;
       for (SelectExeNode *&tmp_node : select_nodes)
       {
         delete tmp_node;
       }
-      end_trx_if_need(session, trx, false);
+      if (!is_ret)
+      {
+        session_event->set_response("FAILURE\n");
+        end_trx_if_need(session, trx, false);
+      }
       return rc;
     }
     LOG_INFO("成功创建selection_executor");
@@ -659,8 +670,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   if (select_nodes.empty())
   {
     LOG_ERROR("No table given");
-    session_event->set_response("FAILURE\n");
-    end_trx_if_need(session, trx, false);
+    if (!is_ret)
+    {
+      session_event->set_response("FAILURE\n");
+      end_trx_if_need(session, trx, false);
+    }
     return RC::SQL_SYNTAX;
   }
   LOG_INFO("select_nodes's size: %d", select_nodes.size());
@@ -680,7 +694,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         delete tmp_node;
       }
-      end_trx_if_need(session, trx, false);
+      if (!is_ret)
+      {
+        session_event->set_response("FAILURE\n");
+        end_trx_if_need(session, trx, false);
+      }
       return rc;
     }
     else
@@ -704,9 +722,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         delete tmp_node;
       }
-
-      session_event->set_response("FAILURE\n");
-      end_trx_if_need(session, trx, true);
+      if (!is_ret)
+      {
+        session_event->set_response("FAILURE\n");
+        end_trx_if_need(session, trx, true);
+      }
       return RC::GENERIC_ERROR;
     }
   }
@@ -932,9 +952,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
       delete tmp_node;
     }
-
-    session_event->set_response("FAILURE\n");
-    end_trx_if_need(session, trx, true);
+    if (!is_ret)
+    {
+      session_event->set_response("FAILURE\n");
+      end_trx_if_need(session, trx, true);
+    }
     return RC::GENERIC_ERROR;
   }
 
@@ -962,8 +984,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           delete tmp_node;
         }
 
-        session_event->set_response("FAILURE\n");
-        end_trx_if_need(session, trx, true);
+        if (!is_ret)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
         return RC::GENERIC_ERROR;
       }
       group_idx.emplace_back(index);
@@ -1029,12 +1054,15 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
       if (rc != RC::SUCCESS)
       {
-        session_event->set_response("FAILURE\n");
         for (SelectExeNode *&tmp_node : select_nodes)
         {
           delete tmp_node;
         }
-        end_trx_if_need(session, trx, false);
+        if (!is_ret)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
         return rc;
       }
 
@@ -1053,12 +1081,16 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
         if (rc != RC::SUCCESS)
         {
-          session_event->set_response("FAILURE\n");
+          ;
           for (SelectExeNode *&tmp_node : select_nodes)
           {
             delete tmp_node;
           }
-          end_trx_if_need(session, trx, false);
+          if (!is_ret)
+          {
+            session_event->set_response("FAILURE\n");
+            end_trx_if_need(session, trx, true);
+          }
           return rc;
         }
       }
@@ -1161,8 +1193,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           delete tmp_node;
         }
 
-        session_event->set_response("FAILURE\n");
-        end_trx_if_need(session, trx, true);
+        if (!is_ret)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
         return RC::GENERIC_ERROR;
       }
 

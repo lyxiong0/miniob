@@ -263,7 +263,7 @@ extern "C"
   void selects_append_attributes(Selects *selects, RelAttr *rel_attrs);
   void selects_append_relation(Selects *selects, const char *relation_name);
   void selects_append_relations(Selects *selects, const char **relation_names);
-  // void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
+  void selects_append_conditions_with_num(Selects *selects, Condition conditions[], size_t condition_num);
   void selects_append_conditions(Selects *selects, Condition *conditions);
   void selects_append_order(Selects *selects, RelAttr *rel_attr);
   void selects_append_group(Selects *selects, RelAttr *rel_attr);

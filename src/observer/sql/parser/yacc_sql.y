@@ -495,9 +495,9 @@ attr_list:
   	;
 
 join_list:
-    /* empty */
-    | INNER JOIN ID on join_list{
-        selects_append_relation(&CONTEXT->ssql->sstr.selection, $3);
+    /* empty */ 
+    | INNER JOIN ID on join_list {
+		selects_append_relation(&CONTEXT->ssql->sstr.selection, $3);
     }
     ;
 
@@ -590,7 +590,12 @@ on:
     /* empty */ 
     | ON condition condition_list {	
 				// CONTEXT->conditions[CONTEXT->condition_length++]=*$2;
-			}
+		selects_append_conditions_with_num(&CONTEXT->ssql->sstr.selection, CONTEXT->conditions, CONTEXT->condition_length);
+		// 每次where结束都清零长度，多个子查询的where不会相互影响
+		CONTEXT->condition_length = 0; 
+		// 由于select里只有condition涉及到value_length，所以一并在此清零
+		CONTEXT->value_length = 0;
+	}
     ;
 
 condition_list:
@@ -864,13 +869,13 @@ comOp:
     ;
 
 sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
-	LBRACE SELECT select_attr from_rel where RBRACE {
+	LBRACE SELECT select_attr from_rel RBRACE {
 		$$ = (Selects*)malloc(sizeof(Selects));
 
 		selects_append_relations($$, $4); // from_rel
-		if ($5 != NULL) {
-			selects_append_conditions($$, $5); // where
-		}
+		// if ($5 != NULL) {
+		// 	selects_append_conditions($$, $5); // where
+		// }
 		selects_append_attributes($$, $3); // select_attr
 	}
 ;
