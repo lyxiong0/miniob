@@ -745,6 +745,10 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   {
     const Condition &condition = selects.conditions[i];
     // 查看是否有子查询
+    if (condition.comp == CompOp::NOT_IN) {
+      result.print(ss, false);
+      break;
+    }
     if (condition.right_is_attr != 2)
     {
       continue;
