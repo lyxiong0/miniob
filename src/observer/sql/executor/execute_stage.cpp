@@ -39,7 +39,7 @@ static RC schema_add_field(Table *table, const char *field_name, TupleSchema &sc
 
 RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results, int rel_num);
 
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, bool is_ret);
 
 FuncType judge_function_type(char *agg_function_name);
 
@@ -647,7 +647,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     const char *table_name = selects.relations[i];
 
     SelectExeNode *select_node = new SelectExeNode;
-    rc = create_selection_executor(trx, selects, db, table_name, *select_node);
+    rc = create_selection_executor(trx, selects, db, table_name, *select_node, is_ret);
     if (rc != RC::SUCCESS)
     {
       delete select_node;
@@ -740,7 +740,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   // 在此执行子查询操作
   bool has_subselect = false;
-  for (size_t i = 0; i < selects.condition_num; i++)
+  // TODO: 暂时只执行一层子查询
+  for (size_t i = 0; i < selects.condition_num && !is_ret; i++)
   {
     const Condition &condition = selects.conditions[i];
     // 查看是否有子查询
@@ -1677,7 +1678,7 @@ FuncType judge_function_type(char *agg_function_name)
 }
 
 // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node)
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, bool is_ret)
 {
   // 列出跟这张表关联的Attr
   // 1. 找到表
@@ -1686,7 +1687,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   Table *table = DefaultHandler::get_default().find_table(db, table_name);
 
   // 提取group by中属性
-  for (int i = selects.group_num - 1; i >= 0; --i)
+  for (int i = selects.group_num - 1; i >= 0 && !is_ret; --i)
   {
     const RelAttr &attr = selects.group_attrs[i];
 
@@ -1761,7 +1762,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
   // 构造schema, 包括select和where中需要的列
   std::vector<DefaultConditionFilter *> condition_filters;
-  for (size_t i = 0; i < selects.condition_num; i++)
+  for (size_t i = 0; i < selects.condition_num && !is_ret; i++)
   {
     const Condition &condition = selects.conditions[i];
 
