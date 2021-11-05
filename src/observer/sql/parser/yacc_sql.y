@@ -415,7 +415,7 @@ delete:		/*  delete 语句的语法解析树*/
 		deletes_init_relation(&CONTEXT->ssql->sstr.deletion, $3);
 		// 处理where
 		if ($4 != NULL) {
-			deletes_set_conditions(&CONTEXT->ssql->sstr.selection, $4); // where
+			deletes_set_conditions(&CONTEXT->ssql->sstr.deletion, $4); // where
 		}
     }
     ;

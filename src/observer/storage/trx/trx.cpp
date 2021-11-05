@@ -111,7 +111,7 @@ RC Trx::insert_record(Table *table, Record *record)
 
 RC Trx::delete_record(Table *table, Record *record)
 {
-  ("delete_record record: %d - %d", record->rid.page_num, record->rid.slot_num);
+  // ("delete_record record: %d - %d", record->rid.page_num, record->rid.slot_num);
   RC rc = RC::SUCCESS;
   start_if_not_started();
   Operation *old_oper = find_operation(table, record->rid);

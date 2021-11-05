@@ -1958,27 +1958,27 @@ yyreduce:
 
   case 56:
 #line 413 "yacc_sql.y"
-                {
-			CONTEXT->ssql->flag = SCF_DELETE;//"delete";
-			deletes_init_relation(&CONTEXT->ssql->sstr.deletion, (yyvsp[-2].string));
-			// 处理where
-			if ((yyvsp[-1].condition1) != NULL) {
-				deletes_set_conditions(&CONTEXT->ssql->sstr.selection, (yyvsp[-1].condition1)); // where
-			}
+        {
+		CONTEXT->ssql->flag = SCF_DELETE;//"delete";
+		deletes_init_relation(&CONTEXT->ssql->sstr.deletion, (yyvsp[-2].string));
+		// 处理where
+		if ((yyvsp[-1].condition1) != NULL) {
+			deletes_set_conditions(&CONTEXT->ssql->sstr.deletion, (yyvsp[-1].condition1)); // where
+		}
     }
 #line 1970 "yacc_sql.tab.c"
     break;
 
   case 57:
 #line 425 "yacc_sql.y"
-                {
-			CONTEXT->ssql->flag = SCF_UPDATE;//"update";
-			Value *value = &CONTEXT->values[0];
-			updates_init(&CONTEXT->ssql->sstr.update, (yyvsp[-6].string), (yyvsp[-4].string), value);
-			if ((yyvsp[-1].condition1) != NULL) {
-				updates_init_condition(&CONTEXT->ssql->sstr.update, (yyvsp[-1].condition1));
-			}
+        {
+		CONTEXT->ssql->flag = SCF_UPDATE;//"update";
+		Value *value = &CONTEXT->values[0];
+		updates_init(&CONTEXT->ssql->sstr.update, (yyvsp[-6].string), (yyvsp[-4].string), value);
+		if ((yyvsp[-1].condition1) != NULL) {
+			updates_init_condition(&CONTEXT->ssql->sstr.update, (yyvsp[-1].condition1));
 		}
+	}
 #line 1983 "yacc_sql.tab.c"
     break;
 

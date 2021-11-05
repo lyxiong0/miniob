@@ -311,6 +311,9 @@ bool check_date_data(const char *s)
     {
       value_destroy(&condition->right_value);
     }
+
+    free(condition->sub_select);
+    condition->sub_select = nullptr;
   }
 
   void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, TrueOrFalse is_nullable)
@@ -346,16 +349,13 @@ bool check_date_data(const char *s)
   {
     RelAttr *rel_attr = rel_attrs;
     int flag = rel_attr->is_desc;
-    int cnt = selects->attr_num;
 
     while (flag != 2)
     {
-      selects->attributes[cnt++] = *rel_attr;
+      selects->attributes[selects->attr_num++] = *rel_attr;
       ++rel_attr;
       flag = rel_attr->is_desc;
     }
-
-    selects->attr_num += cnt;
   }
 
   void selects_append_relation(Selects *selects, const char *relation_name)
@@ -366,14 +366,11 @@ bool check_date_data(const char *s)
   void selects_append_relations(Selects *selects, const char **relation_names)
   {
     const char **rel_name = relation_names;
-    int cnt = selects->relation_num;
 
-    for (; strcmp(*rel_name, "NULL") != 0; ++rel_name, ++cnt)
+    for (; strcmp(*rel_name, "NULL") != 0; ++rel_name)
     {
-      selects->relations[cnt] = strdup(*rel_name);
+      selects->relations[selects->relation_num++] = strdup(*rel_name);
     }
-
-    selects->relation_num += cnt;
   }
 
   void print_name(const char *name)
@@ -395,14 +392,11 @@ bool check_date_data(const char *s)
   {
     // assert(condition_num <= sizeof(selects->conditions) / sizeof(selects->conditions[0]));
     Condition *cond = conditions;
-    int cnt = selects->condition_num;
 
-    for (; cond->comp != NO_OP; ++cond, ++cnt)
+    for (; cond->comp != NO_OP; ++cond)
     {
-      selects->conditions[cnt] = *cond;
+      selects->conditions[selects->condition_num++] = *cond;
     }
-
-    selects->condition_num += cnt;
   }
 
   void selects_destroy(Selects *selects)
@@ -477,14 +471,11 @@ bool check_date_data(const char *s)
   void deletes_set_conditions(Deletes *deletes, Condition *conditions)
   {
     Condition *cond = conditions;
-    int cnt = deletes->condition_num;
 
-    for (; cond->comp != NO_OP; ++cond, ++cnt)
+    for (; cond->comp != NO_OP; ++cond)
     {
-      deletes->conditions[cnt] = *cond;
+      deletes->conditions[deletes->condition_num] = *cond;
     }
-
-    deletes->condition_num += cnt;
   }
   void deletes_destroy(Deletes *deletes)
   {
@@ -508,14 +499,11 @@ bool check_date_data(const char *s)
   void updates_init_condition(Updates *updates, Condition *conditions)
   {
     Condition *cond = conditions;
-    int cnt = updates->condition_num;
 
-    for (; cond->comp != NO_OP; ++cond, ++cnt)
+    for (; cond->comp != NO_OP; ++cond)
     {
-      updates->conditions[cnt] = *cond;
+      updates->conditions[updates->condition_num] = *cond;
     }
-
-    updates->condition_num += cnt;
   }
 
   void updates_destroy(Updates *updates)

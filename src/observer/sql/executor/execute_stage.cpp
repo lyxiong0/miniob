@@ -858,7 +858,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       if (condition.left_is_attr == 0)
       {
         // 左侧是值
-        bool in_target;
+        bool in_target = false;
         switch (condition.left_value.type)
         {
         case AttrType::CHARS:
@@ -1449,9 +1449,8 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
         }
       }
 
-      if (size = 0 || cnt == 0)
+      if (size == 0 || cnt == 0)
       {
-        // TODO: 显示什么，NULL会影响吗
         add_type = AttrType::CHARS;
         tmp_tuple.add("NULL", 4);
         break;
@@ -1802,7 +1801,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 
 bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const std::shared_ptr<TupleValue> &right_data, CompOp op, const std::shared_ptr<TupleValue> &left_value)
 {
-  int ans;
+  int ans = -1;
 
   switch (left_type)
   {
