@@ -132,8 +132,9 @@ union YYSTYPE
   const char **relation;
   struct _RelAttr *relattr1;
   struct _Selects *selnode;
+  enum _CompOp op;
 
-#line 137 "yacc_sql.tab.h"
+#line 138 "yacc_sql.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -740,8 +740,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   // 在此执行子查询操作
   bool has_subselect = false;
-  // TODO: 暂时只执行一层子查询
-  for (size_t i = 0; i < selects.condition_num && !is_ret; i++)
+  for (size_t i = 0; i < selects.condition_num; i++)
   {
     const Condition &condition = selects.conditions[i];
     // 查看是否有子查询
@@ -772,11 +771,14 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       rc = RC::GENERIC_ERROR;
       break;
     }
+
+    sub_res.print(std::cout);
     
     if (sub_res.size() == 0) {
       // 子查询没有结果，如果是in清空result，否则保留所有结果
       if (comp == IN_SUB) {
         result.clear_tuples();
+        result.print(std::cout);
         break;
       }
       continue;
@@ -1703,7 +1705,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   Table *table = DefaultHandler::get_default().find_table(db, table_name);
 
   // 提取group by中属性
-  for (int i = selects.group_num - 1; i >= 0 && !is_ret; --i)
+  for (int i = selects.group_num - 1; i >= 0; --i)
   {
     const RelAttr &attr = selects.group_attrs[i];
 
@@ -1778,7 +1780,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
   // 构造schema, 包括select和where中需要的列
   std::vector<DefaultConditionFilter *> condition_filters;
-  for (size_t i = 0; i < selects.condition_num && !is_ret; i++)
+  for (size_t i = 0; i < selects.condition_num; i++)
   {
     const Condition &condition = selects.conditions[i];
 

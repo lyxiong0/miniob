@@ -21,7 +21,6 @@ typedef struct ParserContext {
 
   Value values[MAX_NUM];
   Condition conditions[MAX_NUM];
-  CompOp comp;
   char id[MAX_NUM];
   const char *rels[MAX_NUM];
   RelAttr rel_attrs[MAX_NUM];
@@ -143,6 +142,7 @@ ParserContext *get_context(yyscan_t scanner)
   const char **relation;
   struct _RelAttr *relattr1;
   struct _Selects *selnode;
+  enum _CompOp op;
 }
 
 %token <number> NUMBER
@@ -167,6 +167,7 @@ ParserContext *get_context(yyscan_t scanner)
 %type <relation> from_rel;
 %type <relattr1> select_attr;
 %type <selnode> sub_select;
+%type <op> comOp;
 
 %%
 
@@ -615,7 +616,7 @@ condition:
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 			Condition condition;
-			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value, NULL);
+			condition_init(&condition, $2, 1, &left_attr, NULL, 0, NULL, right_value, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 		}
 		|value comOp value 
@@ -624,7 +625,7 @@ condition:
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 			Condition condition;
-			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 0, NULL, right_value, NULL);
+			condition_init(&condition, $2, 0, NULL, left_value, 0, NULL, right_value, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 			// $$ = ( Condition *)malloc(sizeof( Condition));
 			// $$->left_is_attr = 0;
@@ -646,7 +647,7 @@ condition:
 			relation_attr_init(&right_attr, NULL, $3, NULL, 0);
 
 			Condition condition;
-			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 1, &right_attr, NULL, NULL);
+			condition_init(&condition, $2, 1, &left_attr, NULL, 1, &right_attr, NULL, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 			// $$=( Condition *)malloc(sizeof( Condition));
 			// $$->left_is_attr = 1;
@@ -665,7 +666,7 @@ condition:
 			relation_attr_init(&right_attr, NULL, $3, NULL, 0);
 
 			Condition condition;
-			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL, NULL);
+			condition_init(&condition, $2, 0, NULL, left_value, 1, &right_attr, NULL, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 
 			// $$=( Condition *)malloc(sizeof( Condition));
@@ -688,7 +689,7 @@ condition:
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 			Condition condition;
-			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value, NULL);
+			condition_init(&condition, $4, 1, &left_attr, NULL, 0, NULL, right_value, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 
 			// $$=( Condition *)malloc(sizeof( Condition));
@@ -710,7 +711,7 @@ condition:
 			relation_attr_init(&right_attr, $3, $5, NULL, 0);
 
 			Condition condition;
-			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL, NULL);
+			condition_init(&condition, $2, 0, NULL, left_value, 1, &right_attr, NULL, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 			// $$=( Condition *)malloc(sizeof( Condition));
 			// $$->left_is_attr = 0;//属性值
@@ -731,7 +732,7 @@ condition:
 			relation_attr_init(&right_attr, $5, $7, NULL, 0);
 
 			Condition condition;
-			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 1, &right_attr, NULL, NULL);
+			condition_init(&condition, $4, 1, &left_attr, NULL, 1, &right_attr, NULL, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 			// $$=( Condition *)malloc(sizeof( Condition));
 			// $$->left_is_attr = 1;		//属性
@@ -811,7 +812,7 @@ condition:
 		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
 
 		Condition condition;
-		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 2, NULL, NULL, $3);
+		condition_init(&condition, $2, 1, &left_attr, NULL, 2, NULL, NULL, $3);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
 	| ID DOT ID comOp sub_select {
@@ -819,14 +820,14 @@ condition:
 		relation_attr_init(&left_attr, $1, $3, NULL, 0);
 
 		Condition condition;
-		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 2, NULL, NULL, $5);
+		condition_init(&condition, $4, 1, &left_attr, NULL, 2, NULL, NULL, $5);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
 	| value comOp sub_select {
 		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
-		condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 2, NULL, NULL, $3);
+		condition_init(&condition, $2, 0, NULL, left_value, 2, NULL, NULL, $3);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
 	| sub_select comOp value {
@@ -834,12 +835,12 @@ condition:
 		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
-		if (CONTEXT->comp == GREAT_THAN || CONTEXT->comp == GREAT_EQUAL) {
-			condition_init(&condition, CONTEXT->comp - 2, 0, NULL, left_value, 2, NULL, NULL, $1);
-		} else if (CONTEXT->comp == LESS_THAN || CONTEXT->comp == LESS_EQUAL) {
-			condition_init(&condition, CONTEXT->comp + 2, 0, NULL, left_value, 2, NULL, NULL, $1);
+		if ($2 == GREAT_THAN || $2 == GREAT_EQUAL) {
+			condition_init(&condition, $2 - 2, 0, NULL, left_value, 2, NULL, NULL, $1);
+		} else if ($2 == LESS_THAN || $2 == LESS_EQUAL) {
+			condition_init(&condition, $2 + 2, 0, NULL, left_value, 2, NULL, NULL, $1);
 		} else {
-			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 2, NULL, NULL, $1);
+			condition_init(&condition, $2, 0, NULL, left_value, 2, NULL, NULL, $1);
 		}
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
@@ -849,12 +850,12 @@ condition:
 		relation_attr_init(&left_attr, NULL, $3, NULL, 0);
 
 		Condition condition;
-		if (CONTEXT->comp == GREAT_THAN || CONTEXT->comp == GREAT_EQUAL) {
-			condition_init(&condition, CONTEXT->comp - 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
-		} else if (CONTEXT->comp == LESS_THAN || CONTEXT->comp == LESS_EQUAL) {
-			condition_init(&condition, CONTEXT->comp + 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		if ($2 == GREAT_THAN || $2 == GREAT_EQUAL) {
+			condition_init(&condition, $2 - 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		} else if ($2 == LESS_THAN || $2 == LESS_EQUAL) {
+			condition_init(&condition, $2 + 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
 		} else {
-			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+			condition_init(&condition, $2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
 		}
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
@@ -864,26 +865,26 @@ condition:
 		relation_attr_init(&left_attr, $3, $5, NULL, 0);
 
 		Condition condition;
-		if (CONTEXT->comp == GREAT_THAN || CONTEXT->comp == GREAT_EQUAL) {
-			condition_init(&condition, CONTEXT->comp - 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
-		} else if (CONTEXT->comp == LESS_THAN || CONTEXT->comp == LESS_EQUAL) {
-			condition_init(&condition, CONTEXT->comp + 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		if ($2 == GREAT_THAN || $2 == GREAT_EQUAL) {
+			condition_init(&condition, $2 - 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		} else if ($2 == LESS_THAN || $2 == LESS_EQUAL) {
+			condition_init(&condition, $2 + 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
 		} else {
-			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+			condition_init(&condition, $2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
 		}
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
     ;
 
 comOp:
-  	  EQ { CONTEXT->comp = EQUAL_TO; }
-    | LT { CONTEXT->comp = LESS_THAN; }
-    | GT { CONTEXT->comp = GREAT_THAN; }
-    | LE { CONTEXT->comp = LESS_EQUAL; }
-    | GE { CONTEXT->comp = GREAT_EQUAL; }
-    | NE { CONTEXT->comp = NOT_EQUAL; }
-	| IN { CONTEXT->comp = IN_SUB; }
-	| NOT IN { CONTEXT->comp = NOT_IN; }
+  	  EQ { $$ = EQUAL_TO; }
+    | LT { $$ = LESS_THAN; }
+    | GT { $$ = GREAT_THAN; }
+    | LE { $$ = LESS_EQUAL; }
+    | GE { $$ = GREAT_EQUAL; }
+    | NE { $$ = NOT_EQUAL; }
+	| IN { $$ = IN_SUB; }
+	| NOT IN { $$ = NOT_IN; }
     ;
 
 sub_select: /* 简单子查询，只包含聚合、比较、in/not in */

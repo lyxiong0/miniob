@@ -393,6 +393,7 @@ bool check_date_data(const char *s)
   {
     // assert(condition_num <= sizeof(selects->conditions) / sizeof(selects->conditions[0]));
     Condition *cond = conditions;
+    LOG_INFO("call");
 
     for (; cond->comp != NO_OP; ++cond)
     {
