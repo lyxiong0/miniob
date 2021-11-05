@@ -830,10 +830,12 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     // 开始处理操作符
     if (comp != CompOp::NOT_IN && comp != CompOp::IN_SUB)
     {
+      LOG_INFO("comp = %d", comp);
       // 处理比较操作符，超过一行则不合法
       if (sub_res.size() > 1)
       {
-        continue;
+        rc = RC::GENERIC_ERROR;
+        break;
       }
 
       if (condition.left_is_attr == 0)

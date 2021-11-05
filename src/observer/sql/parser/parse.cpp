@@ -353,10 +353,6 @@ bool check_date_data(const char *s)
 
     while (flag != 2)
     {
-      LOG_INFO("selects->attr_num = %d, attr_name = %s", selects->attr_num, rel_attr->attribute_name);
-      if (rel_attr->relation_name != nullptr) {
-        LOG_INFO("rel_name = %s", rel_attr->relation_name);
-      }
       selects->attributes[selects->attr_num++] = *rel_attr;
       ++rel_attr;
       flag = rel_attr->is_desc;
@@ -374,7 +370,6 @@ bool check_date_data(const char *s)
 
     for (; strcmp(*rel_name, "NULL") != 0; ++rel_name)
     {
-      LOG_INFO("selects->relation_num = %d, rel_name = %s", selects->relation_num, *rel_name);
       selects->relations[selects->relation_num++] = strdup(*rel_name);
     }
   }
@@ -518,7 +513,7 @@ bool check_date_data(const char *s)
 
     for (; cond->comp != NO_OP; ++cond)
     {
-      updates->conditions[updates->condition_num] = *cond;
+      updates->conditions[updates->condition_num++] = *cond;
     }
   }
 

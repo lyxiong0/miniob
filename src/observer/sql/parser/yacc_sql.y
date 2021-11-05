@@ -834,7 +834,13 @@ condition:
 		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
-		condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 2, NULL, NULL, $1);
+		if (CONTEXT->comp == GREAT_THAN || CONTEXT->comp == GREAT_EQUAL) {
+			condition_init(&condition, CONTEXT->comp - 2, 0, NULL, left_value, 2, NULL, NULL, $1);
+		} else if (CONTEXT->comp == LESS_THAN || CONTEXT->comp == LESS_EQUAL) {
+			condition_init(&condition, CONTEXT->comp + 2, 0, NULL, left_value, 2, NULL, NULL, $1);
+		} else {
+			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 2, NULL, NULL, $1);
+		}
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
 	| sub_select comOp ID{
@@ -843,7 +849,13 @@ condition:
 		relation_attr_init(&left_attr, NULL, $3, NULL, 0);
 
 		Condition condition;
-		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		if (CONTEXT->comp == GREAT_THAN || CONTEXT->comp == GREAT_EQUAL) {
+			condition_init(&condition, CONTEXT->comp - 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		} else if (CONTEXT->comp == LESS_THAN || CONTEXT->comp == LESS_EQUAL) {
+			condition_init(&condition, CONTEXT->comp + 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		} else {
+			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		}
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
 	| sub_select comOp ID DOT ID {
@@ -852,7 +864,13 @@ condition:
 		relation_attr_init(&left_attr, $3, $5, NULL, 0);
 
 		Condition condition;
-		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		if (CONTEXT->comp == GREAT_THAN || CONTEXT->comp == GREAT_EQUAL) {
+			condition_init(&condition, CONTEXT->comp - 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		} else if (CONTEXT->comp == LESS_THAN || CONTEXT->comp == LESS_EQUAL) {
+			condition_init(&condition, CONTEXT->comp + 2, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		} else {
+			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 2, NULL, NULL, $1);
+		}
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
     ;
@@ -869,15 +887,15 @@ comOp:
     ;
 
 sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
-	LBRACE SELECT select_attr from_rel RBRACE {
+	LBRACE SELECT select_attr from_rel where RBRACE {
 		$$ = (Selects*)malloc(sizeof(Selects));
 		// 结构体malloc，后面要不跟上memcpy要不用memset全部默认初始化
 		memset($$, 0, sizeof(Selects));
 
 		selects_append_relations($$, $4); // from_rel
-		// if ($5 != NULL) {
-		// 	selects_append_conditions($$, $5); // where
-		// }
+		if ($5 != NULL) {
+			selects_append_conditions($$, $5); // where
+		}
 		selects_append_attributes($$, $3); // select_attr
 	}
 ;
