@@ -490,7 +490,7 @@ bool check_date_data(const char *s)
 
     for (; cond->comp != NO_OP; ++cond)
     {
-      deletes->conditions[deletes->condition_num] = *cond;
+      deletes->conditions[deletes->condition_num++] = *cond;
     }
   }
   void deletes_destroy(Deletes *deletes)
