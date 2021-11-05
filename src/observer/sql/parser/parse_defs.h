@@ -92,6 +92,7 @@ typedef struct _Condition
   RelAttr right_attr; // right-hand side attribute if right_is_attr = TRUE 右边的属性
   Value right_value;  // right-hand side value if right_is_attr = FALSE
   Selects *sub_select; 
+  Selects *another_sub_select; // 左侧的复杂子查询
 } Condition;
 
 // struct of select
@@ -252,7 +253,7 @@ extern "C"
   void value_destroy(Value *value);
 
   void condition_init(Condition *condition, CompOp comp, int left_is_attr, RelAttr *left_attr, Value *left_value,
-                      int right_is_attr, RelAttr *right_attr, Value *right_value, Selects *sub_select);
+                      int right_is_attr, RelAttr *right_attr, Value *right_value, Selects *sub_select, Selects *another_sub_select);
   void condition_destroy(Condition *condition);
 
   void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, TrueOrFalse is_nullable);

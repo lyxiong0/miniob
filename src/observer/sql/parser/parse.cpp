@@ -257,28 +257,41 @@ bool check_date_data(const char *s)
   void condition_init(Condition *condition, CompOp comp,
                       int left_is_attr, RelAttr *left_attr, Value *left_value,
                       int right_is_attr, RelAttr *right_attr, Value *right_value,
-                      Selects *sub_select)
+                      Selects *sub_select, Selects *another_sub_select)
   {
     condition->comp = comp;
-
     condition->left_is_attr = left_is_attr;
-    if (left_is_attr)
+
+    if (another_sub_select != nullptr)
     {
-      condition->left_attr = *left_attr;
+      // 左侧也是子查询
+      condition->another_sub_select = (Selects *)malloc(sizeof(Selects));
+      memcpy(condition->another_sub_select, another_sub_select, sizeof(Selects));
+      free(another_sub_select);
     }
     else
     {
-      // check the date format
-      condition->left_value = *left_value;
+      if (left_is_attr)
+      {
+        condition->left_attr = *left_attr;
+      }
+      else
+      {
+        // check the date format
+        condition->left_value = *left_value;
+      }
     }
 
     if (sub_select != nullptr)
     {
-      // 右侧碰到子查询
+      // 碰到子查询
+      // 如果只有一个子查询，默认解析到右侧
+      // 如果有两个子查询，another是左侧的子查询
       condition->right_is_attr = 2;
       condition->sub_select = (Selects *)malloc(sizeof(Selects));
       memcpy(condition->sub_select, sub_select, sizeof(Selects));
       free(sub_select);
+
       return;
     }
 
@@ -292,7 +305,6 @@ bool check_date_data(const char *s)
       condition->right_value = *right_value;
     }
   }
-
 
   void condition_destroy(Condition *condition)
   {

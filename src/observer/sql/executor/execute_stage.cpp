@@ -49,6 +49,8 @@ int is_col_legal(const RelAttr &attr, const TupleSchema &schema);
 
 void quick_sort(TupleSet *tuple_set, int l, int r, OrderInfo *order_info);
 
+bool is_type_legal(AttrType left_type, AttrType right_type);
+
 //! Constructor
 ExecuteStage::ExecuteStage(const char *tag) : Stage(tag) {}
 
@@ -752,6 +754,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
       continue;
     }
+
     // 处理子查询
     has_subselect = true;
     TupleSet sub_res;
@@ -762,6 +765,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
       break;
     }
+
     // sub_res.print(std::cout);
     // result.print(std::cout);
 
@@ -773,6 +777,44 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
 
     sub_res.print(std::cout);
+
+    if (condition.left_is_attr == 2)
+    {
+      // 左右两侧都是子查询的情况
+      TupleSet left_sub_res;
+      rc = do_select(db, *condition.another_sub_select, session_event, left_sub_res, true);
+      if (rc != RC::SUCCESS)
+      {
+        break;
+      }
+
+      // 两侧都是子查询，只能值比值
+      if (left_sub_res.get_schema().size() != 1 || left_sub_res.size() != 1 || sub_res.size() != 1)
+      {
+        rc = RC::GENERIC_ERROR;
+        break;
+      }
+
+      AttrType left_type = left_sub_res.get_schema().field(0).type();
+      AttrType right_type = sub_res.get_schema().field(0).type();
+      if (!is_type_legal(left_type, right_type))
+      {
+        rc = RC::GENERIC_ERROR;
+        break;
+      }
+
+      const std::shared_ptr<TupleValue> &left_data = left_sub_res.get(0).get_pointer(0);
+      const std::shared_ptr<TupleValue> &right_data = sub_res.get(0).get_pointer(0);
+
+      if (!cmp_value(left_type, right_type, nullptr, right_data, comp, left_data))
+      {
+        // 比较，不相等则清空
+        result.clear_tuples();
+        break;
+      }
+
+      continue;
+    }
 
     if (sub_res.size() == 0)
     {
@@ -825,17 +867,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       left_type = condition.left_value.type;
     }
 
-    // 判断左右两侧类型是否可以比较
-    if (left_type == AttrType::FLOATS || left_type == AttrType::INTS)
-    {
-      // INTS和FLOATS可以互相比较
-      if (right_type != AttrType::INTS && right_type != AttrType::FLOATS)
-      {
-        rc = RC::GENERIC_ERROR;
-        break;
-      }
-    }
-    else if (left_type != right_type)
+    if (!is_type_legal(left_type, right_type))
     {
       rc = RC::GENERIC_ERROR;
       break;
@@ -1131,9 +1163,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   // 有两种情况需要二次提取列
   // 1. 多表且没有group by，如果有group by，提取列已经在聚合里完成
   // 2. 单表且有子查询操作
-  if (attr_function->get_size() == 0 
-      && ((selects.relation_num > 1 && selects.group_num == 0) 
-          || (selects.relation_num == 1 && has_subselect)))
+  if (attr_function->get_size() == 0 && ((selects.relation_num > 1 && selects.group_num == 0) || (selects.relation_num == 1 && has_subselect)))
   {
     TupleSchema final_schema;
     const TupleSchema &result_schema = result.get_schema();
@@ -1158,7 +1188,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       else
       {
         Table *table = nullptr;
-        if (nullptr == attr.relation_name) 
+        if (nullptr == attr.relation_name)
         {
           table = DefaultHandler::get_default().find_table(db, selects.relations[0]);
         }
@@ -1952,7 +1982,6 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     break;
   }
 
-
   switch (op)
   {
   case CompOp::EQUAL_TO:
@@ -1977,4 +2006,23 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     LOG_ERROR("错误的运算符");
     break;
   }
+}
+
+bool is_type_legal(AttrType left_type, AttrType right_type)
+{
+  // 判断左右两侧类型是否可以比较
+  if (left_type == AttrType::FLOATS || left_type == AttrType::INTS)
+  {
+    // INTS和FLOATS可以互相比较
+    if (right_type != AttrType::INTS && right_type != AttrType::FLOATS)
+    {
+      return false;
+    }
+  }
+  else if (left_type != right_type)
+  {
+    return false;
+  }
+
+  return true;
 }
