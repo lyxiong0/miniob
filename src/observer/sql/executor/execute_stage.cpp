@@ -966,6 +966,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   }
 
   // 子查询结束
+  result.print(std::cout);
 
   if (rc != RC::SUCCESS)
   {
@@ -1125,11 +1126,14 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
   }
   ////////////////////////////聚合函数结束/////////////////////////////
+  result.print(std::cout);
 
   // 有两种情况需要二次提取列
   // 1. 多表且没有group by，如果有group by，提取列已经在聚合里完成
   // 2. 单表且有子查询操作
-  if ((selects.relation_num > 1 && selects.group_num == 0) || (selects.relation_num == 1 && has_subselect))
+  if (attr_function->get_size() == 0 
+      && ((selects.relation_num > 1 && selects.group_num == 0) 
+          || (selects.relation_num == 1 && has_subselect)))
   {
     TupleSchema final_schema;
     const TupleSchema &result_schema = result.get_schema();
@@ -1154,7 +1158,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       else
       {
         Table *table = nullptr;
-        if (nullptr == attr.relation_name)
+        if (nullptr == attr.relation_name) 
         {
           table = DefaultHandler::get_default().find_table(db, selects.relations[0]);
         }
@@ -1948,20 +1952,27 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     break;
   }
 
+
   switch (op)
   {
   case CompOp::EQUAL_TO:
     return ans == 0;
+    break;
   case CompOp::GREAT_EQUAL:
     return ans >= 0;
+    break;
   case CompOp::GREAT_THAN:
     return ans > 0;
+    break;
   case CompOp::LESS_EQUAL:
     return ans <= 0;
+    break;
   case CompOp::LESS_THAN:
     return ans < 0;
+    break;
   case CompOp::NOT_EQUAL:
     return ans != 0;
+    break;
   default:
     LOG_ERROR("错误的运算符");
     break;
