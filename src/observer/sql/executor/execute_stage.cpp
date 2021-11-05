@@ -773,15 +773,17 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
 
     sub_res.print(std::cout);
-    
-    if (sub_res.size() == 0) {
+
+    if (sub_res.size() == 0)
+    {
       // 子查询没有结果，如果是in清空result，否则保留所有结果
-      if (comp == IN_SUB) {
-        result.clear_tuples();
-        result.print(std::cout);
-        break;
+      if (comp == NOT_IN)
+      {
+        continue;
       }
-      continue;
+      result.clear_tuples();
+      result.print(std::cout);
+      break;
     }
 
     // 提取右侧类型和TupleValue
@@ -848,7 +850,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         rc = RC::GENERIC_ERROR;
         break;
-      } 
+      }
 
       if (condition.left_is_attr == 0)
       {
