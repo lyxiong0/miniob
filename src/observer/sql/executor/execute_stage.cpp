@@ -769,6 +769,16 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     // 如果查询结果不为单列则不合法
     if (sub_res.get_schema().size() != 1)
     {
+      rc = RC::GENERIC_ERROR;
+      break;
+    }
+    
+    if (sub_res.size() == 0) {
+      // 子查询没有结果，如果是in清空result，否则保留所有结果
+      if (comp == IN_SUB) {
+        result.clear_tuples();
+        break;
+      }
       continue;
     }
 
@@ -836,7 +846,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         rc = RC::GENERIC_ERROR;
         break;
-      }
+      } 
 
       if (condition.left_is_attr == 0)
       {
