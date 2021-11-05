@@ -34,7 +34,7 @@ typedef struct _RelAttr
   char *agg_function_name; // 窗口函数名
 } RelAttr;
 
-typedef enum _CompOp
+typedef enum
 {
   EQUAL_TO,    //"="     0
   NOT_EQUAL,   //"<>"    1

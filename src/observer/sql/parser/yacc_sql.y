@@ -142,7 +142,6 @@ ParserContext *get_context(yyscan_t scanner)
   const char **relation;
   struct _RelAttr *relattr1;
   struct _Selects *selnode;
-  enum _CompOp op;
 }
 
 %token <number> NUMBER
@@ -167,7 +166,7 @@ ParserContext *get_context(yyscan_t scanner)
 %type <relation> from_rel;
 %type <relattr1> select_attr;
 %type <selnode> sub_select;
-%type <op> comOp;
+%type <number> comOp;
 
 %%
 
@@ -877,14 +876,14 @@ condition:
     ;
 
 comOp:
-  	  EQ { $$ = EQUAL_TO; }
-    | LT { $$ = LESS_THAN; }
-    | GT { $$ = GREAT_THAN; }
-    | LE { $$ = LESS_EQUAL; }
-    | GE { $$ = GREAT_EQUAL; }
-    | NE { $$ = NOT_EQUAL; }
-	| IN { $$ = IN_SUB; }
-	| NOT IN { $$ = NOT_IN; }
+  	  EQ { $$ = 0; }
+    | LT { $$ = 3; }
+    | GT { $$ = 5; }
+    | LE { $$ = 2; }
+    | GE { $$ = 4; }
+    | NE { $$ = 1; }
+	| IN { $$ = 8; }
+	| NOT IN { $$ = 9; }
     ;
 
 sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
