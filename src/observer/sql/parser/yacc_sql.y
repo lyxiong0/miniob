@@ -871,6 +871,8 @@ comOp:
 sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
 	LBRACE SELECT select_attr from_rel RBRACE {
 		$$ = (Selects*)malloc(sizeof(Selects));
+		// !:结构体malloc，后面要不跟上memcpy要不用memset全部默认初始化
+		memset($$, 0, sizeof(Selects));
 
 		selects_append_relations($$, $4); // from_rel
 		// if ($5 != NULL) {

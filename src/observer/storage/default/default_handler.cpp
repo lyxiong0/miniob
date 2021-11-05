@@ -177,6 +177,7 @@ RC DefaultHandler::insert_record(Trx *trx, const char *dbname, const char *relat
   Table *table = find_table(dbname, relation_name);
   if (nullptr == table)
   {
+    LOG_ERROR("RC::SCHEMA_TABLE_NOT_EXIST, table name = %s", relation_name);
     return RC::SCHEMA_TABLE_NOT_EXIST;
   }
 

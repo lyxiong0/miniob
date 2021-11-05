@@ -352,6 +352,11 @@ bool check_date_data(const char *s)
 
     while (flag != 2)
     {
+      LOG_INFO("attr_name = %s", rel_attr->attribute_name);
+      if (rel_attr->relation_name != nullptr) {
+        LOG_INFO("rel_name = %s", rel_attr->relation_name);
+      }
+      LOG_INFO("selects->attr_num = %d", selects->attr_num);
       selects->attributes[selects->attr_num++] = *rel_attr;
       ++rel_attr;
       flag = rel_attr->is_desc;

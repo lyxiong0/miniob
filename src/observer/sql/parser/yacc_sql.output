@@ -106,7 +106,7 @@ Grammar
    66          | COMMA select_param attr_list
 
    67 join_list: %empty
-   68          | INNER JOIN ID on condition
+   68          | INNER JOIN ID on join_list
 
    69 window_function: COUNT LBRACE opt_star RBRACE
    70                | COUNT LBRACE ID DOT ID RBRACE
@@ -162,7 +162,7 @@ Grammar
   112      | IN
   113      | NOT IN
 
-  114 sub_select: LBRACE SELECT select_attr from_rel where RBRACE
+  114 sub_select: LBRACE SELECT select_attr from_rel RBRACE
 
   115 group_by: %empty
   116         | GROUP BY group_list
@@ -358,7 +358,7 @@ Nonterminals, with rules where they appear
         on right: 59 66
     join_list (98)
         on left: 67 68
-        on right: 57
+        on right: 57 68
     window_function (99)
         on left: 69 70 71 72 73 74
         on right: 61
@@ -373,7 +373,7 @@ Nonterminals, with rules where they appear
         on right: 78 80
     where <condition1> (103)
         on left: 81 82
-        on right: 55 56 57 114
+        on right: 55 56 57
     on (104)
         on left: 83 84
         on right: 68
@@ -382,7 +382,7 @@ Nonterminals, with rules where they appear
         on right: 82 84 86
     condition <condition1> (106)
         on left: 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105
-        on right: 68 82 84 86
+        on right: 82 84 86
     comOp (107)
         on left: 106 107 108 109 110 111 112 113
         on right: 87 88 89 90 91 92 93 100 101 102 103 104 105
@@ -1173,7 +1173,7 @@ State 92
 
 State 93
 
-   68 join_list: INNER . JOIN ID on condition
+   68 join_list: INNER . JOIN ID on join_list
 
     JOIN  shift, and go to state 111
 
@@ -1332,7 +1332,7 @@ State 110
 
 State 111
 
-   68 join_list: INNER JOIN . ID on condition
+   68 join_list: INNER JOIN . ID on join_list
 
     ID  shift, and go to state 142
 
@@ -1378,7 +1378,7 @@ State 115
 
 State 116
 
-  114 sub_select: LBRACE . SELECT select_attr from_rel where RBRACE
+  114 sub_select: LBRACE . SELECT select_attr from_rel RBRACE
 
     SELECT  shift, and go to state 148
 
@@ -1629,7 +1629,7 @@ State 141
 
 State 142
 
-   68 join_list: INNER JOIN ID . on condition
+   68 join_list: INNER JOIN ID . on join_list
 
     ON  shift, and go to state 180
 
@@ -1683,7 +1683,7 @@ State 147
 
 State 148
 
-  114 sub_select: LBRACE SELECT . select_attr from_rel where RBRACE
+  114 sub_select: LBRACE SELECT . select_attr from_rel RBRACE
 
     ID                   shift, and go to state 41
     STAR                 shift, and go to state 42
@@ -1987,18 +1987,13 @@ State 180
 
 State 181
 
-   68 join_list: INNER JOIN ID on . condition
+   68 join_list: INNER JOIN ID on . join_list
 
-    LBRACE  shift, and go to state 116
-    NULL_T  shift, and go to state 117
-    NUMBER  shift, and go to state 118
-    FLOAT   shift, and go to state 119
-    ID      shift, and go to state 120
-    SSS     shift, and go to state 121
+    INNER  shift, and go to state 93
 
-    value       go to state 122
-    condition   go to state 214
-    sub_select  go to state 124
+    $default  reduce using rule 67 (join_list)
+
+    join_list  go to state 214
 
 
 State 182
@@ -2058,7 +2053,7 @@ State 187
 
 State 188
 
-  114 sub_select: LBRACE SELECT select_attr . from_rel where RBRACE
+  114 sub_select: LBRACE SELECT select_attr . from_rel RBRACE
 
     FROM  shift, and go to state 69
 
@@ -2270,7 +2265,7 @@ State 213
 
 State 214
 
-   68 join_list: INNER JOIN ID on condition .
+   68 join_list: INNER JOIN ID on join_list .
 
     $default  reduce using rule 68 (join_list)
 
@@ -2350,13 +2345,9 @@ State 222
 
 State 223
 
-  114 sub_select: LBRACE SELECT select_attr from_rel . where RBRACE
+  114 sub_select: LBRACE SELECT select_attr from_rel . RBRACE
 
-    WHERE  shift, and go to state 97
-
-    $default  reduce using rule 81 (where)
-
-    where  go to state 244
+    RBRACE  shift, and go to state 244
 
 
 State 224
@@ -2532,16 +2523,16 @@ State 243
 
 State 244
 
-  114 sub_select: LBRACE SELECT select_attr from_rel where . RBRACE
+  114 sub_select: LBRACE SELECT select_attr from_rel RBRACE .
 
-    RBRACE  shift, and go to state 262
+    $default  reduce using rule 114 (sub_select)
 
 
 State 245
 
    97 condition: ID DOT ID IS NOT . NULL_T
 
-    NULL_T  shift, and go to state 263
+    NULL_T  shift, and go to state 262
 
 
 State 246
@@ -2555,7 +2546,7 @@ State 247
 
    93 condition: ID DOT ID comOp ID . DOT ID
 
-    DOT  shift, and go to state 264
+    DOT  shift, and go to state 263
 
 
 State 248
@@ -2633,7 +2624,7 @@ State 258
   127 sort_attr: ID DOT . ID opt_asc
   128          | ID DOT . ID DESC
 
-    ID  shift, and go to state 265
+    ID  shift, and go to state 264
 
 
 State 259
@@ -2649,7 +2640,7 @@ State 260
 
     ID  shift, and go to state 239
 
-    sort_attr  go to state 266
+    sort_attr  go to state 265
 
 
 State 261
@@ -2661,60 +2652,53 @@ State 261
 
 State 262
 
-  114 sub_select: LBRACE SELECT select_attr from_rel where RBRACE .
-
-    $default  reduce using rule 114 (sub_select)
-
-
-State 263
-
    97 condition: ID DOT ID IS NOT NULL_T .
 
     $default  reduce using rule 97 (condition)
 
 
-State 264
+State 263
 
    93 condition: ID DOT ID comOp ID DOT . ID
 
-    ID  shift, and go to state 267
+    ID  shift, and go to state 266
 
 
-State 265
+State 264
 
   127 sort_attr: ID DOT ID . opt_asc
   128          | ID DOT ID . DESC
 
-    DESC  shift, and go to state 268
+    DESC  shift, and go to state 267
     ASC   shift, and go to state 257
 
     $default  reduce using rule 129 (opt_asc)
 
-    opt_asc  go to state 269
+    opt_asc  go to state 268
 
 
-State 266
+State 265
 
   124 sort_list: sort_list COMMA sort_attr .
 
     $default  reduce using rule 124 (sort_list)
 
 
-State 267
+State 266
 
    93 condition: ID DOT ID comOp ID DOT ID .
 
     $default  reduce using rule 93 (condition)
 
 
-State 268
+State 267
 
   128 sort_attr: ID DOT ID DESC .
 
     $default  reduce using rule 128 (sort_attr)
 
 
-State 269
+State 268
 
   127 sort_attr: ID DOT ID opt_asc .
 
