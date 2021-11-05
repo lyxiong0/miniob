@@ -269,7 +269,7 @@ extern "C"
   void selects_append_order(Selects *selects, RelAttr *rel_attr);
   void selects_append_group(Selects *selects, RelAttr *rel_attr);
   void selects_destroy(Selects *selects);
-  void print_name(const char *name);
+  void print_num(int num);
 
   void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index);
   void inserts_destroy(Inserts *inserts);

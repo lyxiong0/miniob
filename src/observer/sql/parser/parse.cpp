@@ -386,9 +386,9 @@ bool check_date_data(const char *s)
     }
   }
 
-  void print_name(const char *name)
+  void print_num(int num)
   {
-    LOG_INFO("name = %s", name);
+    LOG_INFO("num = %d", num);
   }
 
   void selects_append_order(Selects *selects, RelAttr *rel_attr)

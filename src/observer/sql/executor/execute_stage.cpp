@@ -755,6 +755,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       continue;
     }
 
+    LOG_INFO("i = %d, cond_num = %d", i, selects.condition_num);
+
     // 处理子查询
     has_subselect = true;
     TupleSet sub_res;

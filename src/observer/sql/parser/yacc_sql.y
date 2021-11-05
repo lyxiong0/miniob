@@ -566,8 +566,7 @@ rel_list:
 where:
     /* empty */ { 
 		$$ = NULL; 
-		// 每次where结束都清零长度，多个子查询的where不会相互影响
-		CONTEXT->condition_length = 0; 
+		// 这里不能清零，否则多个子查询条件时，子查询没有where会把主查询的condition清零 
 	}
     | WHERE condition condition_list {	
 		// CONTEXT->conditions[CONTEXT->condition_length++]=*$2;
@@ -626,16 +625,6 @@ condition:
 			Condition condition;
 			condition_init(&condition, $2, 0, NULL, left_value, 0, NULL, right_value, NULL, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-			// $$ = ( Condition *)malloc(sizeof( Condition));
-			// $$->left_is_attr = 0;
-			// $$->left_attr.relation_name=NULL;
-			// $$->left_attr.attribute_name=NULL;
-			// $$->left_value = *$1;
-			// $$->comp = CONTEXT->comp;
-			// $$->right_is_attr = 0;
-			// $$->right_attr.relation_name = NULL;
-			// $$->right_attr.attribute_name = NULL;
-			// $$->right_value = *$3;
 
 		}
 		|ID comOp ID 
@@ -648,14 +637,6 @@ condition:
 			Condition condition;
 			condition_init(&condition, $2, 1, &left_attr, NULL, 1, &right_attr, NULL, NULL, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-			// $$=( Condition *)malloc(sizeof( Condition));
-			// $$->left_is_attr = 1;
-			// $$->left_attr.relation_name=NULL;
-			// $$->left_attr.attribute_name=$1;
-			// $$->comp = CONTEXT->comp;
-			// $$->right_is_attr = 1;
-			// $$->right_attr.relation_name=NULL;
-			// $$->right_attr.attribute_name=$3;
 
 		}
     |value comOp ID
@@ -667,18 +648,6 @@ condition:
 			Condition condition;
 			condition_init(&condition, $2, 0, NULL, left_value, 1, &right_attr, NULL, NULL, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-
-			// $$=( Condition *)malloc(sizeof( Condition));
-			// $$->left_is_attr = 0;
-			// $$->left_attr.relation_name=NULL;
-			// $$->left_attr.attribute_name=NULL;
-			// $$->left_value = *$1;
-			// $$->comp=CONTEXT->comp;
-			
-			// $$->right_is_attr = 1;
-			// $$->right_attr.relation_name=NULL;
-			// $$->right_attr.attribute_name=$3;
-		
 		}
     |ID DOT ID comOp value
 		{
@@ -690,17 +659,6 @@ condition:
 			Condition condition;
 			condition_init(&condition, $4, 1, &left_attr, NULL, 0, NULL, right_value, NULL, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-
-			// $$=( Condition *)malloc(sizeof( Condition));
-			// $$->left_is_attr = 1;
-			// $$->left_attr.relation_name=$1;
-			// $$->left_attr.attribute_name=$3;
-			// $$->comp=CONTEXT->comp;
-			// $$->right_is_attr = 0;   //属性值
-			// $$->right_attr.relation_name=NULL;
-			// $$->right_attr.attribute_name=NULL;
-			// $$->right_value =*$5;			
-							
     }
     |value comOp ID DOT ID
 		{
@@ -712,16 +670,6 @@ condition:
 			Condition condition;
 			condition_init(&condition, $2, 0, NULL, left_value, 1, &right_attr, NULL, NULL, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-			// $$=( Condition *)malloc(sizeof( Condition));
-			// $$->left_is_attr = 0;//属性值
-			// $$->left_attr.relation_name=NULL;
-			// $$->left_attr.attribute_name=NULL;
-			// $$->left_value = *$1;
-			// $$->comp =CONTEXT->comp;
-			// $$->right_is_attr = 1;//属性
-			// $$->right_attr.relation_name = $3;
-			// $$->right_attr.attribute_name = $5;
-									
     }
     |ID DOT ID comOp ID DOT ID
 		{
@@ -733,14 +681,6 @@ condition:
 			Condition condition;
 			condition_init(&condition, $4, 1, &left_attr, NULL, 1, &right_attr, NULL, NULL, NULL);
 			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-			// $$=( Condition *)malloc(sizeof( Condition));
-			// $$->left_is_attr = 1;		//属性
-			// $$->left_attr.relation_name=$1;
-			// $$->left_attr.attribute_name=$3;
-			// $$->comp =CONTEXT->comp;
-			// $$->right_is_attr = 1;		//属性
-			// $$->right_attr.relation_name=$5;
-			// $$->right_attr.attribute_name=$7;
     }
 	|ID IS NULL_T {
 		RelAttr left_attr;
