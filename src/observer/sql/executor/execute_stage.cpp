@@ -793,7 +793,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
 
     rc = do_select(db, *sub_select, session_event, sub_res, true);
-    free(sub_select);
+    // free(sub_select);
     if (rc != RC::SUCCESS)
     {
       break;
