@@ -2067,7 +2067,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     }
 
     float sub_res = left - right;
-    if (sub_res > -1e-3 && sub_res < 1e-3)
+    if (sub_res > -1e-6 && sub_res < 1e-6)
     {
       ans = 0;
     }
