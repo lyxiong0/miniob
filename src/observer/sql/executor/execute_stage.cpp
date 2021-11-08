@@ -960,29 +960,27 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           else
           {
             // 处理关联子查询
-            // int k = sub_res.size() - 1;
-            // int last_index = sub_res.get_schema().size() - 1;
-            // for (; k >= 0; --k)
-            // {
-            //   if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(last_index), comp, result.get(j).get_pointer(index)) == 0)
-            //   {
-            //     break;
-            //   }
-            // }
+            int k = sub_res.size() - 1;
+            int last_index = sub_res.get_schema().size() - 1;
+            for (; k >= 0; --k)
+            {
+              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(last_index), comp, result.get(j).get_pointer(index)) == 0)
+              {
+                break;
+              }
+            }
 
-            // if (k < 0)
-            // {
-            //   // 出现错误
-            //   rc = RC::GENERIC_ERROR;
-            //   break;
-            // }
+            if (k < 0)
+            {
+              // 出现错误
+              rc = RC::GENERIC_ERROR;
+              break;
+            }
 
-            // LOG_INFO("sub_size = %d, last_field_name = %s", sub_res.get_schema().size(), sub_res.get_schema().field(sub_res.get_schema().size() - 1).field_name());
-            // if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), comp, result.get(j).get_pointer(index)))
-            // {
-            //   result.copy_ith_to(tmp_res, j);
-            // }
-            tmp_res = std::move(result);
+            if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), comp, result.get(j).get_pointer(index)))
+            {
+              result.copy_ith_to(tmp_res, j);
+            }
           }
 
           // if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
