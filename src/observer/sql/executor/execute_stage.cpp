@@ -771,7 +771,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
       const Condition &sub_cond = condition.sub_select->conditions[i];
       // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
-      if (sub_cond.right_is_attr && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, selects.relations[0]) == 0)
+      if (sub_cond.right_is_attr == 1 && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, selects.relations[0]) == 0)
       {
         LOG_INFO("add group by");
         // 加入子查询
