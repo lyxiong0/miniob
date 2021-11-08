@@ -939,14 +939,14 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         for (int j = 0; j < n; ++j)
         {
           // 遍历result，找出满足条件的tuple
-          if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
+          if (!is_related && cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
           {
             result.copy_ith_to(tmp_res, j);
           } 
 
-          // if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
-          //   result.copy_ith_to(tmp_res, j);
-          // }
+          if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
+            result.copy_ith_to(tmp_res, j);
+          }
         }
 
         result = std::move(tmp_res);
