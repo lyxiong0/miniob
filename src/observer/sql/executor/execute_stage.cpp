@@ -760,23 +760,50 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     TupleSet sub_res;
     CompOp comp = condition.comp;
 
-    Selects *sub_select = (Selects*)malloc(sizeof(Selects));
-    memcpy(sub_select, condition.sub_select, sizeof(Selects));
-    free(condition.sub_select);
+    // Selects *sub_select = (Selects*)malloc(sizeof(Selects));
+    // memcpy(sub_select, condition.sub_select, sizeof(Selects));
+    Selects sub_select = *condition.sub_select;
+    // free(condition.sub_select);
 
     // 检查是否为关联子查询
+    // bool is_related = false;
+    // for (size_t i = 0; i < sub_select->condition_num; i++)
+    // {
+    //   const Condition &right_attrcondition = sub_select->conditions[i];
+    //   // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
+    //   if (condition.right_is_attr && condition.right_attr.relation_name != nullptr && strcmp(condition.right_attr.relation_name, selects.relations[0]) == 0) {
+    //     LOG_INFO("add group by");
+    //     // 加入子查询
+    //     sub_select->relations[sub_select->relation_num++] = selects.relations[0];
+    //     // 加上group by
+    //     sub_select->group_num = 0;
+    //     sub_select->group_attrs[sub_select->group_num++] = condition.right_attr;
+    //     is_related = true;
+    //   }
+
+    //   if (condition.left_is_attr && condition.left_attr.relation_name != nullptr && strcmp(condition.left_attr.relation_name, selects.relations[0]) == 0) {
+    //     LOG_INFO("add group by");
+
+    //     // 加入子查询
+    //     sub_select->relations[sub_select->relation_num++] = selects.relations[0];
+    //     // 加上group by
+    //     sub_select->group_num = 0;
+    //     sub_select->group_attrs[sub_select->group_num++] = condition.left_attr;
+    //     is_related = true;
+    //   }
+    // }
     bool is_related = false;
-    for (size_t i = 0; i < sub_select->condition_num; i++)
+    for (size_t i = 0; i < sub_select.condition_num; i++)
     {
-      const Condition &right_attrcondition = sub_select->conditions[i];
+      const Condition &right_attrcondition = sub_select.conditions[i];
       // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
       if (condition.right_is_attr && condition.right_attr.relation_name != nullptr && strcmp(condition.right_attr.relation_name, selects.relations[0]) == 0) {
         LOG_INFO("add group by");
         // 加入子查询
-        sub_select->relations[sub_select->relation_num++] = selects.relations[0];
+        sub_select.relations[sub_select.relation_num++] = selects.relations[0];
         // 加上group by
-        sub_select->group_num = 0;
-        sub_select->group_attrs[sub_select->group_num++] = condition.right_attr;
+        sub_select.group_num = 0;
+        sub_select.group_attrs[sub_select.group_num++] = condition.right_attr;
         is_related = true;
       }
 
@@ -784,16 +811,16 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         LOG_INFO("add group by");
 
         // 加入子查询
-        sub_select->relations[sub_select->relation_num++] = selects.relations[0];
+        sub_select.relations[sub_select.relation_num++] = selects.relations[0];
         // 加上group by
-        sub_select->group_num = 0;
-        sub_select->group_attrs[sub_select->group_num++] = condition.left_attr;
+        sub_select.group_num = 0;
+        sub_select.group_attrs[sub_select.group_num++] = condition.left_attr;
         is_related = true;
       }
     }
 
-    rc = do_select(db, *sub_select, session_event, sub_res, true);
-    free(sub_select);
+    rc = do_select(db, sub_select, session_event, sub_res, true);
+    // free(sub_select);
     if (rc != RC::SUCCESS)
     {
       break;
