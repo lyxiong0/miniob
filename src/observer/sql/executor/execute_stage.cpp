@@ -760,67 +760,40 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     TupleSet sub_res;
     CompOp comp = condition.comp;
 
-    // Selects *sub_select = (Selects*)malloc(sizeof(Selects));
-    // memcpy(sub_select, condition.sub_select, sizeof(Selects));
-    Selects sub_select = *condition.sub_select;
-    // free(condition.sub_select);
+    Selects *sub_select = new Selects();
+    memcpy(sub_select, condition.sub_select, sizeof(Selects));
 
     // 检查是否为关联子查询
-    // bool is_related = false;
-    // for (size_t i = 0; i < sub_select->condition_num; i++)
-    // {
-    //   const Condition &right_attrcondition = sub_select->conditions[i];
-    //   // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
-    //   if (condition.right_is_attr && condition.right_attr.relation_name != nullptr && strcmp(condition.right_attr.relation_name, selects.relations[0]) == 0) {
-    //     LOG_INFO("add group by");
-    //     // 加入子查询
-    //     sub_select->relations[sub_select->relation_num++] = selects.relations[0];
-    //     // 加上group by
-    //     sub_select->group_num = 0;
-    //     sub_select->group_attrs[sub_select->group_num++] = condition.right_attr;
-    //     is_related = true;
-    //   }
-
-    //   if (condition.left_is_attr && condition.left_attr.relation_name != nullptr && strcmp(condition.left_attr.relation_name, selects.relations[0]) == 0) {
-    //     LOG_INFO("add group by");
-
-    //     // 加入子查询
-    //     sub_select->relations[sub_select->relation_num++] = selects.relations[0];
-    //     // 加上group by
-    //     sub_select->group_num = 0;
-    //     sub_select->group_attrs[sub_select->group_num++] = condition.left_attr;
-    //     is_related = true;
-    //   }
-    // }
     bool is_related = false;
-    for (size_t i = 0; i < sub_select.condition_num; i++)
+    int n = sub_select->condition_num;
+    for (size_t i = 0; i < n; i++)
     {
-      const Condition &right_attrcondition = sub_select.conditions[i];
+      const Condition &sub_cond = condition.sub_select->conditions[i];
       // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
-      if (condition.right_is_attr && condition.right_attr.relation_name != nullptr && strcmp(condition.right_attr.relation_name, selects.relations[0]) == 0) {
+      if (sub_cond.right_is_attr && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, selects.relations[0]) == 0) {
         LOG_INFO("add group by");
         // 加入子查询
-        sub_select.relations[sub_select.relation_num++] = selects.relations[0];
+        sub_select->relations[sub_select->relation_num++] = selects.relations[0];
         // 加上group by
-        sub_select.group_num = 0;
-        sub_select.group_attrs[sub_select.group_num++] = condition.right_attr;
+        sub_select->group_num = 0;
+        sub_select->group_attrs[sub_select->group_num++] = sub_cond.right_attr;
         is_related = true;
       }
 
-      if (condition.left_is_attr && condition.left_attr.relation_name != nullptr && strcmp(condition.left_attr.relation_name, selects.relations[0]) == 0) {
+      if (sub_cond.left_is_attr && sub_cond.left_attr.relation_name != nullptr && strcmp(sub_cond.left_attr.relation_name, selects.relations[0]) == 0) {
         LOG_INFO("add group by");
 
         // 加入子查询
-        sub_select.relations[sub_select.relation_num++] = selects.relations[0];
+        sub_select->relations[sub_select->relation_num++] = selects.relations[0];
         // 加上group by
-        sub_select.group_num = 0;
-        sub_select.group_attrs[sub_select.group_num++] = condition.left_attr;
+        sub_select->group_num = 0;
+        sub_select->group_attrs[sub_select->group_num++] = sub_cond.left_attr;
         is_related = true;
       }
     }
 
-    rc = do_select(db, sub_select, session_event, sub_res, true);
-    // free(sub_select);
+    free(condition.sub_select);
+    rc = do_select(db, *sub_select, session_event, sub_res, true);
     if (rc != RC::SUCCESS)
     {
       break;
@@ -966,14 +939,14 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         for (int j = 0; j < n; ++j)
         {
           // 遍历result，找出满足条件的tuple
-          if (!is_related && cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
+          if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
           {
             result.copy_ith_to(tmp_res, j);
           } 
 
-          if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
-            result.copy_ith_to(tmp_res, j);
-          }
+          // if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
+          //   result.copy_ith_to(tmp_res, j);
+          // }
         }
 
         result = std::move(tmp_res);
@@ -2028,7 +2001,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     }
 
     float sub_res = left - right;
-    if (sub_res > -1e-5 && sub_res < 1e-5)
+    if (sub_res > -1e-3 && sub_res < 1e-3)
     {
       ans = 0;
     }
