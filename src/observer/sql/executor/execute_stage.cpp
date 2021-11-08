@@ -770,7 +770,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
       const Condition &right_attrcondition = sub_select->conditions[i];
       // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
-      if (condition.right_is_attr && strcmp(condition.right_attr.relation_name, selects.relations[0]) == 0) {
+      if (condition.right_is_attr == 1 && strcmp(condition.right_attr.relation_name, selects.relations[0]) == 0) {
         // 加入子查询
         sub_select->relations[sub_select->relation_num++] = selects.relations[0];
         // 加上group by
@@ -779,7 +779,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         is_related = true;
       }
 
-      if (condition.left_is_attr && strcmp(condition.left_attr.relation_name, selects.relations[0]) == 0) {
+      if (condition.left_is_attr == 1 && strcmp(condition.left_attr.relation_name, selects.relations[0]) == 0) {
         // 加入子查询
         sub_select->relations[sub_select->relation_num++] = selects.relations[0];
         // 加上group by
