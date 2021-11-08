@@ -39,7 +39,7 @@ static RC schema_add_field(Table *table, const char *field_name, TupleSchema &sc
 
 RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<TupleSet> &results, int rel_num);
 
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, bool is_ret);
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, bool is_sub_select);
 
 FuncType judge_function_type(char *agg_function_name);
 
@@ -622,7 +622,7 @@ RC check_table_name(const Selects &selects, const char *db)
 
 // 这里没有对输入的某些信息做合法性校验，比如查询的列名、where条件中的列名等，没有做必要的合法性校验
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
-RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_ret)
+RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_sub_select)
 {
   RC rc = RC::SUCCESS;
   Session *session = session_event->get_client()->session;
@@ -633,7 +633,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   if (rc != RC::SUCCESS)
   {
     // 如果是子查询，抛出给主查询处理
-    if (!is_ret)
+    if (!is_sub_select)
     {
       session_event->set_response("FAILURE\n");
       end_trx_if_need(session, trx, false);
@@ -649,7 +649,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     const char *table_name = selects.relations[i];
 
     SelectExeNode *select_node = new SelectExeNode;
-    rc = create_selection_executor(trx, selects, db, table_name, *select_node, is_ret);
+    rc = create_selection_executor(trx, selects, db, table_name, *select_node, is_sub_select);
     if (rc != RC::SUCCESS)
     {
       delete select_node;
@@ -657,7 +657,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         delete tmp_node;
       }
-      if (!is_ret)
+      if (!is_sub_select)
       {
         session_event->set_response("FAILURE\n");
         end_trx_if_need(session, trx, false);
@@ -672,7 +672,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   if (select_nodes.empty())
   {
     LOG_ERROR("No table given");
-    if (!is_ret)
+    if (!is_sub_select)
     {
       session_event->set_response("FAILURE\n");
       end_trx_if_need(session, trx, false);
@@ -696,7 +696,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         delete tmp_node;
       }
-      if (!is_ret)
+      if (!is_sub_select)
       {
         session_event->set_response("FAILURE\n");
         end_trx_if_need(session, trx, false);
@@ -724,7 +724,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         delete tmp_node;
       }
-      if (!is_ret)
+      if (!is_sub_select)
       {
         session_event->set_response("FAILURE\n");
         end_trx_if_need(session, trx, true);
@@ -762,7 +762,29 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     TupleSet sub_res;
     CompOp comp = condition.comp;
 
-    rc = do_select(db, *condition.sub_select, session_event, sub_res, true);
+    Selects *sub_select = new Selects();
+    memcpy(sub_select, condition.sub_select, sizeof(Selects));
+    free(condition.sub_select);
+
+    // 检查主表是否在子表中， 不在则添加
+    for (int i = selects.relation_num - 1; i >= 0; --i)
+    {
+      int j = sub_select->relation_num - 1;
+      for (; j >= 0; --j)
+      {
+        if (strcmp(sub_select->relations[j], selects.relations[i]) == 0)
+        {
+          break;
+        }
+      }
+
+      if (j == -1)
+      {
+        sub_select->relations[sub_select->relation_num++] = selects.relations[i];
+      }
+    }
+
+    rc = do_select(db, *sub_select, session_event, sub_res, true);
     if (rc != RC::SUCCESS)
     {
       break;
@@ -1008,7 +1030,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
       delete tmp_node;
     }
-    if (!is_ret)
+    if (!is_sub_select)
     {
       session_event->set_response("FAILURE\n");
       end_trx_if_need(session, trx, true);
@@ -1040,7 +1062,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           delete tmp_node;
         }
 
-        if (!is_ret)
+        if (!is_sub_select)
         {
           session_event->set_response("FAILURE\n");
           end_trx_if_need(session, trx, true);
@@ -1114,7 +1136,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         {
           delete tmp_node;
         }
-        if (!is_ret)
+        if (!is_sub_select)
         {
           session_event->set_response("FAILURE\n");
           end_trx_if_need(session, trx, true);
@@ -1142,7 +1164,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           {
             delete tmp_node;
           }
-          if (!is_ret)
+          if (!is_sub_select)
           {
             session_event->set_response("FAILURE\n");
             end_trx_if_need(session, trx, true);
@@ -1250,7 +1272,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           delete tmp_node;
         }
 
-        if (!is_ret)
+        if (!is_sub_select)
         {
           session_event->set_response("FAILURE\n");
           end_trx_if_need(session, trx, true);
@@ -1264,7 +1286,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     quick_sort(&result, 0, result.size() - 1, order_info);
   }
 
-  if (!is_ret)
+  if (!is_sub_select)
   {
     result.print(ss, isMultiTable);
     session_event->set_response(ss.str());
@@ -1734,7 +1756,7 @@ FuncType judge_function_type(char *agg_function_name)
 }
 
 // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
-RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, bool is_ret)
+RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node, bool is_sub_select)
 {
   // 列出跟这张表关联的Attr
   // 1. 找到表

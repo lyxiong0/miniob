@@ -917,6 +917,7 @@ load_data:
 			load_data_init(&CONTEXT->ssql->sstr.load_data, $7, $4);
 		}
 		;
+
 %%
 //_____________________________________________________________________
 extern void scan_string(const char *str, yyscan_t scanner);
