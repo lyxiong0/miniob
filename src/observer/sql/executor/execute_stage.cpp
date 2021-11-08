@@ -762,7 +762,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     Selects *sub_select = new Selects();
     memcpy(sub_select, condition.sub_select, sizeof(Selects));
-    free(condition.sub_select);
+    // free(condition.sub_select); // 会在destroy里free
 
     // 检查是否为关联子查询
     bool is_related = false;
@@ -793,6 +793,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
 
     rc = do_select(db, *sub_select, session_event, sub_res, true);
+    free(sub_select);
     if (rc != RC::SUCCESS)
     {
       break;
