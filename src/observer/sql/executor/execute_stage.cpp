@@ -759,6 +759,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     has_subselect = true;
     TupleSet sub_res;
     CompOp comp = condition.comp;
+    LOG_INFO("comp = %d", comp);
 
     Selects *sub_select = new Selects();
     memcpy(sub_select, condition.sub_select, sizeof(Selects));
@@ -782,18 +783,18 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         is_related = true;
       }
 
-      if (sub_cond.left_is_attr && sub_cond.left_attr.relation_name != nullptr && strcmp(sub_cond.left_attr.relation_name, selects.relations[0]) == 0)
-      {
-        LOG_INFO("add group by");
+      // if (sub_cond.left_is_attr && sub_cond.left_attr.relation_name != nullptr && strcmp(sub_cond.left_attr.relation_name, selects.relations[0]) == 0)
+      // {
+      //   LOG_INFO("add group by");
 
-        // 加入子查询
-        sub_select->relations[sub_select->relation_num++] = selects.relations[0];
-        // 加上group by
-        sub_select->group_num = 0;
-        sub_select->group_attrs[sub_select->group_num++] = sub_cond.left_attr;
-        sub_select->attributes[sub_select->attr_num++] = sub_cond.right_attr;
-        is_related = true;
-      }
+      //   // 加入子查询
+      //   sub_select->relations[sub_select->relation_num++] = selects.relations[0];
+      //   // 加上group by
+      //   sub_select->group_num = 0;
+      //   sub_select->group_attrs[sub_select->group_num++] = sub_cond.left_attr;
+      //   sub_select->attributes[sub_select->attr_num++] = sub_cond.right_attr;
+      //   is_related = true;
+      // }
     }
 
     free(condition.sub_select);
@@ -813,7 +814,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       break;
     }
 
-    sub_res.print(std::cout);
+    // sub_res.print(std::cout, true);
 
     if (condition.left_is_attr == 2)
     {
@@ -861,7 +862,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         continue;
       }
       result.clear_tuples();
-      result.print(std::cout);
+      // result.print(std::cout, true);
       break;
     }
 
@@ -913,7 +914,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     // 开始处理操作符
     if (comp != CompOp::NOT_IN && comp != CompOp::IN_SUB)
     {
-      LOG_INFO("comp = %d", comp);
       // 处理比较操作符，超过一行且非关联子查询则不合法
       if (sub_res.size() > 1 && !is_related)
       {
@@ -939,7 +939,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         tmp_schema.append(result.get_schema());
         tmp_res.set_schema(tmp_schema);
 
-
         // 关联子查询，如果result里面有重复值怎么办
         int n = result.size();
         for (int j = 0; j < n; ++j)
@@ -961,25 +960,28 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           else
           {
             // 处理关联子查询
-            int k = sub_res.size() - 1;
-            int last_index = sub_res.get_schema().size() - 1;
-            for (; k >= 0; --k) {
-              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(last_index), comp, result.get(j).get_pointer(index)) == 0) {
-                break;
-              }
-            }
+            // int k = sub_res.size() - 1;
+            // int last_index = sub_res.get_schema().size() - 1;
+            // for (; k >= 0; --k)
+            // {
+            //   if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(last_index), comp, result.get(j).get_pointer(index)) == 0)
+            //   {
+            //     break;
+            //   }
+            // }
 
-            if (k < 0) {
-              // 出现错误
-              rc = RC::GENERIC_ERROR;
-              break;
-            }
+            // if (k < 0)
+            // {
+            //   // 出现错误
+            //   rc = RC::GENERIC_ERROR;
+            //   break;
+            // }
 
-            LOG_INFO("sub_size = %d, last_field_name = %s", sub_res.get_schema().size(), sub_res.get_schema().field(sub_res.get_schema().size() - 1).field_name());
-            if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), comp, result.get(j).get_pointer(index)))
-            {
-              result.copy_ith_to(tmp_res, j);
-            }
+            // LOG_INFO("sub_size = %d, last_field_name = %s", sub_res.get_schema().size(), sub_res.get_schema().field(sub_res.get_schema().size() - 1).field_name());
+            // if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), comp, result.get(j).get_pointer(index)))
+            // {
+            //   result.copy_ith_to(tmp_res, j);
+            // }
           }
 
           // if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
@@ -992,6 +994,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
     else
     {
+      LOG_INFO("comp = %d", comp);
       // 处理操作符in/not in，用哈希表
       // 生成哈希表
       std::unordered_set<size_t> target_set;
@@ -1073,7 +1076,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   }
 
   // 子查询结束
-  result.print(std::cout);
+  // result.print(std::cout, true);
 
   if (rc != RC::SUCCESS)
   {
@@ -1233,7 +1236,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
   }
   ////////////////////////////聚合函数结束/////////////////////////////
-  result.print(std::cout);
 
   // 有两种情况需要二次提取列
   // 1. 多表且没有group by，如果有group by，提取列已经在聚合里完成
