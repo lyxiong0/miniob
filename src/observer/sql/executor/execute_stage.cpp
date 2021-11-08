@@ -778,6 +778,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         // 加上group by
         sub_select->group_num = 0;
         sub_select->group_attrs[sub_select->group_num++] = sub_cond.right_attr;
+        sub_select->attributes[sub_select->attr_num++] = sub_cond.right_attr;
         is_related = true;
       }
 
@@ -790,6 +791,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         // 加上group by
         sub_select->group_num = 0;
         sub_select->group_attrs[sub_select->group_num++] = sub_cond.left_attr;
+        sub_select->attributes[sub_select->attr_num++] = sub_cond.right_attr;
         is_related = true;
       }
     }
@@ -805,7 +807,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     // result.print(std::cout);
 
     // 如果查询结果不为单列则不合法
-    if (sub_res.get_schema().size() != 1)
+    if (!is_related && sub_res.get_schema().size() != 1)
     {
       rc = RC::GENERIC_ERROR;
       break;
@@ -937,6 +939,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         tmp_schema.append(result.get_schema());
         tmp_res.set_schema(tmp_schema);
 
+
+        // 关联子查询，如果result里面有重复值怎么办
         int n = result.size();
         for (int j = 0; j < n; ++j)
         {
@@ -956,8 +960,23 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           }
           else
           {
-            const std::shared_ptr<TupleValue> &r_data = sub_res.get(1).get_pointer(0);
-            if (cmp_value(left_type, right_type, nullptr, r_data, comp, result.get(j).get_pointer(index)))
+            // 处理关联子查询
+            int k = sub_res.size() - 1;
+            int last_index = sub_res.get_schema().size() - 1;
+            for (; k >= 0; --k) {
+              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(last_index), comp, result.get(j).get_pointer(index)) == 0) {
+                break;
+              }
+            }
+
+            if (k < 0) {
+              // 出现错误
+              rc = RC::GENERIC_ERROR;
+              break;
+            }
+
+            LOG_INFO("sub_size = %d, last_field_name = %s", sub_res.get_schema().size(), sub_res.get_schema().field(sub_res.get_schema().size() - 1).field_name());
+            if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), comp, result.get(j).get_pointer(index)))
             {
               result.copy_ith_to(tmp_res, j);
             }
