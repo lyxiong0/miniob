@@ -622,7 +622,7 @@ RC check_table_name(const Selects &selects, const char *db)
 
 // 这里没有对输入的某些信息做合法性校验，比如查询的列名、where条件中的列名等，没有做必要的合法性校验
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
-RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_sub_select)
+RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_sub_select, char *main_table)
 {
   RC rc = RC::SUCCESS;
   Session *session = session_event->get_client()->session;
@@ -742,6 +742,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   // 在此执行子查询操作
   bool has_subselect = false;
+  if (main_table == nullptr)
+  {
+    main_table = (char *)malloc(strlen(selects.relations[0]) + 1);
+    memcpy(main_table, selects.relations[0], strlen(selects.relations[0]) + 1);
+  }
   for (size_t i = 0; i < selects.condition_num; i++)
   {
     const Condition &condition = selects.conditions[i];
@@ -771,34 +776,45 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
       const Condition &sub_cond = condition.sub_select->conditions[i];
       // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
-      if (sub_cond.right_is_attr == 1 && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, selects.relations[0]) == 0)
+      if (sub_cond.right_is_attr == 1 && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, main_table) == 0)
       {
-        LOG_INFO("add group by");
         // 加入子查询
-        sub_select->relations[sub_select->relation_num++] = selects.relations[0];
+        sub_select->relations[sub_select->relation_num++] = main_table;
         // 加上group by
         sub_select->group_num = 0;
         sub_select->group_attrs[sub_select->group_num++] = sub_cond.right_attr;
         sub_select->attributes[sub_select->attr_num++] = sub_cond.right_attr;
+        if (sub_select->attributes[0].agg_function_name == nullptr)
+        {
+          sub_select->attributes[sub_select->attr_num - 1].agg_function_name = (char *)malloc(4);
+          const char *tmp = "max";
+          memcpy(sub_select->attributes[sub_select->attr_num - 1].agg_function_name, tmp, 4);
+        }
+
         is_related = true;
       }
+      else if (sub_cond.left_is_attr == 1 && sub_cond.left_attr.relation_name != nullptr && strcmp(sub_cond.left_attr.relation_name, main_table) == 0)
+      {
+        LOG_INFO("add_sub");
+        // 加入子查询
+        sub_select->relations[sub_select->relation_num++] = main_table;
+        // 加上group by
+        sub_select->group_num = 0;
+        sub_select->group_attrs[sub_select->group_num++] = sub_cond.left_attr;
+        sub_select->attributes[sub_select->attr_num++] = sub_cond.left_attr;
+        if (sub_select->attributes[0].agg_function_name == nullptr)
+        {
+          sub_select->attributes[0].agg_function_name = (char *)malloc(4);
+          const char *tmp = "max";
+          memcpy(sub_select->attributes[0].agg_function_name, tmp, 4);
+        }
 
-      // if (sub_cond.left_is_attr && sub_cond.left_attr.relation_name != nullptr && strcmp(sub_cond.left_attr.relation_name, selects.relations[0]) == 0)
-      // {
-      //   LOG_INFO("add group by");
-
-      //   // 加入子查询
-      //   sub_select->relations[sub_select->relation_num++] = selects.relations[0];
-      //   // 加上group by
-      //   sub_select->group_num = 0;
-      //   sub_select->group_attrs[sub_select->group_num++] = sub_cond.left_attr;
-      //   sub_select->attributes[sub_select->attr_num++] = sub_cond.right_attr;
-      //   is_related = true;
-      // }
+        is_related = true;
+      }
     }
 
     free(condition.sub_select);
-    rc = do_select(db, *sub_select, session_event, sub_res, true);
+    rc = do_select(db, *sub_select, session_event, sub_res, true, main_table);
     if (rc != RC::SUCCESS)
     {
       break;

@@ -186,7 +186,7 @@ protected:
                       common::CallbackContext *context) override;
 
   void handle_request(common::StageEvent *event);
-  RC do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_sub_select = false);
+  RC do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_sub_select = false, char *main_table = nullptr);
 
 protected:
 private:
