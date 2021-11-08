@@ -192,6 +192,7 @@ protected:
 private:
   Stage *default_storage_stage_ = nullptr;
   Stage *mem_storage_stage_ = nullptr;
+  bool is_related = false;
 };
 
 #endif //__OBSERVER_SQL_EXECUTE_STAGE_H__

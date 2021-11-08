@@ -742,6 +742,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   // 在此执行子查询操作
   bool has_subselect = false;
+    // bool is_related = false;
+    
   if (main_table == nullptr)
   {
     main_table = (char *)malloc(strlen(selects.relations[0]) + 1);
@@ -770,7 +772,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     memcpy(sub_select, condition.sub_select, sizeof(Selects));
 
     // 检查是否为关联子查询
-    bool is_related = false;
     int n = sub_select->condition_num;
     for (size_t i = 0; i < n; i++)
     {
@@ -820,7 +821,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       break;
     }
 
-    // sub_res.print(std::cout);
+    sub_res.print(std::cout);
     // result.print(std::cout);
 
     // 如果查询结果不为单列则不合法
@@ -829,8 +830,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       rc = RC::GENERIC_ERROR;
       break;
     }
-
-    // sub_res.print(std::cout, true);
 
     if (condition.left_is_attr == 2)
     {
@@ -1069,17 +1068,29 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         tmp_res.set_schema(result.get_schema());
 
         int n = result.size();
+        result.print(std::cout);
         for (int j = 0; j < n; ++j)
         {
           // 遍历result，找出满足条件的tuple
           bool in_target = target_set.find(result.get(j).get_pointer(index)->to_hash()) != target_set.end();
-          if (comp == CompOp::IN_SUB && in_target)
+
+          if (comp == CompOp::IN_SUB)
           {
-            result.copy_ith_to(tmp_res, j);
+            if (in_target)
+            {
+              result.copy_ith_to(tmp_res, j);
+            }
           }
-          else if (comp == CompOp::NOT_IN && !in_target)
+          else 
           {
-            result.copy_ith_to(tmp_res, j);
+            if (!is_related && !in_target)
+            {
+              result.copy_ith_to(tmp_res, j);
+            }
+            else if (is_related)
+            {
+              result.copy_ith_to(tmp_res, j);
+            }
           }
         }
 
@@ -1091,7 +1102,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   }
 
   // 子查询结束
-  // result.print(std::cout, true);
+  result.print(std::cout, true);
 
   if (rc != RC::SUCCESS)
   {
