@@ -982,6 +982,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
             // {
             //   result.copy_ith_to(tmp_res, j);
             // }
+            tmp_res = std::move(result);
           }
 
           // if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
