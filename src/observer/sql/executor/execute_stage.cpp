@@ -770,7 +770,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
       const Condition &sub_cond = condition.sub_select->conditions[i];
       // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
-      if (sub_cond.right_is_attr && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, selects.relations[0]) == 0) {
+      if (sub_cond.right_is_attr && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, selects.relations[0]) == 0)
+      {
         LOG_INFO("add group by");
         // 加入子查询
         sub_select->relations[sub_select->relation_num++] = selects.relations[0];
@@ -780,7 +781,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         is_related = true;
       }
 
-      if (sub_cond.left_is_attr && sub_cond.left_attr.relation_name != nullptr && strcmp(sub_cond.left_attr.relation_name, selects.relations[0]) == 0) {
+      if (sub_cond.left_is_attr && sub_cond.left_attr.relation_name != nullptr && strcmp(sub_cond.left_attr.relation_name, selects.relations[0]) == 0)
+      {
         LOG_INFO("add group by");
 
         // 加入子查询
@@ -939,14 +941,31 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         for (int j = 0; j < n; ++j)
         {
           // 遍历result，找出满足条件的tuple
-          if (!is_related && cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
-          {
-            result.copy_ith_to(tmp_res, j);
-          } 
+          // 这样是ok的
+          // if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
+          // {
+          //   result.copy_ith_to(tmp_res, j);
+          // }
 
-          if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
-            result.copy_ith_to(tmp_res, j);
+          if (!is_related)
+          {
+            if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
+            {
+              result.copy_ith_to(tmp_res, j);
+            }
           }
+          else
+          {
+            const std::shared_ptr<TupleValue> &r_data = sub_res.get(j).get_pointer(0);
+            if (cmp_value(left_type, right_type, nullptr, r_data, comp, result.get(j).get_pointer(index)))
+            {
+              result.copy_ith_to(tmp_res, j);
+            }
+          }
+
+          // if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
+          //   result.copy_ith_to(tmp_res, j);
+          // }
         }
 
         result = std::move(tmp_res);
