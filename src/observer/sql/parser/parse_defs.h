@@ -267,7 +267,7 @@ extern "C"
   void selects_append_conditions_with_num(Selects *selects, Condition conditions[], size_t condition_num);
   void selects_append_conditions(Selects *selects, Condition *conditions);
   void selects_append_order(Selects *selects, RelAttr *rel_attr);
-  void selects_append_group(Selects *selects, RelAttr *rel_attr);
+  void selects_append_groups(Selects *selects, RelAttr *rel_attr);
   void selects_destroy(Selects *selects);
   void print_num(int num);
 

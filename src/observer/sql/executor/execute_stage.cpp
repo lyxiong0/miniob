@@ -755,8 +755,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       continue;
     }
 
-    LOG_INFO("i = %d, cond_num = %d", i, selects.condition_num);
-
     // 处理子查询
     has_subselect = true;
     TupleSet sub_res;
@@ -766,21 +764,28 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     memcpy(sub_select, condition.sub_select, sizeof(Selects));
     free(condition.sub_select);
 
-    // 检查主表是否在子表中， 不在则添加
-    for (int i = selects.relation_num - 1; i >= 0; --i)
+    // 检查是否为关联子查询
+    bool is_related = false;
+    for (size_t i = 0; i < sub_select->condition_num; i++)
     {
-      int j = sub_select->relation_num - 1;
-      for (; j >= 0; --j)
-      {
-        if (strcmp(sub_select->relations[j], selects.relations[i]) == 0)
-        {
-          break;
-        }
+      const Condition &right_attrcondition = sub_select->conditions[i];
+      // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
+      if (condition.right_is_attr && strcmp(condition.right_attr.relation_name, selects.relations[0]) == 0) {
+        // 加入子查询
+        sub_select->relations[sub_select->relation_num++] = selects.relations[0];
+        // 加上group by
+        sub_select->group_num = 0;
+        sub_select->group_attrs[sub_select->group_num++] = condition.right_attr;
+        is_related = true;
       }
 
-      if (j == -1)
-      {
-        sub_select->relations[sub_select->relation_num++] = selects.relations[i];
+      if (condition.left_is_attr && strcmp(condition.left_attr.relation_name, selects.relations[0]) == 0) {
+        // 加入子查询
+        sub_select->relations[sub_select->relation_num++] = selects.relations[0];
+        // 加上group by
+        sub_select->group_num = 0;
+        sub_select->group_attrs[sub_select->group_num++] = condition.left_attr;
+        is_related = true;
       }
     }
 
@@ -901,8 +906,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     if (comp != CompOp::NOT_IN && comp != CompOp::IN_SUB)
     {
       LOG_INFO("comp = %d", comp);
-      // 处理比较操作符，超过一行则不合法
-      if (sub_res.size() > 1)
+      // 处理比较操作符，超过一行且非关联子查询则不合法
+      if (sub_res.size() > 1 && !is_related)
       {
         rc = RC::GENERIC_ERROR;
         break;
@@ -930,8 +935,12 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         for (int j = 0; j < n; ++j)
         {
           // 遍历result，找出满足条件的tuple
-          if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
+          if (!is_related && cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
           {
+            result.copy_ith_to(tmp_res, j);
+          } 
+
+          if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
             result.copy_ith_to(tmp_res, j);
           }
         }
@@ -1988,7 +1997,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     }
 
     float sub_res = left - right;
-    if (sub_res > -1 && sub_res < 1)
+    if (sub_res > -1e-1 && sub_res < 1e-1)
     {
       ans = 0;
     }

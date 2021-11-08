@@ -167,6 +167,7 @@ ParserContext *get_context(yyscan_t scanner)
 %type <relattr1> select_attr;
 %type <selnode> sub_select;
 %type <number> comOp;
+%type <relattr1> group_by;
 
 %%
 
@@ -443,6 +444,10 @@ select:				/*  select 语句的语法解析树*/
 				selects_append_conditions(&CONTEXT->ssql->sstr.selection, $5); // where
 			}
 			selects_append_attributes(&CONTEXT->ssql->sstr.selection, $2); // select_attr
+			// group by
+			if ($6 != NULL) {
+				selects_append_groups(&CONTEXT->ssql->sstr.selection, $6); 
+			}
 	    }
 	;
 	
@@ -832,7 +837,7 @@ comOp:
     ;
 
 sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
-	LBRACE SELECT select_attr from_rel where RBRACE {
+	LBRACE SELECT select_attr from_rel where group_by RBRACE {
 		$$ = (Selects*)malloc(sizeof(Selects));
 		// 结构体malloc，后面要不跟上memcpy要不用memset全部默认初始化
 		memset($$, 0, sizeof(Selects));
@@ -842,13 +847,20 @@ sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
 			selects_append_conditions($$, $5); // where
 		}
 		selects_append_attributes($$, $3); // select_attr
+		// group by
+		if ($6 != NULL) {
+			selects_append_groups($$, $6); 
+		}
 	}
 ;
 
 group_by:
-	/*empty*/
+	/*empty*/ {$$ = NULL;}
 	| GROUP BY group_list {
-		;
+		relation_attr_init(&CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] , NULL, "*", NULL, 2);
+		$$ = (RelAttr *)malloc(sizeof(RelAttr) * CONTEXT->rel_attr_length);
+		memcpy($$, CONTEXT->rel_attrs, sizeof(RelAttr) * CONTEXT->rel_attr_length);
+		CONTEXT->rel_attr_length = 0; 
 	}
 	;
 
@@ -863,12 +875,14 @@ group_attr:
 	ID {
 		RelAttr attr;
 		relation_attr_init(&attr, NULL, $1, NULL, 0);
-		selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+		// selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
 	}
 	| ID DOT ID {
 		RelAttr attr;
 		relation_attr_init(&attr, $1, $3, NULL, 0);
-		selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+		// selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
 	}
 	;
 

@@ -395,10 +395,18 @@ bool check_date_data(const char *s)
   {
     selects->order_attrs[selects->order_num++] = *rel_attr;
   }
-
-  void selects_append_group(Selects *selects, RelAttr *rel_attr)
+  
+  void selects_append_groups(Selects *selects, RelAttr *rel_attrs)
   {
-    selects->group_attrs[selects->group_num++] = *rel_attr;
+    RelAttr *rel_attr = rel_attrs;
+    int flag = rel_attr->is_desc;
+
+    while (flag != 2)
+    {
+      selects->group_attrs[selects->group_num++] = *rel_attr;
+      ++rel_attr;
+      flag = rel_attr->is_desc;
+    }
   }
 
   void selects_append_conditions(Selects *selects, Condition *conditions)
