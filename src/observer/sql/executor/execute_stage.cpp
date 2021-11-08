@@ -776,7 +776,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     for (size_t i = 0; i < n; i++)
     {
       const Condition &sub_cond = condition.sub_select->conditions[i];
-      // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
+      // 查看条件中是否存在与主查s询相关的条件，关联子查询必有表名
       if (sub_cond.right_is_attr == 1 && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, main_table) == 0)
       {
         // 加入子查询
@@ -869,8 +869,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       continue;
     }
 
-    if (sub_res.size() == 0)
+    if (is_empty_table_ || sub_res.size() == 0)
     {
+      if (!is_empty_table_) {
+        is_empty_table_ = true;
+      }
       // 子查询没有结果，如果是in清空result，否则保留所有结果
       if (comp == NOT_IN)
       {
