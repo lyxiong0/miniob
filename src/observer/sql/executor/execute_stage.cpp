@@ -956,11 +956,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           }
           else
           {
-            const std::shared_ptr<TupleValue> &r_data = sub_res.get(j).get_pointer(0);
-            if (cmp_value(left_type, right_type, nullptr, r_data, comp, result.get(j).get_pointer(index)))
-            {
-              result.copy_ith_to(tmp_res, j);
-            }
+            // const std::shared_ptr<TupleValue> &r_data = sub_res.get(j).get_pointer(0);
+            // if (cmp_value(left_type, right_type, nullptr, r_data, comp, result.get(j).get_pointer(index)))
+            // {
+            //   result.copy_ith_to(tmp_res, j);
+            // }
           }
 
           // if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
