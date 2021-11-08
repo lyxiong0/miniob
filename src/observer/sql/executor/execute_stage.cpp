@@ -762,7 +762,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     Selects *sub_select = (Selects*)malloc(sizeof(Selects));
     memcpy(sub_select, condition.sub_select, sizeof(Selects));
-    // free(condition.sub_select); // 会在destroy里free
+    free(condition.sub_select);
 
     // 检查是否为关联子查询
     bool is_related = false;
