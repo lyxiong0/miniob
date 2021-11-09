@@ -1094,7 +1094,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
             for (int k = 0; k < sub_size; ++k)
             {
-              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index)) == 0)
+              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index)))
               {
                 in_target = true;
                 break;
@@ -1115,7 +1115,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
             in_target = true;
             for (int k = 0; k < sub_size; ++k)
             {
-              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index)) != 0)
+              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index)))
               {
                 in_target = false;
                 break;
@@ -2075,7 +2075,6 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
       }
       else
       {
-        // TODO: core dump
         left = 1.0 * std::dynamic_pointer_cast<IntValue>(left_value)->get_value();
       }
     }
@@ -2102,6 +2101,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     }
 
     float sub_res = left - right;
+    // LOG_INFO("loft = %f, right = %f, sub_res = %f", left, right, sub_res);
     if (sub_res > -1e-6 && sub_res < 1e-6)
     {
       ans = 0;
