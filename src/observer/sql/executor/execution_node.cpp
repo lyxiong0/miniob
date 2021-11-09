@@ -42,6 +42,8 @@ void record_reader(const char *data, void *context) {
 
 RC SelectExeNode::execute(TupleSet &tuple_set) {
   CompositeConditionFilter condition_filter;
+  // 这里的condition_filters_是execution_node中收集到的condition_filters_,是DefaultConditionFilter数组
+  // condition_filters_.data() 返回指向第一个元素的指针
   condition_filter.init((const ConditionFilter **)condition_filters_.data(), condition_filters_.size());
 
   tuple_set.clear();

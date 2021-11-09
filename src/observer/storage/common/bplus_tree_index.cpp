@@ -19,13 +19,12 @@ BplusTreeIndex::~BplusTreeIndex() noexcept
 {
   close();
 }
-
-RC BplusTreeIndex::create(const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta,int is_unique) {
+// 重载函数
+RC BplusTreeIndex::create(const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta, int is_unique){
   if (inited_) {
     LOG_INFO("BplusTreeIndex::create - RC::RECORD_OPENNED");
     return RC::RECORD_OPENNED;
   }
-
   RC rc = Index::init(index_meta, field_meta);
   if (rc != RC::SUCCESS)
   {
@@ -38,7 +37,30 @@ RC BplusTreeIndex::create(const char *file_name, const IndexMeta &index_meta, co
   }
   return rc;
 }
-
+RC BplusTreeIndex::create(const char *file_name, const IndexMeta &index_meta, const FieldMeta *field_meta[], int field_num, int is_unique) 
+{
+  if (inited_) {
+    LOG_INFO("BplusTreeIndex::create - RC::RECORD_OPENNED");
+    return RC::RECORD_OPENNED;
+  }
+  AttrType attr_type[field_num];
+  int attr_length[field_num]; 
+  for(int i = 0; i < field_num; i++){
+    attr_type[i] = field_meta[i]->type();
+    attr_length[i] = field_meta[i]->len();
+  }
+  RC rc = Index::init(index_meta, field_meta, field_num);
+  if (rc != RC::SUCCESS)
+  {
+    return rc;
+  }
+       // const char *file_name, AttrType attr_type[], int attr_length[],int field_num, int is_unique
+  rc = index_handler_.create(file_name, attr_type, attr_length, field_num, is_unique);
+  if (RC::SUCCESS == rc) {
+    inited_ = true;
+  }
+  return rc;
+}
 RC BplusTreeIndex::open(const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta)
 {
   if (inited_)
@@ -46,6 +68,27 @@ RC BplusTreeIndex::open(const char *file_name, const IndexMeta &index_meta, cons
     return RC::RECORD_OPENNED;
   }
   RC rc = Index::init(index_meta, field_meta);
+  if (rc != RC::SUCCESS)
+  {
+    return rc;
+  }
+
+  rc = index_handler_.open(file_name);
+  if (RC::SUCCESS == rc)
+  {
+    inited_ = true;
+  }
+  return rc;
+}
+
+RC BplusTreeIndex::open(const char *file_name, const IndexMeta &index_meta, const FieldMeta *field_meta[], int field_num)
+{
+  if (inited_)
+  {
+    return RC::RECORD_OPENNED;
+  }
+  // RC rc = Index::init(index_meta, field_meta);
+  RC rc = Index::init(index_meta, field_meta, field_num);
   if (rc != RC::SUCCESS)
   {
     return rc;
@@ -68,21 +111,63 @@ RC BplusTreeIndex::close()
   }
   return RC::SUCCESS;
 }
-
+int BplusTreeIndex::Get_Field_Num() const
+{ 
+  return field_num_;
+}
+int BplusTreeIndex::Get_Total_length() const
+{
+  return index_handler_.get_key_total_length();
+}
 RC BplusTreeIndex::insert_entry(const char *record, const RID *rid)
 {
-  return index_handler_.insert_entry(record + field_meta_.offset(), rid);
+  // 这里的field_meta_为index类中的内容
+  // 根据offset确定初始位置 然后根据attr_length确定取内容的长度 这里存在顺序的问题
+  // 在这里即可构造Key
+  int total_length = Get_Total_length();
+  char *key = (char *)malloc(total_length);
+  int acc_len=0;
+  for(int i=0;i<field_num_;i++){
+    memcpy(key + acc_len,record + fields_meta_[i].offset() , fields_meta_[i].len());
+    acc_len += fields_meta_[i].len();
+  }
+  memcpy(key + acc_len, rid, sizeof(*rid));
+  return index_handler_.insert_entry(key, rid);
 }
 
 RC BplusTreeIndex::delete_entry(const char *record, const RID *rid)
 {
-  return index_handler_.delete_entry(record + field_meta_.offset(), rid);
+  //组合 key
+  
+  char *pdata = (char *)malloc(index_handler_.get_key_total_length());
+  int offset = 0;
+  for ( int i = 0; i < fields_meta_.size(); i++){
+    memcpy(pdata + offset,record + fields_meta_[i].offset(),fields_meta_[i].len());
+    offset += fields_meta_[i].len();
+  }
+  return index_handler_.delete_entry(pdata, rid);
 }
-
-IndexScanner *BplusTreeIndex::create_scanner(CompOp comp_op, const char *value, int null_field_index)
+// 这里和multi_index的差别主要是将null值分开
+IndexScanner *BplusTreeIndex::create_single_index_scanner(CompOp comp_op, const char *value, int null_field_index)
 {
   BplusTreeScanner *bplus_tree_scanner = new BplusTreeScanner(index_handler_);
-  RC rc = bplus_tree_scanner->open(comp_op, value, null_field_index);
+  RC rc = bplus_tree_scanner->open_single_index(comp_op, value, null_field_index);
+  if (rc != RC::SUCCESS)
+  {
+    LOG_ERROR("Failed to open index scanner. rc=%d:%s", rc, strrc(rc));
+    delete bplus_tree_scanner;
+    return nullptr;
+  }
+
+  BplusTreeIndexScanner *index_scanner = new BplusTreeIndexScanner(bplus_tree_scanner);
+  return index_scanner;
+}
+
+IndexScanner *BplusTreeIndex::create_multi_index_scanner(const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values)
+{
+  // 当前的BplusTreeIndex就是已经匹配上当前condition的index.
+  BplusTreeScanner *bplus_tree_scanner = new BplusTreeScanner(index_handler_);
+  RC rc = bplus_tree_scanner->open_multi_index(comp_ops, values);
   if (rc != RC::SUCCESS)
   {
     LOG_ERROR("Failed to open index scanner. rc=%d:%s", rc, strrc(rc));
@@ -98,8 +183,6 @@ RC BplusTreeIndex::sync()
 {
   return index_handler_.sync();
 }
-
-////////////////////////////////////////////////////////////////////////////////
 BplusTreeIndexScanner::BplusTreeIndexScanner(BplusTreeScanner *tree_scanner) : tree_scanner_(tree_scanner)
 {
 }
