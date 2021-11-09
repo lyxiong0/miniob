@@ -38,7 +38,6 @@ extern "C"
     }
 
     relation_attr->attribute_name = strdup(attribute_name);
-    LOG_ERROR("%s", attribute_name);
 
     if (agg_function_name != nullptr)
     {
@@ -87,8 +86,8 @@ extern "C"
     value->data = nullptr;
     value->is_null = false;
   }
-// check date 格式
-bool check_date_format(const char *s)
+  // check date 格式
+  bool check_date_format(const char *s)
   {
     std::string str = s;
     std::regex pattern("^\\d{4}-\\d{1,2}-\\d{1,2}");
@@ -101,7 +100,7 @@ bool check_date_format(const char *s)
   /*  放弃使用regex
 bool check_date_data(const char *s)
   {
-    // 
+    //
     std::string str = s;
     std::regex pattern("((19[7-9][0-9]|20[0-2][0-9]|203[0-7])-(((0?[13578]|1[02])-([12][0-9]|3[01]|0?[1-9]))|((0?[469]|11)-([12][0-9]|30|0?[1-9]))|(0?2-([1][0-9]|2[0-8]|0?[1-9]))))|((2000|19(8[048]|[79][26]))-0?2-29)|(2038-((0?1-([1-2][0-9]|3[0-1]|0?[1-9]))|(0?2-(1[0-9]|2[0-8]|0?[1-9]))))");
     if (std::regex_match(str, pattern))
@@ -111,7 +110,7 @@ bool check_date_data(const char *s)
     return false;
   }
 */
-int date2num(const char *s)
+  int date2num(const char *s)
   {
     // 这个函数写的比较丑，先用着（后期可以考虑使用strtok字符串分割函数进行改写）
     // 设定格式为yyyy-mm-dd/yyyy-m-dd/yyyy-mm-d/yyyy-m-d
@@ -144,48 +143,62 @@ int date2num(const char *s)
     }
     return num;
   }
-// 如果过了date格式则设定t为true且返回对应的int,否则设定t为false且返回0
-int check_date_data_convert(const char *s,int &t){
+  // 如果过了date格式则设定t为true且返回对应的int,否则设定t为false且返回0
+  int check_date_data_convert(const char *s, int &t)
+  {
     int num = date2num(s);
-    if(num<19700101||num>20380131){
-        t=0;
+    if (num < 19700101 || num > 20380131)
+    {
+      t = 0;
     }
     // check 天数
-    int days=num%100;
-    if(days>31||days<1){
-        t=0;
+    int days = num % 100;
+    if (days > 31 || days < 1)
+    {
+      t = 0;
     }
-    int mons=num%10000/100;
-    if(mons>12||mons<1){
-        t=0;
+    int mons = num % 10000 / 100;
+    if (mons > 12 || mons < 1)
+    {
+      t = 0;
     }
-    int years=num/10000;
+    int years = num / 10000;
     // 处理闰年
-    if(mons==2){
-        // years(1970~2038)
-        if(years%4==0){
-            if(days>29){
-                t=0;
-            }
-        }else{
-            if(days>28){
-                t=0;
-            }
+    if (mons == 2)
+    {
+      // years(1970~2038)
+      if (years % 4 == 0)
+      {
+        if (days > 29)
+        {
+          t = 0;
         }
+      }
+      else
+      {
+        if (days > 28)
+        {
+          t = 0;
+        }
+      }
     }
     // 处理大小月份
-    if(mons==4||mons==6||mons==9||mons==11){
-        if(days>30){
-            t=0;
-        }
-    }else{
-        if(days>31){
-            t=0;
-        }
+    if (mons == 4 || mons == 6 || mons == 9 || mons == 11)
+    {
+      if (days > 30)
+      {
+        t = 0;
+      }
+    }
+    else
+    {
+      if (days > 31)
+      {
+        t = 0;
+      }
     }
     return num;
-}
-  
+  }
 
   bool match_null(const char *s)
   {
@@ -204,10 +217,12 @@ int check_date_data_convert(const char *s,int &t){
 
   void value_init_string(Value *value, const char *v, int is_null)
   {
-    if (is_null) {
+    if (is_null)
+    {
       value->type = NULLS;
       value->data = strdup(v);
-    } else if (check_date_format(v))
+    }
+    else if (check_date_format(v))
     {
       // LOG_INFO("成功匹配日期格式开始检查具体日期");
       // 转换为数字
@@ -216,16 +231,18 @@ int check_date_data_convert(const char *s,int &t){
       if(t){
         // LOG_INFO("通过具体日期检测，将输入值作为dates处理");
         value->type = DATES;
-        value->data = malloc(sizeof(date_num));  
+        value->data = malloc(sizeof(date_num));
         memcpy(value->data, &date_num, sizeof(date_num));
-      }else{
+      }
+      else
+      {
         //没有通过具体日期检测  因为后面插入表格的时候会有table_meta与value_type的检测，就不用再这里将解析识别为错误，
         // 对于不通过日期检测的字符串解析为正常字符串
         // LOG_INFO("成功匹配日期格式但没有通过具体日期检测，将输入值作为char处理");
         value->type = CHARS;
         value->data = strdup(v);
       }
-    } 
+    }
     else
     {
       // LOG_INFO("没有成功匹配日期格式将输入值作为char处理");     
@@ -238,27 +255,48 @@ int check_date_data_convert(const char *s,int &t){
 
   void condition_init(Condition *condition, CompOp comp,
                       int left_is_attr, RelAttr *left_attr, Value *left_value,
-                      int right_is_attr, RelAttr *right_attr, Value *right_value)
+                      int right_is_attr, RelAttr *right_attr, Value *right_value,
+                      Selects *sub_select, Selects *another_sub_select)
   {
-    // LOG_INFO("condition_init function starts and right_value.type=%d",right_value->type);
     condition->comp = comp;
-    condition->is_valid=true;
     condition->left_is_attr = left_is_attr;
-    if (left_is_attr)
+
+    if (another_sub_select != nullptr)
     {
-      //LOG_INFO("left_is_attr=true and attr.relation=%s attr.attribute_name=%s ",left_attr->relation_name,left_attr->attribute_name);
-      condition->left_attr = *left_attr;
+      // 左侧也是子查询
+      condition->another_sub_select = (Selects *)malloc(sizeof(Selects));
+      memcpy(condition->another_sub_select, another_sub_select, sizeof(Selects));
+      free(another_sub_select);
     }
     else
     {
-      // check the date format
-      //LOG_INFO("left_is_attr=false and left_value.type=%d and its data=%s",left_value->type,(char *)left_value->data)
+      if (left_is_attr)
+      {
+        condition->left_attr = *left_attr;
+      }
+      else
+      {
+        // check the date format
         condition->left_value = *left_value;
+      }
     }
+
+    if (sub_select != nullptr)
+    {
+      // 碰到子查询
+      // 如果只有一个子查询，默认解析到右侧
+      // 如果有两个子查询，another是左侧的子查询
+      condition->right_is_attr = 2;
+      condition->sub_select = (Selects *)malloc(sizeof(Selects));
+      memcpy(condition->sub_select, sub_select, sizeof(Selects));
+      free(sub_select);
+
+      return;
+    }
+
     condition->right_is_attr = right_is_attr;
     if (right_is_attr)
     {
-      //LOG_INFO("right_is_attr=true and attr.relation=%s attr.attribute_name=%s ",right_attr->relation_name,right_attr->attribute_name);
       condition->right_attr = *right_attr;
     }
     else
@@ -266,6 +304,7 @@ int check_date_data_convert(const char *s,int &t){
       condition->right_value = *right_value;
     }
   }
+
   void condition_destroy(Condition *condition)
   {
     if (condition->left_is_attr)
@@ -284,13 +323,16 @@ int check_date_data_convert(const char *s,int &t){
     {
       value_destroy(&condition->right_value);
     }
+
+    free(condition->sub_select);
+    condition->sub_select = nullptr;
   }
 
   void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, TrueOrFalse is_nullable)
   {
     attr_info->name = strdup(name);
     attr_info->type = type;
-    
+
     attr_info->length = length;
 
     if (is_nullable == ISTRUE)
@@ -315,35 +357,77 @@ int check_date_data_convert(const char *s,int &t){
     selects->attributes[selects->attr_num++] = *rel_attr;
   }
 
+  void selects_append_attributes(Selects *selects, RelAttr *rel_attrs)
+  {
+    RelAttr *rel_attr = rel_attrs;
+    int flag = rel_attr->is_desc;
+
+    while (flag != 2)
+    {
+      selects->attributes[selects->attr_num++] = *rel_attr;
+      ++rel_attr;
+      flag = rel_attr->is_desc;
+    }
+  }
+
   void selects_append_relation(Selects *selects, const char *relation_name)
   {
     selects->relations[selects->relation_num++] = strdup(relation_name);
+  }
+
+  void selects_append_relations(Selects *selects, const char **relation_names)
+  {
+    const char **rel_name = relation_names;
+
+    for (; strcmp(*rel_name, "NULL") != 0; ++rel_name)
+    {
+      selects->relations[selects->relation_num++] = strdup(*rel_name);
+    }
+  }
+
+  void print_num(int num)
+  {
+    LOG_INFO("num = %d", num);
   }
 
   void selects_append_order(Selects *selects, RelAttr *rel_attr)
   {
     selects->order_attrs[selects->order_num++] = *rel_attr;
   }
+  
+  void selects_append_groups(Selects *selects, RelAttr *rel_attrs)
+  {
+    RelAttr *rel_attr = rel_attrs;
+    int flag = rel_attr->is_desc;
 
-  void selects_append_group(Selects *selects, RelAttr *rel_attr) {
-    selects->group_attrs[selects->group_num++] = *rel_attr;
+    while (flag != 2)
+    {
+      selects->group_attrs[selects->group_num++] = *rel_attr;
+      ++rel_attr;
+      flag = rel_attr->is_desc;
+    }
   }
 
-  // void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num)
-  void selects_append_conditions(Query *sql, Condition conditions[], size_t condition_num)
+  void selects_append_conditions(Selects *selects, Condition *conditions)
   {
-    Selects *selects = &sql->sstr.selection;
+    // assert(condition_num <= sizeof(selects->conditions) / sizeof(selects->conditions[0]));
+    Condition *cond = conditions;
+    LOG_INFO("call");
+
+    for (; cond->comp != NO_OP; ++cond)
+    {
+      selects->conditions[selects->condition_num++] = *cond;
+    }
+  }
+
+  void selects_append_conditions_with_num(Selects *selects, Condition conditions[], size_t condition_num)
+  {
     assert(condition_num <= sizeof(selects->conditions) / sizeof(selects->conditions[0]));
     for (size_t i = 0; i < condition_num; i++)
     {
-      if(conditions[i].is_valid){
-        selects->conditions[i] = conditions[i];
-      }else{
-        sql->flag=SCF_ERROR;
-        break;
-      }
+      selects->conditions[selects->condition_num + i] = conditions[i];
     }
-    selects->condition_num = condition_num;
+    selects->condition_num += condition_num;
   }
 
   void selects_destroy(Selects *selects)
@@ -415,14 +499,14 @@ int check_date_data_convert(const char *s,int &t){
     deletes->relation_name = strdup(relation_name);
   }
 
-  void deletes_set_conditions(Deletes *deletes, Condition conditions[], size_t condition_num)
+  void deletes_set_conditions(Deletes *deletes, Condition *conditions)
   {
-    assert(condition_num <= sizeof(deletes->conditions) / sizeof(deletes->conditions[0]));
-    for (size_t i = 0; i < condition_num; i++)
+    Condition *cond = conditions;
+
+    for (; cond->comp != NO_OP; ++cond)
     {
-      deletes->conditions[i] = conditions[i];
+      deletes->conditions[deletes->condition_num++] = *cond;
     }
-    deletes->condition_num = condition_num;
   }
   void deletes_destroy(Deletes *deletes)
   {
@@ -436,18 +520,21 @@ int check_date_data_convert(const char *s,int &t){
   }
 
   void updates_init(Updates *updates, const char *relation_name, const char *attribute_name,
-                    Value *value, Condition conditions[], size_t condition_num)
+                    Value *value)
   {
     updates->relation_name = strdup(relation_name);
     updates->attribute_name = strdup(attribute_name);
     updates->value = *value;
+  }
 
-    assert(condition_num <= sizeof(updates->conditions) / sizeof(updates->conditions[0]));
-    for (size_t i = 0; i < condition_num; i++)
+  void updates_init_condition(Updates *updates, Condition *conditions)
+  {
+    Condition *cond = conditions;
+
+    for (; cond->comp != NO_OP; ++cond)
     {
-      updates->conditions[i] = conditions[i];
+      updates->conditions[updates->condition_num++] = *cond;
     }
-    updates->condition_num = condition_num;
   }
 
   void updates_destroy(Updates *updates)
@@ -719,11 +806,14 @@ extern "C" int sql_parse(const char *st, Query *sqls);
 RC parse(const char *st, Query *sqln)
 {
   sql_parse(st, sqln);
-  //LOG_INFO(" the parse result sqln->flag is %d",sqln->flag);
-  if (sqln->flag == SCF_ERROR){
+  // LOG_INFO(" the parse result sqln->flag is %d",sqln->flag);
+  if (sqln->flag == SCF_ERROR)
+  {
     LOG_INFO(" the parse function return SQL_SYNTAX");
     return SQL_SYNTAX;
-  }else{
+  }
+  else
+  {
     return SUCCESS;
   }
 }

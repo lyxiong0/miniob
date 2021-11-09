@@ -236,6 +236,10 @@ public:
 
   void copy_ith_to(TupleSet &lhs, int i) const;
 
+  void clear_tuples() {
+    tuples_.clear();
+  }
+
 public:
   const TupleSchema &schema() const
   {

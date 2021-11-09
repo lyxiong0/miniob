@@ -250,7 +250,7 @@ void TupleSet::set_schema(const TupleSchema &schema)
 }
 
 void TupleSet::copy_ith_to(TupleSet &lhs, int i) const {
-  // 将第i个指
+  // 将第i个值
   Tuple tmp = tuples_[i];
   lhs.add(std::move(tmp));
 }
@@ -370,7 +370,7 @@ void TupleRecordConverter::add_record(const char *record)
         num2date(value,str);
         // const char *s = str;
         //const char *s = num2date(value);
-        tuple.add(str, strlen(str));
+        tuple.add(str, 10);
         free(str);
 
         // const char *s = num2date(value).data();

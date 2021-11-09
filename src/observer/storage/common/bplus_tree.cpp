@@ -2705,7 +2705,6 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (i1 == 19700101);
       break;
     case FLOATS:
-      LOG_INFO("f1 = %f", f1);
       flag = 0 == float_compare(f1, 0.0);
       break;
     case CHARS:
