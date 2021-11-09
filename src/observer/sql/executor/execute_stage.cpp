@@ -2076,7 +2076,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
 
       int right = std::dynamic_pointer_cast<IntValue>(right_data)->get_value();
 
-      return left - right;
+      ans = left - right;
     }
 
     // 混合类型或者都是float，转换成float比较
