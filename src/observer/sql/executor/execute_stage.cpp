@@ -773,7 +773,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
 
       const Condition &sub_cond = condition.sub_select->conditions[i];
-      // 查看条件中是否存在与主查s询相关的条件，关联子查询必有表名
+      // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
       if (sub_cond.right_is_attr == 1 && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, main_table) == 0)
       {
         // 加入子查询
@@ -2104,7 +2104,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
 
     float sub_res = left - right;
     // LOG_INFO("loft = %f, right = %f, sub_res = %f", left, right, sub_res);
-    if (sub_res > -1e-6 && sub_res < 1e-6)
+    if (sub_res > -1e-9 && sub_res < 1e-9)
     {
       ans = 0;
     }
