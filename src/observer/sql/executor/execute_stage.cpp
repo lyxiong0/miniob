@@ -2063,7 +2063,23 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
   case AttrType::INTS:
   case AttrType::FLOATS:
   {
-    // 都转换成float比较
+    if (left_type == AttrType::INTS && right_type == AttrType::INTS) {
+      int left;
+      if (left_data != nullptr)
+      {
+        left = *(int *)left_data;
+      }
+      else
+      {
+        left = std::dynamic_pointer_cast<IntValue>(left_value)->get_value();
+      }
+
+      int right = std::dynamic_pointer_cast<IntValue>(right_data)->get_value();
+
+      return left - right;
+    }
+
+    // 混合类型或者都是float，转换成float比较
     float left;
     if (left_type == AttrType::INTS)
     {
@@ -2099,7 +2115,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     }
 
     float sub_res = left - right;
-    // LOG_INFO("loft = %f, right = %f, sub_res = %f", left, right, sub_res);
+    // LOG_INFO("left = %f, right = %f, sub_res = %f", left, right, sub_res);
     if (sub_res > -1e-9 && sub_res < 1e-9)
     {
       ans = 0;
