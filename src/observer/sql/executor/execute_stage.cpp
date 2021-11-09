@@ -869,11 +869,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       continue;
     }
 
-    if (is_empty_table_ || sub_res.size() == 0)
+    if (sub_res.size() == 0)
     {
-      if (!is_empty_table_) {
-        is_empty_table_ = true;
-      }
       // 子查询没有结果，如果是in清空result，否则保留所有结果
       if (comp == NOT_IN)
       {
