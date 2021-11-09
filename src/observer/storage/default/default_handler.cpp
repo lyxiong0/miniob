@@ -155,7 +155,7 @@ RC DefaultHandler::drop_table(const char *dbname, const char *relation_name) {
   return db->drop_table(relation_name);
 }
 
-RC DefaultHandler::create_index(Trx *trx, const char *dbname, const char *relation_name, const char *index_name, const char *attribute_name,int is_unique)
+RC DefaultHandler::create_index(Trx *trx, const char *dbname, const char *relation_name, const char *index_name,const int& attr_num, const char *attribute_name[],int is_unique)
 {
   
   Table *table = find_table(dbname, relation_name);
@@ -163,7 +163,11 @@ RC DefaultHandler::create_index(Trx *trx, const char *dbname, const char *relati
   {
     return RC::SCHEMA_TABLE_NOT_EXIST;
   }
-  return table->create_index(trx, index_name, attribute_name,is_unique);
+  // 根据attr_num是否大于1，在这里进行分流一次  unique其实也可以用于multi-index 因为不能让联合索引的key完全相同
+  if(attr_num>1){
+    return table->create_index(trx, index_name, attr_num, attribute_name, is_unique);
+  }
+  return table->create_index(trx, index_name, attribute_name[0], is_unique);
 }
 
 RC DefaultHandler::drop_index(Trx *trx, const char *dbname, const char *relation_name, const char *index_name)

@@ -175,7 +175,9 @@ typedef struct
   int is_unique;           // unique =1 means unique index
   char *index_name;     // Index name
   char *relation_name;  // Relation name
-  char *attribute_name; // Attribute name
+  // char *attribute_name; // Attribute name
+  char *attribute_name[MAX_NUM];  // Attribute name   char指针数组
+  size_t attr_num;         // for multi-index 
 } CreateIndex;
 
 // struct of  drop_index
@@ -290,7 +292,8 @@ extern "C"
   void drop_table_destroy(DropTable *drop_table);
 
   void create_index_init(
-      CreateIndex *create_index, const char *index_name, const char *relation_name, const char *attr_name, int is_unique);
+      CreateIndex *create_index, const char *index_name, const char *relation_name, int is_unique);
+  void create_index_append(CreateIndex *create_index,const char *attr_name);
   void create_index_destroy(CreateIndex *create_index);
 
   void drop_index_init(DropIndex *drop_index, const char *index_name);

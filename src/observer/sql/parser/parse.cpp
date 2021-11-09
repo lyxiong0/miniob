@@ -224,13 +224,12 @@ bool check_date_data(const char *s)
     }
     else if (check_date_format(v))
     {
-      LOG_INFO("成功匹配日期格式开始检查具体日期");
+      // LOG_INFO("成功匹配日期格式开始检查具体日期");
       // 转换为数字
-      int t = 1;
-      int date_num = check_date_data_convert(v, t);
-      if (t)
-      {
-        LOG_INFO("通过具体日期检测，将输入值作为dates处理");
+      int t=1;
+      int date_num = check_date_data_convert(v,t);
+      if(t){
+        // LOG_INFO("通过具体日期检测，将输入值作为dates处理");
         value->type = DATES;
         value->data = malloc(sizeof(date_num));
         memcpy(value->data, &date_num, sizeof(date_num));
@@ -239,14 +238,14 @@ bool check_date_data(const char *s)
       {
         //没有通过具体日期检测  因为后面插入表格的时候会有table_meta与value_type的检测，就不用再这里将解析识别为错误，
         // 对于不通过日期检测的字符串解析为正常字符串
-        LOG_INFO("成功匹配日期格式但没有通过具体日期检测，将输入值作为char处理");
+        // LOG_INFO("成功匹配日期格式但没有通过具体日期检测，将输入值作为char处理");
         value->type = CHARS;
         value->data = strdup(v);
       }
     }
     else
     {
-      LOG_INFO("没有成功匹配日期格式将输入值作为char处理");
+      // LOG_INFO("没有成功匹配日期格式将输入值作为char处理");     
       value->type = CHARS;
       value->data = strdup(v);
     }
@@ -582,15 +581,22 @@ bool check_date_data(const char *s)
     free(drop_table->relation_name);
     drop_table->relation_name = nullptr;
   }
-
+/*
   void create_index_init(CreateIndex *create_index, const char *index_name,
                          const char *relation_name, const char *attr_name, int is_unique)
+*/
+  void create_index_init(CreateIndex *create_index, const char *index_name,
+                         const char *relation_name, int is_unique)
   {
     create_index->index_name = strdup(index_name);
     create_index->relation_name = strdup(relation_name);
-    create_index->attribute_name = strdup(attr_name);
-    create_index->is_unique = is_unique;
+    // create_index->attribute_name = strdup(attr_name);
+    create_index->is_unique=is_unique;
   }
+  void create_index_append_attribute(CreateIndex *create_index,const char *attr_name){
+    create_index->attribute_name[create_index->attr_num++] = strdup(attr_name);
+  }
+
   void create_index_destroy(CreateIndex *create_index)
   {
     free(create_index->index_name);
@@ -599,7 +605,10 @@ bool check_date_data(const char *s)
 
     create_index->index_name = nullptr;
     create_index->relation_name = nullptr;
-    create_index->attribute_name = nullptr;
+    for(size_t i = 0;i<create_index->attr_num;i++){
+      create_index->attribute_name[i] = nullptr;
+    }
+    create_index->attr_num=0;
   }
 
   void drop_index_init(DropIndex *drop_index, const char *index_name)

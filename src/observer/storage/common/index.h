@@ -44,17 +44,22 @@ public:
 
   virtual RC insert_entry(const char *record, const RID *rid) = 0;
   virtual RC delete_entry(const char *record, const RID *rid) = 0;
+  virtual int Get_Field_Num() const = 0;
 
-  virtual IndexScanner *create_scanner(CompOp comp_op, const char *value, int null_field_index) = 0;
-
+  // virtual IndexScanner *create_scanner(const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values, int null_field_index) = 0;
+  virtual IndexScanner *create_multi_index_scanner(const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values) = 0;
+  virtual IndexScanner *create_single_index_scanner(CompOp comp_op, const char *value, int null_field_index) = 0;
   virtual RC sync() = 0;
 
 protected:
   RC init(const IndexMeta &index_meta, const FieldMeta &field_meta);
-
+  RC init(const IndexMeta &index_meta, const FieldMeta *field_meta[],int field_num );
+  // int Get_Field_Num() const;
 protected:
   IndexMeta   index_meta_;
-  FieldMeta   field_meta_;    /// 当前实现仅考虑一个字段的索引
+  // FieldMeta   field_meta_;    /// 当前实现仅考虑一个字段的索引
+  int field_num_;
+  std::vector<FieldMeta>  fields_meta_;  // for multi-index
 };
 
 class IndexScanner {

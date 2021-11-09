@@ -39,8 +39,8 @@ RC BplusTreeHandler::sync()
 {
   return disk_buffer_pool_->flush_all_pages(file_id_);
 }
-// 创建以file_name为名称的index文件
-// RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_length)
+
+// 使用重载
 RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_length,int is_unique)
 {
   BPPageHandle page_handle;
@@ -82,11 +82,100 @@ RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_
     return rc;
   }
   IndexFileHeader *file_header = (IndexFileHeader *)pdata;
-  file_header->attr_length = attr_length;
+  file_header->field_num = 1;
+  file_header->attr_length[0] = attr_length;
+  file_header->total_attr_length = attr_length;
   file_header->key_length = attr_length + sizeof(RID);
-  file_header->attr_type = attr_type;
+  file_header->attr_type[0] = attr_type;
   file_header->node_num = 1;
   file_header->order = ((int)BP_PAGE_DATA_SIZE - sizeof(IndexFileHeader) - sizeof(IndexNode)) / (attr_length + 2 * sizeof(RID));
+  file_header->root_page = page_num;
+  file_header->unique = is_unique;
+
+  root = get_index_node(pdata);
+  root->is_leaf = 1;
+  root->key_num = 0;
+  root->parent = -1;
+  root->keys = nullptr;
+  root->rids = nullptr;
+
+  rc = disk_buffer_pool->mark_dirty(&page_handle);
+  if (rc != SUCCESS)
+  {
+    return rc;
+  }
+
+  rc = disk_buffer_pool->unpin_page(&page_handle);
+  if (rc != SUCCESS)
+  {
+    return rc;
+  }
+
+  disk_buffer_pool_ = disk_buffer_pool;
+  file_id_ = file_id;
+
+  memcpy(&file_header_, pdata, sizeof(file_header_));
+  header_dirty_ = false;
+
+  return SUCCESS;
+}
+// 创建以file_name为名称的index文件
+RC BplusTreeHandler::create(const char *file_name, AttrType attr_type[], int attr_length[],int field_num, int is_unique)
+{
+  BPPageHandle page_handle;
+  IndexNode *root;
+  char *pdata;
+  RC rc;
+  DiskBufferPool *disk_buffer_pool = theGlobalDiskBufferPool();
+  rc = disk_buffer_pool->create_file(file_name);
+  if (rc != SUCCESS)
+  {
+    return rc;
+  }
+
+  int file_id;
+  rc = disk_buffer_pool->open_file(file_name, &file_id);
+  if (rc != SUCCESS)
+  {
+    LOG_ERROR("Failed to open file. file name=%s, rc=%d:%s", file_name, rc, strrc(rc));
+    return rc;
+  }
+  rc = disk_buffer_pool->allocate_page(file_id, &page_handle);
+  if (rc != SUCCESS)
+  {
+    LOG_ERROR("Failed to allocate page. file name=%s, rc=%d:%s", file_name, rc, strrc(rc));
+    return rc;
+  }
+  rc = disk_buffer_pool->get_data(&page_handle, &pdata);
+  if (rc != SUCCESS)
+  {
+    LOG_ERROR("Failed to get data. file name=%s, rc=%d:%s", file_name, rc, strrc(rc));
+    return rc;
+  }
+
+  PageNum page_num;
+  rc = disk_buffer_pool->get_page_num(&page_handle, &page_num);
+  if (rc != SUCCESS)
+  {
+    LOG_ERROR("Failed to get page num. file name=%s, rc=%d:%s", file_name, rc, strrc(rc));
+    return rc;
+  }
+  IndexFileHeader *file_header = (IndexFileHeader *)pdata;
+  // key_length初始化，说明是包含了rid的长度的，不然就和attr_length功能重复了
+  // file_header->key_length = attr_length + sizeof(RID); 
+  file_header->field_num = field_num;
+  int total_attr_length = 0;
+  for(int i = 0; i < field_num; i++){
+    file_header->attr_length[i] = attr_length[i];
+    total_attr_length += attr_length[i];
+  }
+  file_header->key_length = total_attr_length+sizeof(RID);
+  file_header->total_attr_length = total_attr_length;
+  for(int i = 0; i < field_num; i++){
+    file_header->attr_type[i] = attr_type[i];
+  }
+  file_header->node_num = 1;
+  file_header->order = ((int)BP_PAGE_DATA_SIZE - sizeof(IndexFileHeader) - sizeof(IndexNode)) / (total_attr_length + 2 * sizeof(RID));
   file_header->root_page = page_num;
   file_header->unique = is_unique;
 
@@ -166,19 +255,6 @@ RC BplusTreeHandler::close()
   disk_buffer_pool_ = nullptr;
   return RC::SUCCESS;
 }
-
-static int CmpRid(const RID *rid1, const RID *rid2)
-{
-  if (rid1->page_num > rid2->page_num)
-    return 1;
-  if (rid1->page_num < rid2->page_num)
-    return -1;
-  if (rid1->slot_num > rid2->slot_num)
-    return 1;
-  if (rid1->slot_num < rid2->slot_num)
-    return -1;
-  return 0;
-}
 int CompareKey(const char *pdata, const char *pkey, AttrType attr_type, int attr_length)
 { // 简化
   int i1, i2;
@@ -231,20 +307,56 @@ int CompareKey(const char *pdata, const char *pkey, AttrType attr_type, int attr
   }
   return -2; // This means error happens
 }
-int CmpKey(AttrType attr_type, int attr_length, const char *pdata, const char *pkey)
+static int CmpRid(const RID *rid1, const RID *rid2)
 {
-  int result = CompareKey(pdata, pkey, attr_type, attr_length);
+  if (rid1->page_num > rid2->page_num)
+    return 1;
+  if (rid1->page_num < rid2->page_num)
+    return -1;
+  if (rid1->slot_num > rid2->slot_num)
+    return 1;
+  if (rid1->slot_num < rid2->slot_num)
+    return -1;
+  return 0;
+}
+
+// 因为不是key内所有attr比较，所以需要确定比较的attr的数量
+int CompareKeys(const char *pdata, const char *pkey, AttrType attr_type[], int attr_length[], int cmp_attr_num)
+{
+
+  int offset = 0;
+  for (int i = 0 ; i < cmp_attr_num; i++){
+    int tmp;
+    if( i > 0 ){
+      offset += attr_length[i-1];
+    }
+    tmp = CompareKey(pdata+offset,pkey+offset,attr_type[i],attr_length[i]);
+    if (tmp != 0){
+      return tmp;
+    }
+  }
+  return 0;
+}
+
+int CmpKey(AttrType attr_type[], int attr_length[], const char *pdata, const char *pkey, int cmp_attr_num)
+{
+  int result = CompareKeys(pdata, pkey, attr_type, attr_length, cmp_attr_num);
   if (0 != result)
   {
     return result;
   }
-  RID *rid1 = (RID *)(pdata + attr_length);
-  RID *rid2 = (RID *)(pkey + attr_length);
+  int offset=0;
+  for(int i=0;i<cmp_attr_num;i++){
+    offset += attr_length[i];
+  }
+  RID *rid1 = (RID *)(pdata + offset);
+  RID *rid2 = (RID *)(pkey + offset);
   return CmpRid(rid1, rid2);
 }
 
-RC BplusTreeHandler::find_leaf(const char *pkey, PageNum *leaf_page)
+RC BplusTreeHandler::find_leaf(const char *pkey, PageNum *leaf_page, int cmp_attr_num)
 {
+  // 在single index的key上的逻辑是找到那个key,刚好比条件中的value大，返回那个key所在的页面
   RC rc;
   BPPageHandle page_handle;
   IndexNode *node;
@@ -267,7 +379,7 @@ RC BplusTreeHandler::find_leaf(const char *pkey, PageNum *leaf_page)
   {
     for (i = 0; i < node->key_num; i++)
     {
-      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + i * file_header_.key_length);
+      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + i * file_header_.key_length, cmp_attr_num);
       if (tmp < 0)
         break;
     }
@@ -301,7 +413,7 @@ RC BplusTreeHandler::find_leaf(const char *pkey, PageNum *leaf_page)
   }
   return SUCCESS;
 }
-
+ 
 RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const RID *rid)
 {
   int i, insert_pos, tmp;
@@ -323,22 +435,13 @@ RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const
   }
   node = get_index_node(pdata);
   for(insert_pos = 0; insert_pos < node->key_num; insert_pos++){
-    /*
-    if(file_header_.unique==1) {
-      // 只要key相同就返回错误
-      tmp = CompareKey( pkey, node->keys + insert_pos * file_header_.key_length,file_header_.attr_type, file_header_.attr_length);
-      if (tmp==0) {
-        return RC::RECORD_DUPLICATE_KEY;
-      }
-    }else {*/
-      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length);
+      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length, file_header_.field_num);
       if (tmp == 0) {
         // 当key和rid完全相同时才会返回这个错误，unique——key可以借用这里进行判断
         return RC::RECORD_DUPLICATE_KEY;
       }
       if(tmp < 0)
         break;
-    // }
   }
   for (i = node->key_num; i > insert_pos; i--)
   {
@@ -408,6 +511,7 @@ RC BplusTreeHandler::print()
 
 RC BplusTreeHandler::insert_into_leaf_after_split(PageNum leaf_page, const char *pkey, const RID *rid)
 {
+  // pkey表示已经装载好内容的指针
   RC rc;
   BPPageHandle page_handle1, page_handle2;
   IndexNode *leaf, *new_node;
@@ -472,7 +576,8 @@ RC BplusTreeHandler::insert_into_leaf_after_split(PageNum leaf_page, const char 
 
   for (insert_pos = 0; insert_pos < leaf->key_num; insert_pos++)
   {
-    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, leaf->keys + insert_pos * file_header_.key_length);
+    // int CmpKey(AttrType attr_type[], int attr_length[], const char *pdata, const char *pkey, int attr_num)
+    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, leaf->keys + insert_pos * file_header_.key_length, file_header_.field_num);
     if (tmp < 0)
       break;
   }
@@ -950,11 +1055,11 @@ RC BplusTreeHandler::is_key_duplicate(PageNum leaf_page,const char *pkey)
   node = get_index_node(pdata);
   // 可以优化为二分查找但是暂时没必要
   for(int i = 0; i < node->key_num; i++){
-    tmp = CompareKey( pkey, node->keys + i * file_header_.key_length,file_header_.attr_type, file_header_.attr_length);
+    tmp = CompareKeys( pkey, node->keys + i * file_header_.key_length,file_header_.attr_type, file_header_.attr_length, file_header_.field_num);
     if (tmp==0) {
       return RC::INDEX_DUPLICATED;
     }
-    /*   确定运行成功了将这个注释去掉
+    /*   确定运行成功了将这个注释去掉  作为一个小优化
     if (tmp>0){
       break;
     }
@@ -966,6 +1071,10 @@ RC BplusTreeHandler::is_key_duplicate(PageNum leaf_page,const char *pkey)
     return rc;
   }
   return SUCCESS;
+}
+int BplusTreeHandler::get_key_total_length() const
+{
+  return file_header_.key_length;
 }
 RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
 {
@@ -984,9 +1093,13 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
     LOG_ERROR("Failed to alloc memory for key. size=%d", file_header_.key_length);
     return RC::NOMEM;
   }
-  memcpy(key, pkey, file_header_.attr_length);
-  memcpy(key + file_header_.attr_length, rid, sizeof(*rid));
-  rc = find_leaf(key, &leaf_page);
+  // 原始版本
+  // memcpy(key, pkey, file_header_.attr_length);
+  // memcpy(key + file_header_.attr_length, rid, sizeof(*rid));
+  // key_length包含了attr_length之和加上RID的长度
+  memcpy(key, pkey, file_header_.total_attr_length);
+  memcpy(key + file_header_.total_attr_length, rid, sizeof(*rid));
+  rc = find_leaf(key, &leaf_page,file_header_.field_num);
   if (rc != SUCCESS)
   {
     free(key);
@@ -1007,7 +1120,7 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
     return rc;
   }
   leaf = (IndexNode *)(pdata + sizeof(IndexFileHeader));
-  // 首先进行unique index 判断
+  // 首先进行unique index 判断如果是unique 是否重复 提前进行判断在insert_into_leaf中便不再进行判断
   if (file_header_.unique==1){
     rc = is_key_duplicate(leaf_page,key);
     if (rc != SUCCESS)
@@ -1064,10 +1177,12 @@ RC BplusTreeHandler::get_entry(const char *pkey, RID *rid)
     LOG_ERROR("Failed to alloc memory for key. size=%d", file_header_.key_length);
     return RC::NOMEM;
   }
-  memcpy(key, pkey, file_header_.attr_length);
-  memcpy(key + file_header_.attr_length, rid, sizeof(RID));
+  
+  memcpy(key, pkey, file_header_.total_attr_length);
+  memcpy(key + file_header_.total_attr_length, rid, sizeof(RID));
+  // memcpy(key, pkey, file_header_.key_length);
 
-  rc = find_leaf(key, &leaf_page);
+  rc = find_leaf(key, &leaf_page,file_header_.field_num);
   if (rc != SUCCESS)
   {
     free(key);
@@ -1090,7 +1205,7 @@ RC BplusTreeHandler::get_entry(const char *pkey, RID *rid)
   leaf = get_index_node(pdata);
   for (i = 0; i < leaf->key_num; i++)
   {
-    if (CmpKey(file_header_.attr_type, file_header_.attr_length, key, leaf->keys + (i * file_header_.key_length)) == 0)
+    if (CmpKey(file_header_.attr_type, file_header_.attr_length, key, leaf->keys + (i * file_header_.key_length),file_header_.field_num) == 0)
     {
       memcpy(rid, leaf->rids + i, sizeof(RID));
       free(key);
@@ -1125,7 +1240,7 @@ RC BplusTreeHandler::delete_entry_from_node(PageNum node_page, const char *pkey)
 
   for (delete_index = 0; delete_index < node->key_num; delete_index++)
   {
-    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + delete_index * file_header_.key_length);
+    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + delete_index * file_header_.key_length,file_header_.field_num);
     if (tmp == 0)
       break;
   }
@@ -1736,7 +1851,7 @@ RC BplusTreeHandler::delete_entry_internal(PageNum page_num, const char *pkey)
     }
   }
 }
-
+// 
 RC BplusTreeHandler::delete_entry(const char *data, const RID *rid)
 {
   RC rc;
@@ -1748,10 +1863,13 @@ RC BplusTreeHandler::delete_entry(const char *data, const RID *rid)
     LOG_ERROR("Failed to alloc memory for key. size=%d", file_header_.key_length);
     return RC::NOMEM;
   }
-  memcpy(pkey, data, file_header_.attr_length);
-  memcpy(pkey + file_header_.attr_length, rid, sizeof(*rid));
-
-  rc = find_leaf(pkey, &leaf_page);
+  // key已经包含了rid
+  memcpy(pkey, data, file_header_.total_attr_length);
+  memcpy(pkey + file_header_.total_attr_length, rid, sizeof(*rid));
+ 
+  // memcpy(pkey, data, file_header_.key_length);
+  
+  rc = find_leaf(pkey, &leaf_page,file_header_.field_num);
   if (rc != SUCCESS)
   {
     free(pkey);
@@ -1849,8 +1967,13 @@ RC BplusTreeHandler::print_tree()
   return SUCCESS;
 }
 
-RC BplusTreeHandler::find_first_index_satisfied(CompOp compop, const char *key, PageNum *page_num, int *rididx)
+
+
+
+RC BplusTreeHandler::find_first_index_satisfied_single(CompOp compop, const char *key, PageNum *page_num, int *rididx)
 {
+  // 因为是单个index,所以对应的IndexFileHeader中对应的数组内容只有一个元素
+  // 凡是涉及数组访问均取第一个元素
   BPPageHandle page_handle;
   IndexNode *node;
   PageNum leaf_page, next;
@@ -1876,10 +1999,11 @@ RC BplusTreeHandler::find_first_index_satisfied(CompOp compop, const char *key, 
     LOG_ERROR("Failed to alloc memory for key. size=%d", file_header_.key_length);
     return RC::NOMEM;
   }
-  memcpy(pkey, key, file_header_.attr_length);
-  memcpy(pkey + file_header_.attr_length, &rid, sizeof(RID));
-
-  rc = find_leaf(pkey, &leaf_page);
+  
+  memcpy(pkey, key, file_header_.total_attr_length);
+  memcpy(pkey + file_header_.total_attr_length, &rid, sizeof(RID));
+  // 因为是single_index, 所以这里attr_num = 1
+  rc = find_leaf(pkey, &leaf_page,1);   // 返回的叶子就是包含刚好比给定value大的key，现在只关心>,>=与=
   if (rc != SUCCESS)
   {
     free(pkey);
@@ -1909,38 +2033,37 @@ RC BplusTreeHandler::find_first_index_satisfied(CompOp compop, const char *key, 
       {
         // 找出所有可能是null的值
         // 实际上是否为null依靠add_record判断
-        switch (file_header_.attr_type)
+        // 这里只能假设attr_num = 1 ? 
+        switch (file_header_.attr_type[0])
         {
         case INTS:
         {
           int v = 0;
-          tmp = CompareKey(node->keys + i * file_header_.key_length, (const char *)(&v), file_header_.attr_type, file_header_.attr_length);
+          tmp = CompareKey(node->keys + i * file_header_.key_length, (const char *)(&v), file_header_.attr_type[0], file_header_.attr_length[0]);
         }
         break;
         case CHARS:
         {
           const char *v = "NULL";
-          tmp = CompareKey(node->keys + i * file_header_.key_length, v, file_header_.attr_type, file_header_.attr_length);
+          tmp = CompareKey(node->keys + i * file_header_.key_length, v, file_header_.attr_type[0], file_header_.attr_length[0]);
         }
         break;
         case FLOATS:
         {
           float v = 0.0;
-          tmp = CompareKey(node->keys + i * file_header_.key_length, (const char *)(&v), file_header_.attr_type, file_header_.attr_length);
+          tmp = CompareKey(node->keys + i * file_header_.key_length, (const char *)(&v), file_header_.attr_type[0], file_header_.attr_length[0]);
         }
         break;
         case DATES:
         {
           int v = 19700101;
-          tmp = CompareKey(node->keys + i * file_header_.key_length, (const char *)(&v), file_header_.attr_type, file_header_.attr_length);
+          tmp = CompareKey(node->keys + i * file_header_.key_length, (const char *)(&v), file_header_.attr_type[0], file_header_.attr_length[0]);
         }
         break;
         default:
           LOG_ERROR("Error type");
           break;
         }
-
-
         if (tmp >= 0) {
           rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
           if (rc != SUCCESS)
@@ -1956,7 +2079,133 @@ RC BplusTreeHandler::find_first_index_satisfied(CompOp compop, const char *key, 
         }
       }
 
-      tmp = CompareKey(node->keys + i * file_header_.key_length, key, file_header_.attr_type, file_header_.attr_length);
+      tmp = CompareKeys(node->keys + i * file_header_.key_length, key, file_header_.attr_type, file_header_.attr_length, file_header_.field_num);
+      if (compop == EQUAL_TO || compop == GREAT_EQUAL)
+      {
+        if (tmp >= 0)
+        {
+          rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
+          if (rc != SUCCESS)
+          {
+            return rc;
+          }
+          *rididx = i;
+          rc = disk_buffer_pool_->unpin_page(&page_handle);
+          if (rc != SUCCESS)
+          {
+            return rc;
+          }
+        }
+      }
+
+      if (compop == GREAT_THAN)
+      {
+        if (tmp > 0)
+        {
+          rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
+          if (rc != SUCCESS)
+          {
+            return rc;
+          }
+          *rididx = i;
+          rc = disk_buffer_pool_->unpin_page(&page_handle);
+          if (rc != SUCCESS)
+          {
+            return rc;
+          }
+          return SUCCESS;
+        }
+      }
+    }
+    next = node->rids[file_header_.order - 1].page_num;
+  }
+  rc = disk_buffer_pool_->unpin_page(&page_handle);
+  if (rc != SUCCESS)
+  {
+    return rc;
+  }
+  return RC::RECORD_EOF;
+}
+
+RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_ops, std::vector<const char *>key, PageNum *page_num, int *rididx)
+{
+  // comp_ops中元素形式为 = ... = x 前几个为=，最后一个不为= 比如a=x,b=y,c>=z
+  int cmp_size = comp_ops.size(); 
+  CompOp compop = comp_ops[cmp_size-1];
+  BPPageHandle page_handle;
+  IndexNode *node;
+  PageNum leaf_page, next;
+  char *pdata, *pkey;
+  RC rc;
+  int i, tmp;
+  RID rid;
+  if (compop == LESS_THAN || compop == LESS_EQUAL || compop == NOT_EQUAL)
+  {
+    if(cmp_size==1){
+      rc = get_first_leaf_page(page_num);
+      if (rc != SUCCESS)
+      {
+        return rc;
+      }
+      *rididx = 0;
+      return SUCCESS;
+    }else{
+      // 因为前几个条件是=，将前几个=当做一个key来执行 a=x b=y 相当于寻找满足a=x b=y的第一个index
+      compop = comp_ops[cmp_size];
+      cmp_size-=1;
+    }  
+  }
+  rid.page_num = -1;
+  rid.slot_num = -1;
+  
+  pkey = (char *)malloc(file_header_.key_length);
+  if (pkey == nullptr)
+  {
+    LOG_ERROR("Failed to alloc memory for key. size=%d", file_header_.key_length);
+    return RC::NOMEM;
+  }
+  // 这里因为截断的原因key.size() <= file_header_.field_num 导致pkey在rid前面可能有一段是空闲的
+  for(int i =0;i<key.size() ; i++){
+    memcpy(pkey, key[i], file_header_.attr_length[i]);
+  }
+  memcpy(pkey + file_header_.total_attr_length, &rid, sizeof(RID));
+
+  rc = find_leaf(pkey, &leaf_page, cmp_size);
+  if (rc != SUCCESS)
+  {
+    free(pkey);
+    return rc;
+  }
+  free(pkey);
+  next = leaf_page;
+  while (next > 0)
+  {
+    rc = disk_buffer_pool_->get_this_page(file_id_, next, &page_handle);
+    if (rc != SUCCESS)
+    {
+      return rc;
+    }
+    rc = disk_buffer_pool_->get_data(&page_handle, &pdata);
+    if (rc != SUCCESS)
+    {
+      return rc;
+    }
+    node = get_index_node(pdata);
+    for (i = 0; i < node->key_num; i++)
+    {
+      // 相比于上面的single_index内容，这里不再考虑null的内容
+      char *key_ = (char *)malloc(file_header_.key_length);
+      if (key_ == nullptr)
+      {
+        LOG_ERROR("Failed to alloc memory for key. size=%d", file_header_.key_length);
+        return RC::NOMEM;
+      }
+      for(int i = 0; i < key.size(); i++){
+        memcpy(key_, key[i], file_header_.attr_length[i]);
+      }
+      memcpy(key_ + file_header_.total_attr_length, &rid, sizeof(RID));
+
+      tmp = CompareKeys(node->keys + i * file_header_.key_length, key_, file_header_.attr_type, file_header_.attr_length, cmp_size);
       if (compop == EQUAL_TO || compop == GREAT_EQUAL)
       {
         if (tmp >= 0)
@@ -2063,8 +2312,8 @@ RC BplusTreeHandler::get_first_leaf_page(PageNum *leaf_page)
 BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &index_handler) : index_handler_(index_handler)
 {
 }
-
-RC BplusTreeScanner::open(CompOp comp_op, const char *value, int null_index)
+// 在bplus_tree_index.cpp的create_scanner函数中进行调用
+RC BplusTreeScanner::open_single_index(CompOp comp_op, const char *value, int null_index)
 {
   RC rc;
   if (opened_)
@@ -2072,18 +2321,59 @@ RC BplusTreeScanner::open(CompOp comp_op, const char *value, int null_index)
     return RC::RECORD_OPENNED;
   }
 
-  comp_op_ = comp_op;
+  //comp_op_ = comp_op;
+  comp_ops_.push_back(comp_op);
   null_index_ = null_index;
 
-  char *value_copy = (char *)malloc(index_handler_.file_header_.attr_length);
+  char *value_copy = (char *)malloc(index_handler_.file_header_.total_attr_length);
   if (value_copy == nullptr)
   {
-    LOG_ERROR("Failed to alloc memory for value. size=%d", index_handler_.file_header_.attr_length);
+    LOG_ERROR("Failed to alloc memory for value. size=%d", index_handler_.file_header_.total_attr_length);
     return RC::NOMEM;
   }
-  memcpy(value_copy, value, index_handler_.file_header_.attr_length);
-  value_ = value_copy; // free value_
-  rc = index_handler_.find_first_index_satisfied(comp_op, value, &next_page_num_, &index_in_node_);
+  memcpy(value_copy, value, index_handler_.file_header_.total_attr_length);
+  values_.push_back(value_copy); // free value_
+  rc = index_handler_.find_first_index_satisfied_single(comp_op, value, &next_page_num_, &index_in_node_);
+  if (rc != SUCCESS)
+  {
+    if (rc == RC::RECORD_EOF)
+    {
+      next_page_num_ = -1;
+      index_in_node_ = -1;
+    }
+    else
+      return rc;
+  }
+  num_fixed_pages_ = 1;
+  next_index_of_page_handle_ = 0;
+  pinned_page_count_ = 0;
+  opened_ = true;
+  return SUCCESS;
+}
+
+RC BplusTreeScanner::open_multi_index(std::vector<CompOp> comp_ops, std::vector<const char *> values)
+{
+  RC rc;
+  if (opened_)
+  {
+    return RC::RECORD_OPENNED;
+  }
+  comp_ops_ = comp_ops;
+  // for(const auto &value : values){
+  for( int i = 0; i< values.size(); i++){
+    // int length = index_handler_.file_header_.attr_length[i]+sizeof(RID);
+    int length = index_handler_.file_header_.attr_length[i];
+    char *value_copy = (char *)malloc(length);
+    if (value_copy == nullptr)
+    {
+      LOG_ERROR("Failed to alloc memory for value. size=%d", length);
+      return RC::NOMEM;
+    }
+    memcpy(value_copy, values[i], length);  
+    values_.push_back(value_copy);
+  }
+  // 在find_first_index_satisfied根据comp_op是否为=来确定需要比较多少attr_num
+  rc = index_handler_.find_first_index_satisfied_multi(comp_ops, values, &next_page_num_, &index_in_node_);
   if (rc != SUCCESS)
   {
     if (rc == RC::RECORD_EOF)
@@ -2107,8 +2397,10 @@ RC BplusTreeScanner::close()
   {
     return RC::RECORD_SCANCLOSED;
   }
-  free((void *)value_);
-  value_ = nullptr;
+  for(auto &value : values_){
+    free((void *)value);
+    value =nullptr; 
+  }
   opened_ = false;
   return RC::SUCCESS;
 }
@@ -2215,7 +2507,7 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid)
     // 在node内部不断进行扫描比较
     for (; index_in_node_ < node->key_num; index_in_node_++)
     {
-      if (satisfy_condition(node->keys + index_in_node_ * index_handler_.file_header_.key_length))
+      if (satisfy_multi_attr_condition(node->keys + index_in_node_ * index_handler_.file_header_.key_length))
       {
         memcpy(rid, node->rids + index_in_node_, sizeof(RID));
         index_in_node_++;
@@ -2228,38 +2520,57 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid)
   }
   return RC::RECORD_NO_MORE_IDX_IN_MEM;
 }
-bool BplusTreeScanner::satisfy_condition(const char *pkey)
+bool BplusTreeScanner::satisfy_multi_attr_condition(const char *pkey)
+{
+  bool single_ = true;
+  for(int i = 0; i < index_handler_.file_header_.field_num; i++){
+    AttrType attr_t = index_handler_.file_header_.attr_type[i];
+    int attr_len = index_handler_.file_header_.attr_length[i];
+    int offset = 0;
+    if (i == 0){
+      single_ = satisfy_single_attr_condition(pkey + offset, attr_t, attr_len, i);  
+    }else{
+      offset = index_handler_.file_header_.attr_length[i-1];
+      single_ = satisfy_single_attr_condition(pkey + offset, attr_t, attr_len, i);
+    }
+    if(!single_){
+      return false;
+    }
+  }
+  return true;
+}
+bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType attr_type, int attr_length, int idx)
 {
   // i2,f2,s2表示条件中的内容，i1,f1,s1表示搜寻出的记录中的对应属性的值
   // com_op_表示的是条件中的比较符号，不关乎属性在前还是值在前
   int i1 = 0, i2 = 0;
   float f1 = 0, f2 = 0;
   const char *s1 = nullptr, *s2 = nullptr;
-
+  CompOp comp_op_ = comp_ops_[idx];
   if (comp_op_ == NO_OP || comp_op_ == IS_NOT_NULL)
   {
     // TODO: 这里实际上扫描了全表，是否为null交由add_record判断，效率会很低
     return true;
   }
 
-  AttrType attr_type = index_handler_.file_header_.attr_type;
+  // AttrType attr_type = index_handler_.file_header_.attr_type;
   switch (attr_type)
   {
   case INTS:
     i1 = *(int *)pkey;
-    i2 = *(int *)value_;
+    i2 = *(int *)values_[idx];
     break;
   case DATES:
     i1 = *(int *)pkey;
-    i2 = *(int *)value_;
+    i2 = *(int *)values_[idx];
     break;
   case FLOATS:
     f1 = *(float *)pkey;
-    f2 = *(float *)value_;
+    f2 = *(float *)values_[idx];
     break;
   case CHARS:
     s1 = pkey;
-    s2 = value_;
+    s2 = values_[idx];
     break;
   default:
     LOG_PANIC("Unknown attr type: %d", attr_type);
@@ -2267,7 +2578,7 @@ bool BplusTreeScanner::satisfy_condition(const char *pkey)
 
   bool flag = false;
 
-  int attr_length = index_handler_.file_header_.attr_length;
+  // int attr_length = index_handler_.file_header_.attr_length;
   switch (comp_op_)
   {
   case EQUAL_TO:

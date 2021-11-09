@@ -242,9 +242,11 @@ void DefaultStorageStage::handle_event(StageEvent *event)
   break;
   case SCF_CREATE_INDEX:
   {
-    const CreateIndex &create_index = sql->sstr.create_index;
+    // const CreateIndex &create_index = sql->sstr.create_index;   下面函数本身参数就已经是const
+    // multi-index 命令解析完毕
+    CreateIndex &create_index = sql->sstr.create_index;
     rc = handler_->create_index(current_trx, current_db, create_index.relation_name,
-                                create_index.index_name, create_index.attribute_name,create_index.is_unique);
+                                create_index.index_name, create_index.attr_num, (const char **)create_index.attribute_name,create_index.is_unique);
     snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
   }
   break;

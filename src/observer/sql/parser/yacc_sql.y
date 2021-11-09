@@ -1,5 +1,7 @@
 %{
-
+#ifdef YYDEBUG
+  yydebug = 1;
+#endif
 #include "sql/parser/parse_defs.h"
 #include "sql/parser/yacc_sql.tab.h"
 #include "sql/parser/lex.yy.h"
@@ -154,6 +156,7 @@ ParserContext *get_context(yyscan_t scanner)
 %token <string> STRING_V
 %token <string> COUNT 
 %token <string> OTHER_FUNCTION_TYPE
+%token <string> Column
 //非终结符
 
 %type <number> type;
@@ -250,18 +253,28 @@ desc_table:
     ;
 
 create_index:		/*create index 语句的语法解析树*/
-    CREATE INDEX ID ON ID LBRACE ID RBRACE SEMICOLON 
+    CREATE INDEX ID ON ID LBRACE Column_def Column_list RBRACE SEMICOLON 
 		{
 			CONTEXT->ssql->flag = SCF_CREATE_INDEX;//"create_index";
-			create_index_init(&CONTEXT->ssql->sstr.create_index, $3, $5, $7, 0);
+			// create_index_init(&CONTEXT->ssql->sstr.create_index, $3, $5, $7, 0);
+			create_index_init(&CONTEXT->ssql->sstr.create_index, $3, $5, 0);
 		}
-	| CREATE UNIQUE INDEX ID ON ID LBRACE ID RBRACE SEMICOLON 
+	| CREATE UNIQUE INDEX ID ON ID LBRACE Column_def Column_list RBRACE SEMICOLON 
 		{
 			CONTEXT->ssql->flag = SCF_CREATE_INDEX;//"create_index";
-			create_index_init(&CONTEXT->ssql->sstr.create_index, $4, $6, $8, 1);
+			// create_index_init(&CONTEXT->ssql->sstr.create_index, $4, $6, $8, 1);
+			create_index_init(&CONTEXT->ssql->sstr.create_index, $4, $6, 1);
 		}
     ;
-
+Column_list:
+	/* empty */
+	| COMMA Column_def Column_list { }      
+	;
+Column_def:
+	| ID {
+		create_index_append_attribute(&CONTEXT->ssql->sstr.create_index, $1);
+	}
+	;
 drop_index:			/*drop index 语句的语法解析树*/
     DROP INDEX ID  SEMICOLON 
 		{

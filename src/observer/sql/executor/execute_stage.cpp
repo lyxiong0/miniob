@@ -664,10 +664,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
       return rc;
     }
-    LOG_INFO("成功创建selection_executor");
+    
     select_nodes.push_back(select_node);
   }
-  LOG_INFO("select_nodes.size: %d", select_nodes.size());
 
   if (select_nodes.empty())
   {
@@ -679,16 +678,13 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
     return RC::SQL_SYNTAX;
   }
-  LOG_INFO("select_nodes's size: %d", select_nodes.size());
 
   std::vector<TupleSet> tuple_sets;
   for (SelectExeNode *&node : select_nodes)
   {
     TupleSet tuple_set;
     // excute里设置了聚合函数的type，type定义于tuple.h文件
-    LOG_INFO("开始执行select_node->execute函数");
     rc = node->execute(tuple_set);
-    LOG_INFO("node->execute完毕并返回 rc=%d", rc);
     if (rc != RC::SUCCESS)
     {
       LOG_INFO("node->execute失败 rc=%d", rc);

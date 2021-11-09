@@ -148,25 +148,50 @@ RC Table::open(const char *meta_file, const char *base_dir)
   const int index_num = table_meta_.index_num();
   for (int i = 0; i < index_num; i++)
   {
-    const IndexMeta *index_meta = table_meta_.index(i);
-    const FieldMeta *field_meta = table_meta_.field(index_meta->field());
-
-    if (field_meta == nullptr)
-    {
-      LOG_PANIC("Found invalid index meta info which has a non-exists field. table=%s, index=%s, field=%s",
-                name(), index_meta->name(), index_meta->field());
-      return RC::GENERIC_ERROR;
-    }
-
     BplusTreeIndex *index = new BplusTreeIndex();
-    std::string index_file = index_data_file(base_dir, name(), index_meta->name());
-    rc = index->open(index_file.c_str(), *index_meta, *field_meta);
-    if (rc != RC::SUCCESS)
-    {
-      delete index;
-      LOG_ERROR("Failed to open index. table=%s, index=%s, file=%s, rc=%d:%s",
+    const IndexMeta *index_meta = table_meta_.index(i);
+    int index_fields_num = index_meta->field_num();
+    if(index_fields_num>1){
+      // multi-index
+      const FieldMeta *field_metas[index_fields_num];
+      for(int i =0;i<index_fields_num;i++){
+
+        const FieldMeta *field_meta= table_meta_.field(index_meta->field(i));
+        if (field_meta == nullptr)
+        {
+          LOG_PANIC("Found invalid index meta info which has a non-exists field. table=%s, index=%s, field=%s",
+                name(), index_meta->name(), index_meta->field(i));
+          return RC::GENERIC_ERROR;
+        }
+        field_metas[i] = field_meta;
+      } 
+      std::string index_file = index_data_file(base_dir, name(), index_meta->name());
+      rc = index->open(index_file.c_str(), *index_meta, field_metas, index_fields_num);
+      if (rc != RC::SUCCESS)
+      {
+        delete index;
+        LOG_ERROR("Failed to open index. table=%s, index=%s, file=%s, rc=%d:%s",
                 name(), index_meta->name(), index_file.c_str(), rc, strrc(rc));
-      return rc;
+        return rc;
+      }
+    }else{
+      // single-index
+      const FieldMeta *field_meta = table_meta_.field(index_meta->field(0));
+      if (field_meta == nullptr)
+      {
+        LOG_PANIC("Found invalid index meta info which has a non-exists field. table=%s, index=%s, field=%s",
+                name(), index_meta->name(), index_meta->field(0));
+        return RC::GENERIC_ERROR;
+      }
+      std::string index_file = index_data_file(base_dir, name(), index_meta->name());
+      rc = index->open(index_file.c_str(), *index_meta, *field_meta);
+      if (rc != RC::SUCCESS)
+      {
+        delete index;
+        LOG_ERROR("Failed to open index. table=%s, index=%s, file=%s, rc=%d:%s",
+                name(), index_meta->name(), index_file.c_str(), rc, strrc(rc));
+        return rc;
+      }
     }
     indexes_.push_back(index);
   }
@@ -639,7 +664,112 @@ std::vector<const char *> Table::get_index_names()
 
   return res;
 }
+bool check_attr_name( const int& attr_num, const char *attribute_name[] ){
+  for(int i = 0; i < attr_num; i++ ){
+    if(attribute_name[i] == nullptr || common::is_blank(attribute_name[i])){
+      return true;
+    }
+  }
+  return false;
+}
+//重载函数
+RC Table::create_index(Trx *trx, const char *index_name, const int& attr_num, const char *attribute_name[],int is_unique)
+{
+  if (index_name == nullptr || common::is_blank(index_name) ||
+      check_attr_name(attr_num, attribute_name))
+  {
+    LOG_ERROR("create_index - INVALID_ARGUMENT");
+    return RC::INVALID_ARGUMENT;
+  }
+  if (table_meta_.index(index_name) != nullptr ||
+      table_meta_.find_multi_index_by_fields_for_check(attribute_name,attr_num))
+  {
+    LOG_ERROR("create_index - SCHEMA_INDEX_EXIST");
+    return RC::SCHEMA_INDEX_EXIST;
+  }
 
+  const FieldMeta *field_metas[attr_num];
+  for(int i=0;i<attr_num;i++){
+    const FieldMeta *field_meta = table_meta_.field(attribute_name[i]);
+    if (!field_meta)
+    {
+      LOG_ERROR("create_index - SCHEMA_FIELD_MISSING");
+      return RC::SCHEMA_FIELD_MISSING;
+    }
+    field_metas[i] = field_meta;
+  }
+  IndexMeta new_index_meta;
+  RC rc = new_index_meta.init(index_name, field_metas, attr_num);
+  if (rc != RC::SUCCESS)
+  {
+    LOG_ERROR("fail to init index meta");
+    return rc;
+  }
+
+  // 创建索引相关数据
+  BplusTreeIndex *index = new BplusTreeIndex();
+  std::string index_file = index_data_file(base_dir_.c_str(), name(), index_name);
+  // 创建对应文件
+  rc = index->create(index_file.c_str(), new_index_meta, field_metas, attr_num, is_unique);
+  if (rc != RC::SUCCESS)
+  {
+    delete index;
+    LOG_ERROR("Failed to create bplus tree index. file name=%s, rc=%d:%s", index_file.c_str(), rc, strrc(rc));
+    return rc;
+  }
+
+  // 遍历当前的所有数据，插入这个索引  就是对之前的创建index前的数据全部建立索引
+  IndexInserter index_inserter(index);
+  rc = scan_record(trx, nullptr, -1, &index_inserter, insert_index_record_reader_adapter);
+  if (rc != RC::SUCCESS)
+  {
+    // rollback
+    delete index;
+    LOG_ERROR("Failed to insert index to all records. table=%s, rc=%d:%s", name(), rc, strrc(rc));
+    return rc;
+  }
+  indexes_.push_back(index);
+
+  TableMeta new_table_meta(table_meta_);
+  rc = new_table_meta.add_index(new_index_meta);
+  if (rc != RC::SUCCESS)
+  {
+    LOG_ERROR("Failed to add index (%s) on table (%s). error=%d:%s", index_name, name(), rc, strrc(rc));
+    return rc;
+  }
+  // 创建元数据临时文件
+  std::string tmp_file = table_meta_file(base_dir_.c_str(), name()) + ".tmp";
+  std::fstream fs;
+  fs.open(tmp_file, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+  if (!fs.is_open())
+  {
+    LOG_ERROR("Failed to open file for write. file name=%s, errmsg=%s", tmp_file.c_str(), strerror(errno));
+    return RC::IOERR; // 创建索引中途出错，要做还原操作
+  }
+  if (new_table_meta.serialize(fs) < 0)
+  {
+    LOG_ERROR("Failed to dump new table meta to file: %s. sys err=%d:%s", tmp_file.c_str(), errno, strerror(errno));
+    return RC::IOERR;
+  }
+  fs.close();
+
+  // 覆盖原始元数据文件
+  std::string meta_file = table_meta_file(base_dir_.c_str(), name());
+  int ret = rename(tmp_file.c_str(), meta_file.c_str());
+  if (ret != 0)
+  {
+    LOG_ERROR("Failed to rename tmp meta file (%s) to normal meta file (%s) while creating index (%s) on table (%s). "
+              "system error=%d:%s",
+              tmp_file.c_str(), meta_file.c_str(), index_name, name(), errno, strerror(errno));
+    return RC::IOERR;
+  }
+
+  table_meta_.swap(new_table_meta);
+
+  LOG_INFO("successfully add a new index (%s) on the table (%s)", index_name, name());
+
+  return rc;
+}
 RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_name, int is_unique)
 {
   // LOG_INFO("create_index starts");
@@ -650,7 +780,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
     return RC::INVALID_ARGUMENT;
   }
   if (table_meta_.index(index_name) != nullptr ||
-      table_meta_.find_index_by_field(attribute_name))
+      table_meta_.find_single_index_by_field(attribute_name))
   {
     LOG_ERROR("create_index - SCHEMA_INDEX_EXIST");
     return RC::SCHEMA_INDEX_EXIST;
@@ -1122,14 +1252,7 @@ Index *Table::find_index(const char *index_name) const
   // 实际上index_name为attribute_name,传进来的就是attribute_name
   for (Index *index : indexes_)
   {
-    /* indexes_z中的数据 这里的index_name=birth 但是index->index_meta().name()=idx_date
-    {_vptr.Index = 0x5555557e7b40 <vtable for BplusTreeIndex+16>, index_meta_ = {name_ = "idx_date", 
-    field_ = "birth"}, field_meta_ = {name_ = "birth", attr_type_ = DATES, attr_offset_ = 16, attr_len_ = 4, 
-    visible_ = true, nullable_ = false}}
-    */
-    // if (0 == strcmp(index->index_meta().name(), index_name))
-    int tmp =strcmp(index->index_meta().field(), index_name);
-    LOG_INFO("");
+    int tmp =strcmp(index->index_meta().name(), index_name);
     if (0 == tmp)
     {
       return index;
@@ -1137,8 +1260,67 @@ Index *Table::find_index(const char *index_name) const
   }
   return nullptr;
 }
+const IndexMeta *Table::find_multi_index_by_Deaultfields(std::vector<const ConDesc *> &field_cond_descs)
+{
+  int size = field_cond_descs.size();
+  const char *field_names[size];
+  int i = 0;
+  for( const auto &field_cond_desc : field_cond_descs ){
+    field_names[i++] = (char *)field_cond_desc->value;
+  }
+  return  table_meta_.find_multi_index_by_fields(field_names,size);
+}
+IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &filters)
+{
+  int filter_num = filters.filter_num();
+  std::vector<const ConDesc *> field_cond_descs;
+  std::vector<CompOp> comp_ops;
+  std::vector<const char *> values;
+  for(int i = 0; i < filter_num; i++){
+    const DefaultConditionFilter *default_condition_filter = dynamic_cast<const DefaultConditionFilter *>(&filters.filter(i));
+    const ConDesc *field_cond_desc = nullptr;
+    const ConDesc *value_cond_desc = nullptr;
+    if (default_condition_filter->left().is_attr && !default_condition_filter->right().is_attr)
+    {
+      field_cond_desc = &default_condition_filter->left();
+      value_cond_desc = &default_condition_filter->right();
+    }
+    else if (default_condition_filter->right().is_attr && !default_condition_filter->left().is_attr)
+    {
+      field_cond_desc = &default_condition_filter->right();
+      value_cond_desc = &default_condition_filter->left();
+    }
+    if (field_cond_desc == nullptr || value_cond_desc == nullptr)
+    {
+      return nullptr;
+    }
+    const FieldMeta *field_meta = table_meta_.find_field_by_offset(field_cond_desc->attr_offset);
+    if (nullptr == field_meta)
+    {
+      LOG_PANIC("Cannot find field by offset %d. table=%s",
+              field_cond_desc->attr_offset, name());
+      return nullptr;
+    }
+    field_cond_descs.push_back(field_cond_desc);
+    comp_ops.push_back(default_condition_filter->comp_op());
+    values.push_back((char *)value_cond_desc->value);
+  }
+  const IndexMeta *index_meta = find_multi_index_by_Deaultfields(field_cond_descs);
+  if (nullptr == index_meta)
+  {
+    return nullptr;
+  }
 
-IndexScanner *Table::find_index_for_scan(const DefaultConditionFilter &filter)
+  Index *index = find_index(index_meta->name());
+  if (nullptr == index)
+  {
+    return nullptr;
+  }
+                        // (const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values)
+  return index->create_multi_index_scanner(comp_ops, values);
+}
+
+IndexScanner *Table::find_single_index_for_scan(const DefaultConditionFilter &filter)
 {
   const ConDesc *field_cond_desc = nullptr;
   const ConDesc *value_cond_desc = nullptr;
@@ -1165,7 +1347,7 @@ IndexScanner *Table::find_index_for_scan(const DefaultConditionFilter &filter)
     return nullptr;
   }
 
-  const IndexMeta *index_meta = table_meta_.find_index_by_field(field_meta->name());
+  const IndexMeta *index_meta = table_meta_.find_single_index_by_field(field_meta->name());
   if (nullptr == index_meta)
   {
     return nullptr;
@@ -1177,7 +1359,7 @@ IndexScanner *Table::find_index_for_scan(const DefaultConditionFilter &filter)
     return nullptr;
   }
 
-  return index->create_scanner(filter.comp_op(), (const char *)value_cond_desc->value, field_cond_desc->null_field_index);
+  return index->create_single_index_scanner(filter.comp_op(), (const char *)value_cond_desc->value, field_cond_desc->null_field_index);
 }
 
 IndexScanner *Table::find_index_for_scan(const ConditionFilter *filter)
@@ -1191,21 +1373,14 @@ IndexScanner *Table::find_index_for_scan(const ConditionFilter *filter)
   const DefaultConditionFilter *default_condition_filter = dynamic_cast<const DefaultConditionFilter *>(filter);
   if (default_condition_filter != nullptr)
   {
-    return find_index_for_scan(*default_condition_filter);
+    return find_single_index_for_scan(*default_condition_filter);
   }
 
   const CompositeConditionFilter *composite_condition_filter = dynamic_cast<const CompositeConditionFilter *>(filter);
+  
   if (composite_condition_filter != nullptr)
   {
-    int filter_num = composite_condition_filter->filter_num();
-    for (int i = 0; i < filter_num; i++)
-    {
-      IndexScanner *scanner = find_index_for_scan(&composite_condition_filter->filter(i));
-      if (scanner != nullptr)
-      {
-        return scanner; // 可以找到一个最优的，比如比较符号是=
-      }
-    }
+    return find_multi_index_for_scan(*composite_condition_filter);
   }
   return nullptr;
 }

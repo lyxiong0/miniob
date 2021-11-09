@@ -92,7 +92,7 @@ public:
 private:
   RC init(const ConditionFilter *filters[], int filter_num, bool own_memory);
 private:
-  const ConditionFilter **      filters_ = nullptr;
+  const ConditionFilter **      filters_ = nullptr;   // *filters_表示filters_[0]的地址
   int                           filter_num_ = 0;
   bool                          memory_owner_ = false; // filters_的内存是否由自己来控制
 };
