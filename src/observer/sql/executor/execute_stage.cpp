@@ -762,343 +762,343 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       continue;
     }
 
-    // 处理子查询
-    has_subselect = true;
-    TupleSet sub_res;
-    CompOp comp = condition.comp;
-    LOG_INFO("comp = %d", comp);
+    // // 处理子查询
+    // has_subselect = true;
+    // TupleSet sub_res;
+    // CompOp comp = condition.comp;
+    // LOG_INFO("comp = %d", comp);
 
-    Selects *sub_select = new Selects();
-    memcpy(sub_select, condition.sub_select, sizeof(Selects));
+    // Selects *sub_select = new Selects();
+    // memcpy(sub_select, condition.sub_select, sizeof(Selects));
 
-    // 检查是否为关联子查询
-    int n = sub_select->condition_num;
-    for (size_t i = 0; i < n; i++)
-    {
-      const Condition &sub_cond = condition.sub_select->conditions[i];
-      // 查看条件中是否存在与主查s询相关的条件，关联子查询必有表名
-      if (sub_cond.right_is_attr == 1 && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, main_table) == 0)
-      {
-        // 加入子查询
-        sub_select->relations[sub_select->relation_num++] = main_table;
-        // 加上group by
-        sub_select->group_num = 0;
-        sub_select->group_attrs[sub_select->group_num++] = sub_cond.right_attr;
-        sub_select->attributes[sub_select->attr_num++] = sub_cond.right_attr;
-        if (sub_select->attributes[0].agg_function_name == nullptr)
-        {
-          sub_select->attributes[sub_select->attr_num - 1].agg_function_name = (char *)malloc(4);
-          const char *tmp = "max";
-          memcpy(sub_select->attributes[sub_select->attr_num - 1].agg_function_name, tmp, 4);
-        }
+    // // 检查是否为关联子查询
+    // int n = sub_select->condition_num;
+    // for (size_t i = 0; i < n; i++)
+    // {
+    //   const Condition &sub_cond = condition.sub_select->conditions[i];
+    //   // 查看条件中是否存在与主查s询相关的条件，关联子查询必有表名
+    //   if (sub_cond.right_is_attr == 1 && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, main_table) == 0)
+    //   {
+    //     // 加入子查询
+    //     sub_select->relations[sub_select->relation_num++] = main_table;
+    //     // 加上group by
+    //     sub_select->group_num = 0;
+    //     sub_select->group_attrs[sub_select->group_num++] = sub_cond.right_attr;
+    //     sub_select->attributes[sub_select->attr_num++] = sub_cond.right_attr;
+    //     if (sub_select->attributes[0].agg_function_name == nullptr)
+    //     {
+    //       sub_select->attributes[sub_select->attr_num - 1].agg_function_name = (char *)malloc(4);
+    //       const char *tmp = "max";
+    //       memcpy(sub_select->attributes[sub_select->attr_num - 1].agg_function_name, tmp, 4);
+    //     }
 
-        is_related = true;
-      }
-      else if (sub_cond.left_is_attr == 1 && sub_cond.left_attr.relation_name != nullptr && strcmp(sub_cond.left_attr.relation_name, main_table) == 0)
-      {
-        LOG_INFO("add_sub");
-        // 加入子查询
-        sub_select->relations[sub_select->relation_num++] = main_table;
-        // 加上group by
-        sub_select->group_num = 0;
-        sub_select->group_attrs[sub_select->group_num++] = sub_cond.left_attr;
-        sub_select->attributes[sub_select->attr_num++] = sub_cond.left_attr;
-        if (sub_select->attributes[0].agg_function_name == nullptr)
-        {
-          sub_select->attributes[0].agg_function_name = (char *)malloc(4);
-          const char *tmp = "max";
-          memcpy(sub_select->attributes[0].agg_function_name, tmp, 4);
-        }
+    //     is_related = true;
+    //   }
+    //   else if (sub_cond.left_is_attr == 1 && sub_cond.left_attr.relation_name != nullptr && strcmp(sub_cond.left_attr.relation_name, main_table) == 0)
+    //   {
+    //     LOG_INFO("add_sub");
+    //     // 加入子查询
+    //     sub_select->relations[sub_select->relation_num++] = main_table;
+    //     // 加上group by
+    //     sub_select->group_num = 0;
+    //     sub_select->group_attrs[sub_select->group_num++] = sub_cond.left_attr;
+    //     sub_select->attributes[sub_select->attr_num++] = sub_cond.left_attr;
+    //     if (sub_select->attributes[0].agg_function_name == nullptr)
+    //     {
+    //       sub_select->attributes[0].agg_function_name = (char *)malloc(4);
+    //       const char *tmp = "max";
+    //       memcpy(sub_select->attributes[0].agg_function_name, tmp, 4);
+    //     }
 
-        is_related = true;
-      }
-    }
+    //     is_related = true;
+    //   }
+    // }
 
-    free(condition.sub_select);
-    rc = do_select(db, *sub_select, session_event, sub_res, true, main_table);
-    if (rc != RC::SUCCESS)
-    {
-      break;
-    }
+    // free(condition.sub_select);
+    // rc = do_select(db, *sub_select, session_event, sub_res, true, main_table);
+    // if (rc != RC::SUCCESS)
+    // {
+    //   break;
+    // }
 
-    // sub_res.print(std::cout);
-    // result.print(std::cout);
+    // // sub_res.print(std::cout);
+    // // result.print(std::cout);
 
-    // 如果查询结果不为单列则不合法
-    if (!is_related && sub_res.get_schema().size() != 1)
-    {
-      rc = RC::GENERIC_ERROR;
-      break;
-    }
+    // // 如果查询结果不为单列则不合法
+    // if (!is_related && sub_res.get_schema().size() != 1)
+    // {
+    //   rc = RC::GENERIC_ERROR;
+    //   break;
+    // }
 
-    if (condition.left_is_attr == 2)
-    {
-      // 左右两侧都是子查询的情况
-      TupleSet left_sub_res;
-      rc = do_select(db, *condition.another_sub_select, session_event, left_sub_res, true);
-      if (rc != RC::SUCCESS)
-      {
-        break;
-      }
+    // if (condition.left_is_attr == 2)
+    // {
+    //   // 左右两侧都是子查询的情况
+    //   TupleSet left_sub_res;
+    //   rc = do_select(db, *condition.another_sub_select, session_event, left_sub_res, true);
+    //   if (rc != RC::SUCCESS)
+    //   {
+    //     break;
+    //   }
 
-      // 两侧都是子查询，只能值比值
-      if (left_sub_res.get_schema().size() != 1 || left_sub_res.size() != 1 || sub_res.size() != 1)
-      {
-        rc = RC::GENERIC_ERROR;
-        break;
-      }
+    //   // 两侧都是子查询，只能值比值
+    //   if (left_sub_res.get_schema().size() != 1 || left_sub_res.size() != 1 || sub_res.size() != 1)
+    //   {
+    //     rc = RC::GENERIC_ERROR;
+    //     break;
+    //   }
 
-      AttrType left_type = left_sub_res.get_schema().field(0).type();
-      AttrType right_type = sub_res.get_schema().field(0).type();
-      if (!is_type_legal(left_type, right_type))
-      {
-        rc = RC::GENERIC_ERROR;
-        break;
-      }
+    //   AttrType left_type = left_sub_res.get_schema().field(0).type();
+    //   AttrType right_type = sub_res.get_schema().field(0).type();
+    //   if (!is_type_legal(left_type, right_type))
+    //   {
+    //     rc = RC::GENERIC_ERROR;
+    //     break;
+    //   }
 
-      const std::shared_ptr<TupleValue> &left_data = left_sub_res.get(0).get_pointer(0);
-      const std::shared_ptr<TupleValue> &right_data = sub_res.get(0).get_pointer(0);
+    //   const std::shared_ptr<TupleValue> &left_data = left_sub_res.get(0).get_pointer(0);
+    //   const std::shared_ptr<TupleValue> &right_data = sub_res.get(0).get_pointer(0);
 
-      if (!cmp_value(left_type, right_type, nullptr, right_data, comp, left_data))
-      {
-        // 比较，不相等则清空
-        result.clear_tuples();
-        break;
-      }
+    //   if (!cmp_value(left_type, right_type, nullptr, right_data, comp, left_data))
+    //   {
+    //     // 比较，不相等则清空
+    //     result.clear_tuples();
+    //     break;
+    //   }
 
-      continue;
-    }
+    //   continue;
+    // }
 
-    if (sub_res.size() == 0)
-    {
-      // 子查询没有结果，如果是in清空result，否则保留所有结果
-      if (comp == NOT_IN)
-      {
-        continue;
-      }
-      result.clear_tuples();
-      // result.print(std::cout, true);
-      break;
-    }
+    // if (sub_res.size() == 0)
+    // {
+    //   // 子查询没有结果，如果是in清空result，否则保留所有结果
+    //   if (comp == NOT_IN)
+    //   {
+    //     continue;
+    //   }
+    //   result.clear_tuples();
+    //   // result.print(std::cout, true);
+    //   break;
+    // }
 
-    // 提取右侧类型和TupleValue
-    AttrType right_type = sub_res.get_schema().field(0).type();
-    const std::shared_ptr<TupleValue> &right_data = sub_res.get(0).get_pointer(0);
+    // // 提取右侧类型和TupleValue
+    // AttrType right_type = sub_res.get_schema().field(0).type();
+    // const std::shared_ptr<TupleValue> &right_data = sub_res.get(0).get_pointer(0);
 
-    // 如果左侧是列，提取index
-    int index = -1;
-    if (condition.left_is_attr)
-    {
-      const char *rel_name = condition.left_attr.relation_name;
-      const char *attr_name = condition.left_attr.attribute_name;
+    // // 如果左侧是列，提取index
+    // int index = -1;
+    // if (condition.left_is_attr)
+    // {
+    //   const char *rel_name = condition.left_attr.relation_name;
+    //   const char *attr_name = condition.left_attr.attribute_name;
 
-      if (rel_name != nullptr)
-      {
-        index = result.get_schema().index_of_field(rel_name, attr_name);
-      }
-      else
-      {
-        index = result.get_schema().index_of_field(attr_name);
-      }
+    //   if (rel_name != nullptr)
+    //   {
+    //     index = result.get_schema().index_of_field(rel_name, attr_name);
+    //   }
+    //   else
+    //   {
+    //     index = result.get_schema().index_of_field(attr_name);
+    //   }
 
-      if (index == -1)
-      {
-        // 出现错误的列名
-        rc = RC::GENERIC_ERROR;
-        break;
-      }
-    }
+    //   if (index == -1)
+    //   {
+    //     // 出现错误的列名
+    //     rc = RC::GENERIC_ERROR;
+    //     break;
+    //   }
+    // }
 
-    // 提取左侧类型
-    AttrType left_type;
-    if (condition.left_is_attr)
-    {
-      left_type = result.get_schema().field(index).type();
-    }
-    else
-    {
-      left_type = condition.left_value.type;
-    }
+    // // 提取左侧类型
+    // AttrType left_type;
+    // if (condition.left_is_attr)
+    // {
+    //   left_type = result.get_schema().field(index).type();
+    // }
+    // else
+    // {
+    //   left_type = condition.left_value.type;
+    // }
 
-    if (!is_type_legal(left_type, right_type))
-    {
-      rc = RC::GENERIC_ERROR;
-      break;
-    }
+    // if (!is_type_legal(left_type, right_type))
+    // {
+    //   rc = RC::GENERIC_ERROR;
+    //   break;
+    // }
 
-    // 开始处理操作符
-    if (comp != CompOp::NOT_IN && comp != CompOp::IN_SUB)
-    {
-      // 处理比较操作符，超过一行且非关联子查询则不合法
-      if (sub_res.size() > 1 && !is_related)
-      {
-        rc = RC::GENERIC_ERROR;
-        break;
-      }
+    // // 开始处理操作符
+    // if (comp != CompOp::NOT_IN && comp != CompOp::IN_SUB)
+    // {
+    //   // 处理比较操作符，超过一行且非关联子查询则不合法
+    //   if (sub_res.size() > 1 && !is_related)
+    //   {
+    //     rc = RC::GENERIC_ERROR;
+    //     break;
+    //   }
 
-      if (condition.left_is_attr == 0)
-      {
-        // 左侧也是值
-        bool cmp_res = cmp_value(condition.left_value.type, right_type, condition.left_value.data, right_data, condition.comp, right_data);
+    //   if (condition.left_is_attr == 0)
+    //   {
+    //     // 左侧也是值
+    //     bool cmp_res = cmp_value(condition.left_value.type, right_type, condition.left_value.data, right_data, condition.comp, right_data);
 
-        if (!cmp_res)
-        {
-          result.clear_tuples();
-        }
-      }
-      else
-      {
-        // 左侧是列
-        TupleSet tmp_res;
-        TupleSchema tmp_schema;
-        tmp_schema.append(result.get_schema());
-        tmp_res.set_schema(tmp_schema);
+    //     if (!cmp_res)
+    //     {
+    //       result.clear_tuples();
+    //     }
+    //   }
+    //   else
+    //   {
+    //     // 左侧是列
+    //     TupleSet tmp_res;
+    //     TupleSchema tmp_schema;
+    //     tmp_schema.append(result.get_schema());
+    //     tmp_res.set_schema(tmp_schema);
 
-        // 关联子查询，如果result里面有重复值怎么办
-        int n = result.size();
-        for (int j = 0; j < n; ++j)
-        {
-          // 遍历result，找出满足条件的tuple
-          // 这样是ok的
-          // if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
-          // {
-          //   result.copy_ith_to(tmp_res, j);
-          // }
+    //     // 关联子查询，如果result里面有重复值怎么办
+    //     int n = result.size();
+    //     for (int j = 0; j < n; ++j)
+    //     {
+    //       // 遍历result，找出满足条件的tuple
+    //       // 这样是ok的
+    //       // if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
+    //       // {
+    //       //   result.copy_ith_to(tmp_res, j);
+    //       // }
 
-          if (!is_related)
-          {
-            if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
-            {
-              result.copy_ith_to(tmp_res, j);
-            }
-          }
-          else
-          {
-            // 处理关联子查询
-            int k = sub_res.size() - 1;
-            int last_index = sub_res.get_schema().size() - 1;
-            for (; k >= 0; --k)
-            {
-              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(last_index), comp, result.get(j).get_pointer(index)) == 0)
-              {
-                break;
-              }
-            }
+    //       if (!is_related)
+    //       {
+    //         if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
+    //         {
+    //           result.copy_ith_to(tmp_res, j);
+    //         }
+    //       }
+    //       else
+    //       {
+    //         // 处理关联子查询
+    //         int k = sub_res.size() - 1;
+    //         int last_index = sub_res.get_schema().size() - 1;
+    //         for (; k >= 0; --k)
+    //         {
+    //           if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(last_index), comp, result.get(j).get_pointer(index)) == 0)
+    //           {
+    //             break;
+    //           }
+    //         }
 
-            if (k < 0)
-            {
-              // 出现错误
-              rc = RC::GENERIC_ERROR;
-              break;
-            }
+    //         if (k < 0)
+    //         {
+    //           // 出现错误
+    //           rc = RC::GENERIC_ERROR;
+    //           break;
+    //         }
 
-            if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), comp, result.get(j).get_pointer(index)))
-            {
-              result.copy_ith_to(tmp_res, j);
-            }
-          }
+    //         if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), comp, result.get(j).get_pointer(index)))
+    //         {
+    //           result.copy_ith_to(tmp_res, j);
+    //         }
+    //       }
 
-          // if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
-          //   result.copy_ith_to(tmp_res, j);
-          // }
-        }
+    //       // if (is_related && cmp_value(left_type, right_type, nullptr, sub_res.get(j).get_pointer(0), comp, result.get(j).get_pointer(index))) {
+    //       //   result.copy_ith_to(tmp_res, j);
+    //       // }
+    //     }
 
-        result = std::move(tmp_res);
-      }
-    }
-    else
-    {
-      LOG_INFO("comp = %d", comp);
-      // 处理操作符in/not in，用哈希表
-      // 生成哈希表
-      std::unordered_set<size_t> target_set;
-      int n = sub_res.size();
+    //     result = std::move(tmp_res);
+    //   }
+    // }
+    // else
+    // {
+    //   LOG_INFO("comp = %d", comp);
+    //   // 处理操作符in/not in，用哈希表
+    //   // 生成哈希表
+    //   std::unordered_set<size_t> target_set;
+    //   int n = sub_res.size();
 
-      for (int j = 0; j < n; ++j)
-      {
-        target_set.insert(sub_res.get(j).get_pointer(0)->to_hash());
-      }
+    //   for (int j = 0; j < n; ++j)
+    //   {
+    //     target_set.insert(sub_res.get(j).get_pointer(0)->to_hash());
+    //   }
 
-      // 查询验证
-      if (condition.left_is_attr == 0)
-      {
-        // 左侧是值
-        bool in_target = false;
-        switch (condition.left_value.type)
-        {
-        case AttrType::CHARS:
-        {
-          std::string v = std::string((const char *)condition.left_value.data);
-          std::hash<std::string> hash_func;
-          in_target = target_set.find(hash_func(v)) != target_set.end();
-          break;
-        }
-        case AttrType::DATES:
-        case AttrType::INTS:
-        {
-          int v = *(int *)condition.left_value.data;
-          std::hash<int> hash_func;
-          in_target = target_set.find(hash_func(v)) != target_set.end();
-          break;
-        }
-        case AttrType::FLOATS:
-        {
-          int v = *(float *)condition.left_value.data;
-          std::hash<float> hash_func;
-          in_target = target_set.find(hash_func(v)) != target_set.end();
-          break;
-        }
-        default:
-          break;
-        }
+    //   // 查询验证
+    //   if (condition.left_is_attr == 0)
+    //   {
+    //     // 左侧是值
+    //     bool in_target = false;
+    //     switch (condition.left_value.type)
+    //     {
+    //     case AttrType::CHARS:
+    //     {
+    //       std::string v = std::string((const char *)condition.left_value.data);
+    //       std::hash<std::string> hash_func;
+    //       in_target = target_set.find(hash_func(v)) != target_set.end();
+    //       break;
+    //     }
+    //     case AttrType::DATES:
+    //     case AttrType::INTS:
+    //     {
+    //       int v = *(int *)condition.left_value.data;
+    //       std::hash<int> hash_func;
+    //       in_target = target_set.find(hash_func(v)) != target_set.end();
+    //       break;
+    //     }
+    //     case AttrType::FLOATS:
+    //     {
+    //       int v = *(float *)condition.left_value.data;
+    //       std::hash<float> hash_func;
+    //       in_target = target_set.find(hash_func(v)) != target_set.end();
+    //       break;
+    //     }
+    //     default:
+    //       break;
+    //     }
 
-        if (comp == CompOp::IN_SUB && !in_target)
-        {
-          result.clear_tuples();
-        }
-        else if (comp == CompOp::NOT_IN && in_target)
-        {
-          result.clear_tuples();
-        }
-      }
-      else
-      {
-        // 左侧是列
-        TupleSet tmp_res;
-        tmp_res.set_schema(result.get_schema());
+    //     if (comp == CompOp::IN_SUB && !in_target)
+    //     {
+    //       result.clear_tuples();
+    //     }
+    //     else if (comp == CompOp::NOT_IN && in_target)
+    //     {
+    //       result.clear_tuples();
+    //     }
+    //   }
+    //   else
+    //   {
+    //     // 左侧是列
+    //     TupleSet tmp_res;
+    //     tmp_res.set_schema(result.get_schema());
 
-        int n = result.size();
-        result.print(std::cout);
-        for (int j = 0; j < n; ++j)
-        {
-          // 遍历result，找出满足条件的tuple
-          bool in_target = target_set.find(result.get(j).get_pointer(index)->to_hash()) != target_set.end();
-          LOG_INFO("index = %d", index);
+    //     int n = result.size();
+    //     result.print(std::cout);
+    //     for (int j = 0; j < n; ++j)
+    //     {
+    //       // 遍历result，找出满足条件的tuple
+    //       bool in_target = target_set.find(result.get(j).get_pointer(index)->to_hash()) != target_set.end();
+    //       LOG_INFO("index = %d", index);
 
-          if (comp == CompOp::IN_SUB)
-          {
-            if (in_target)
-            {
-              result.copy_ith_to(tmp_res, j);
-            }
-          }
-          else 
-          {
-            if (!is_related && !in_target)
-            {
-              result.copy_ith_to(tmp_res, j);
-            }
-            else if (is_related)
-            {
-              result.copy_ith_to(tmp_res, j);
-            }
-          }
-        }
+    //       if (comp == CompOp::IN_SUB)
+    //       {
+    //         if (in_target)
+    //         {
+    //           result.copy_ith_to(tmp_res, j);
+    //         }
+    //       }
+    //       else 
+    //       {
+    //         if (!is_related && !in_target)
+    //         {
+    //           result.copy_ith_to(tmp_res, j);
+    //         }
+    //         else if (is_related)
+    //         {
+    //           result.copy_ith_to(tmp_res, j);
+    //         }
+    //       }
+    //     }
 
-        result = std::move(tmp_res);
-      }
-    }
-
+    //     result = std::move(tmp_res);
+    //   }
+    // }
+    result.clear_tuples();
     rc = RC::SUCCESS;
   }
 
