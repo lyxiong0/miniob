@@ -2116,7 +2116,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
 
     float sub_res = left - right;
     // LOG_INFO("left = %f, right = %f, sub_res = %f", left, right, sub_res);
-    if (sub_res > -1e-9 && sub_res < 1e-9)
+    if (sub_res > -1e-2 && sub_res < 1e-2)
     {
       ans = 0;
     }
