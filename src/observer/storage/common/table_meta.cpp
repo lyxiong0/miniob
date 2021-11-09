@@ -202,11 +202,31 @@ const IndexMeta *TableMeta::find_single_index_by_field(const char *field) const
   }
   return nullptr;
 }
-
+bool TableMeta::find_multi_index_by_fields_for_check(const char *field_names[], int field_num) const
+{
+  // 严格按照num是否相等来匹配
+  for (const IndexMeta &index : indexes_)
+  { 
+    if(index.field_num()!=field_num){
+      continue;
+    }
+    for(int i = 0; i < field_num; i++){
+      if (0 != strcmp(index.field(i), field_names[i])){
+          break;
+      }else{
+        if(i == field_num-1){
+            return true;
+        }
+      }
+    }
+  }
+  return false;
+}
 // initially for multi index but now can hold single index
 // 查找index，不必考虑需要比较多少个attr。已经按照index的顺序进行检查field_names中是否存在对应的field，
 // 对于multi-index已经是最左匹配，根据匹配到的index的field数量筛选最适合的匹配，如果是只有一个field_name（a），
 // 可能会匹配到multi-index(a,b,c)和single-index(a)，这时multi-index也可以当做single-index使用。
+// 只用于condition中attr匹配到最合适的index.
 const IndexMeta *TableMeta::find_multi_index_by_fields(const char *field_names[], int field_num) const
 {
   const IndexMeta * best_index_meta = nullptr;

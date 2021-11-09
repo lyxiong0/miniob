@@ -682,7 +682,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const int& attr_num, co
     return RC::INVALID_ARGUMENT;
   }
   if (table_meta_.index(index_name) != nullptr ||
-      table_meta_.find_multi_index_by_fields(attribute_name,attr_num))
+      table_meta_.find_multi_index_by_fields_for_check(attribute_name,attr_num))
   {
     LOG_ERROR("create_index - SCHEMA_INDEX_EXIST");
     return RC::SCHEMA_INDEX_EXIST;
