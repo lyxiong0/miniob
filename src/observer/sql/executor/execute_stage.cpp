@@ -868,7 +868,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     if (sub_res.size() == 0)
     {
-      // 子查询没有结果，如果是in清空result，否则保留所有结果
+      // 子查询没有结果，如果是not in保留所有结果，否则清空
       if (comp == NOT_IN)
       {
         continue;
@@ -1008,46 +1008,56 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       LOG_INFO("comp = %d", comp);
       // 处理操作符in/not in，用哈希表
       // 生成哈希表
-      std::unordered_set<size_t> target_set;
-      int n = sub_res.size();
+      // std::unordered_set<size_t> target_set;
+      // int n = sub_res.size();
 
-      for (int j = 0; j < n; ++j)
-      {
-        target_set.insert(sub_res.get(j).get_pointer(0)->to_hash());
-      }
+      // for (int j = 0; j < n; ++j)
+      // {
+      //   target_set.insert(sub_res.get(j).get_pointer(0)->to_hash());
+      // }
 
       // 查询验证
       if (condition.left_is_attr == 0)
       {
         // 左侧是值
         bool in_target = false;
-        switch (condition.left_value.type)
+        int sub_size = sub_res.size();
+
+        for (int k = 0; k < sub_size; ++k)
         {
-        case AttrType::CHARS:
-        {
-          std::string v = std::string((const char *)condition.left_value.data);
-          std::hash<std::string> hash_func;
-          in_target = target_set.find(hash_func(v)) != target_set.end();
-          break;
+          if (cmp_value(left_type, right_type, condition.left_value.data, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, sub_res.get(k).get_pointer(0)))
+          {
+            in_target = true;
+            break;
+          }
         }
-        case AttrType::DATES:
-        case AttrType::INTS:
-        {
-          int v = *(int *)condition.left_value.data;
-          std::hash<int> hash_func;
-          in_target = target_set.find(hash_func(v)) != target_set.end();
-          break;
-        }
-        case AttrType::FLOATS:
-        {
-          int v = *(float *)condition.left_value.data;
-          std::hash<float> hash_func;
-          in_target = target_set.find(hash_func(v)) != target_set.end();
-          break;
-        }
-        default:
-          break;
-        }
+        // switch (condition.left_value.type)
+        // {
+        // case AttrType::CHARS:
+        // {
+        //   std::string v = std::string((const char *)condition.left_value.data);
+        //   std::hash<std::string> hash_func;
+        //   in_target = target_set.find(hash_func(v)) != target_set.end();
+        //   break;
+        // }
+        // case AttrType::DATES:
+        // case AttrType::INTS:
+        // {
+        //   int v = *(int *)condition.left_value.data;
+        //   std::hash<int> hash_func;
+        //   in_target = target_set.find(hash_func(v)) != target_set.end();
+        //   break;
+        // }
+        // case AttrType::FLOATS:
+        // {
+        //   int v = *(float *)condition.left_value.data;
+        //   std::hash<float> hash_func;
+        //   in_target = target_set.find(hash_func(v)) != target_set.end();
+        //   break;
+        // }
+        // default:
+        //   break;
+        // }
 
         if (comp == CompOp::IN_SUB && !in_target)
         {
@@ -1065,7 +1075,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         tmp_res.set_schema(result.get_schema());
 
         int m = result.size();
-        result.print(std::cout);
+        LOG_INFO("index = %d, index_name = %s", index, result.get_schema().field(index).field_name());
         for (int j = 0; j < m; ++j)
         {
           // 遍历result，找出满足条件的tuple
@@ -1088,19 +1098,18 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           // }
           bool in_target = false;
           int sub_size = sub_res.size();
+
+          for (int k = 0; k < sub_size; ++k)
+          {
+            if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index)))
+            {
+              in_target = true;
+              break;
+            }
+          }
+
           if (comp == CompOp::IN_SUB)
           {
-            in_target = false;
-
-            for (int k = 0; k < sub_size; ++k)
-            {
-              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index)))
-              {
-                in_target = true;
-                break;
-              }
-            }
-
             if (in_target)
             {
               result.copy_ith_to(tmp_res, j);
@@ -1112,17 +1121,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           }
           else
           {
-            in_target = true;
-            for (int k = 0; k < sub_size; ++k)
-            {
-              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index)))
-              {
-                in_target = false;
-                break;
-              }
-            }
-
-            if (in_target)
+            if (!in_target)
             {
               result.copy_ith_to(tmp_res, j);
             }
