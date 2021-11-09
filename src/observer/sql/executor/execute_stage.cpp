@@ -1073,6 +1073,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         {
           // 遍历result，找出满足条件的tuple
           bool in_target = target_set.find(result.get(j).get_pointer(index)->to_hash()) != target_set.end();
+          LOG_INFO("index = %d", index);
 
           if (comp == CompOp::IN_SUB)
           {
