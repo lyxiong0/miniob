@@ -752,7 +752,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   for (size_t i = 0; i < selects.condition_num; i++)
   {
     const Condition &condition = selects.conditions[i];
-    // 没有子查询则跳过
+    // 查看是否有子查询
     if (condition.right_is_attr != 2)
     {
       continue;
@@ -818,7 +818,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       break;
     }
 
-    sub_res.print(std::cout);
+    // sub_res.print(std::cout);
     // result.print(std::cout);
 
     // 如果查询结果不为单列则不合法
@@ -1008,60 +1008,45 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       LOG_INFO("comp = %d", comp);
       // 处理操作符in/not in，用哈希表
       // 生成哈希表
-      // std::unordered_set<size_t> target_set;
-      // int n = sub_res.size();
+      std::unordered_set<size_t> target_set;
+      int n = sub_res.size();
 
-      // for (int j = 0; j < n; ++j)
-      // {
-      //   target_set.insert(sub_res.get(j).get_pointer(0)->to_hash());
-      // }
-
-      // 查询验证
-      CompOp temp_cp;
-      if (comp == CompOp::IN_SUB) {
-        temp_cp = EQUAL_TO;
-      } else {
-        temp_cp = NOT_EQUAL;
+      for (int j = 0; j < n; ++j)
+      {
+        target_set.insert(sub_res.get(j).get_pointer(0)->to_hash());
       }
 
+      // 查询验证
       if (condition.left_is_attr == 0)
       {
         // 左侧是值
         bool in_target = false;
-        // switch (condition.left_value.type)
-        // {
-        // case AttrType::CHARS:
-        // {
-        //   std::string v = std::string((const char *)condition.left_value.data);
-        //   std::hash<std::string> hash_func;
-        //   in_target = target_set.find(hash_func(v)) != target_set.end();
-        //   break;
-        // }
-        // case AttrType::DATES:
-        // case AttrType::INTS:
-        // {
-        //   int v = *(int *)condition.left_value.data;
-        //   std::hash<int> hash_func;
-        //   in_target = target_set.find(hash_func(v)) != target_set.end();
-        //   break;
-        // }
-        // case AttrType::FLOATS:
-        // {
-        //   int v = *(float *)condition.left_value.data;
-        //   std::hash<float> hash_func;
-        //   in_target = target_set.find(hash_func(v)) != target_set.end();
-        //   break;
-        // }
-        // default:
-        //   break;
-        // }
-        for (int j = sub_res.size() - 1; j >= 0; --j)
+        switch (condition.left_value.type)
         {
-          if (cmp_value(left_type, right_type, condition.left_value.data, sub_res.get(j).get_pointer(0), temp_cp, sub_res.get(j).get_pointer(0)) == 0)
-          {
-            in_target = true;
-            break;
-          }
+        case AttrType::CHARS:
+        {
+          std::string v = std::string((const char *)condition.left_value.data);
+          std::hash<std::string> hash_func;
+          in_target = target_set.find(hash_func(v)) != target_set.end();
+          break;
+        }
+        case AttrType::DATES:
+        case AttrType::INTS:
+        {
+          int v = *(int *)condition.left_value.data;
+          std::hash<int> hash_func;
+          in_target = target_set.find(hash_func(v)) != target_set.end();
+          break;
+        }
+        case AttrType::FLOATS:
+        {
+          int v = *(float *)condition.left_value.data;
+          std::hash<float> hash_func;
+          in_target = target_set.find(hash_func(v)) != target_set.end();
+          break;
+        }
+        default:
+          break;
         }
 
         if (comp == CompOp::IN_SUB && !in_target)
@@ -1079,38 +1064,65 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         TupleSet tmp_res;
         tmp_res.set_schema(result.get_schema());
 
-        int n = result.size();
+        int m = result.size();
         result.print(std::cout);
-        for (int j = 0; j < n; ++j)
+        for (int j = 0; j < m; ++j)
         {
           // 遍历result，找出满足条件的tuple
           // bool in_target = target_set.find(result.get(j).get_pointer(index)->to_hash()) != target_set.end();
-          LOG_INFO("index = %d", index);
+          // LOG_INFO("index = %d", index);
 
+          // if (comp == CompOp::IN_SUB)
+          // {
+          //   if (in_target)
+          //   {
+          //     result.copy_ith_to(tmp_res, j);
+          //   }
+          // }
+          // else
+          // {
+          //   if (is_related || !in_target)
+          //   {
+          //     result.copy_ith_to(tmp_res, j);
+          //   }
+          // }
           bool in_target = false;
-          for (int k = sub_res.size() - 1; k >= 0; --k)
-          {
-            if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), temp_cp, result.get(j).get_pointer(index)) == 0)
-            {
-              in_target = true;
-              break;
-            }
-          }
-
+          int sub_size = sub_res.size();
           if (comp == CompOp::IN_SUB)
           {
+            in_target = false;
+
+            for (int k = 0; k < sub_size; ++k)
+            {
+              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index)) == 0)
+              {
+                in_target = true;
+                break;
+              }
+            }
+
             if (in_target)
             {
               result.copy_ith_to(tmp_res, j);
             }
           }
+          else if (is_related)
+          {
+            result.copy_ith_to(tmp_res, j);
+          }
           else
           {
-            if (!is_related && !in_target)
+            in_target = true;
+            for (int k = 0; k < sub_size; ++k)
             {
-              result.copy_ith_to(tmp_res, j);
+              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index)) != 0)
+              {
+                in_target = false;
+                break;
+              }
             }
-            else if (is_related)
+
+            if (in_target)
             {
               result.copy_ith_to(tmp_res, j);
             }
