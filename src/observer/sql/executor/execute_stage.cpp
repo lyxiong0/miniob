@@ -821,7 +821,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       break;
     }
 
-    sub_res.print(std::cout);
+    // sub_res.print(std::cout);
     // result.print(std::cout);
 
     // 如果查询结果不为单列则不合法
