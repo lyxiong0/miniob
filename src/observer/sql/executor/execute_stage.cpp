@@ -815,6 +815,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     rc = do_select(db, *sub_select, session_event, sub_res, true, main_table);
     if (rc != RC::SUCCESS)
     {
+      rc = RC::GENERIC_ERROR;
       break;
     }
 
@@ -835,6 +836,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       rc = do_select(db, *condition.another_sub_select, session_event, left_sub_res, true);
       if (rc != RC::SUCCESS)
       {
+        rc = RC::GENERIC_ERROR;
+
         break;
       }
 
