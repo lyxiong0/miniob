@@ -769,7 +769,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
 
       const Condition &sub_cond = condition.sub_select->conditions[i];
-      // 查看条件中是否存在与主查s询相关的条件，关联子查询必有表名
+      // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
       if (sub_cond.right_is_attr == 1 && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, main_table) == 0)
       {
         // 加入子查询
@@ -2063,7 +2063,23 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
   case AttrType::INTS:
   case AttrType::FLOATS:
   {
-    // 都转换成float比较
+    if (left_type == AttrType::INTS && right_type == AttrType::INTS) {
+      int left;
+      if (left_data != nullptr)
+      {
+        left = *(int *)left_data;
+      }
+      else
+      {
+        left = std::dynamic_pointer_cast<IntValue>(left_value)->get_value();
+      }
+
+      int right = std::dynamic_pointer_cast<IntValue>(right_data)->get_value();
+
+      ans = left - right;
+    }
+
+    // 混合类型或者都是float，转换成float比较
     float left;
     if (left_type == AttrType::INTS)
     {
@@ -2099,8 +2115,8 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     }
 
     float sub_res = left - right;
-    // LOG_INFO("loft = %f, right = %f, sub_res = %f", left, right, sub_res);
-    if (sub_res > -1e-6 && sub_res < 1e-6)
+    // LOG_INFO("left = %f, right = %f, sub_res = %f", left, right, sub_res);
+    if (sub_res > -1e-2 && sub_res < 1e-2)
     {
       ans = 0;
     }
