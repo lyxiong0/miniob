@@ -2131,10 +2131,10 @@ RC BplusTreeHandler::find_first_index_satisfied_single(CompOp compop, const char
 RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_ops, std::vector<const char *>key, PageNum *page_num, int *rididx)
 {
   // comp_ops中元素形式为 = ... = x 前几个为=，最后一个不为= 比如a=x,b=y,c>=z CompOp = 0表示为“=”
-  int cmp_size; 
-  CompOp compop = EQUAL_TO;
+  int cmp_size = comp_ops.size(); 
+  CompOp compop = CompOp::EQUAL_TO;
   for(int i = 0; i < comp_ops.size(); i++){
-    if(comp_ops[i] != EQUAL_TO){
+    if(comp_ops[i] != CompOp::EQUAL_TO){
       compop = comp_ops[i];
       cmp_size = i+1;
       break;
@@ -2193,11 +2193,13 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
     rc = disk_buffer_pool_->get_this_page(file_id_, next, &page_handle);
     if (rc != SUCCESS)
     {
+      LOG_DEBUG("Failed to get_this_page. rc=%d:%s", rc, strrc(rc));
       return rc;
     }
     rc = disk_buffer_pool_->get_data(&page_handle, &pdata);
     if (rc != SUCCESS)
     {
+      LOG_DEBUG("Failed to get_data. rc=%d:%s", rc, strrc(rc));
       return rc;
     }
     node = get_index_node(pdata);
@@ -2226,12 +2228,14 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
           rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
           if (rc != SUCCESS)
           {
+            LOG_DEBUG("Failed to get_page_num. rc=%d:%s", rc, strrc(rc));
             return rc;
           }
           *rididx = i;
           rc = disk_buffer_pool_->unpin_page(&page_handle);
           if (rc != SUCCESS)
           {
+            LOG_DEBUG("Failed to unpin_page. rc=%d:%s", rc, strrc(rc));
             return rc;
           }
         }
@@ -2396,8 +2400,10 @@ RC BplusTreeScanner::open_multi_index(std::vector<CompOp> comp_ops, std::vector<
       next_page_num_ = -1;
       index_in_node_ = -1;
     }
-    else
+    else{
+      LOG_DEBUG("Failed to find_first_index_satisfied_multi. rc=%d:%s", rc, strrc(rc));
       return rc;
+    }
   }
   num_fixed_pages_ = 1;
   next_index_of_page_handle_ = 0;
@@ -2433,7 +2439,7 @@ RC BplusTreeScanner::next_entry(RID *rid)
     rc = find_idx_pages();
     if (rc != SUCCESS)
     {
-      LOG_DEBUG("rc = find_idx_pages() != success 是%d",rc);
+      LOG_DEBUG("rc = find_idx_pages() != success 是%d:%s",rc,strrc(rc));
       return rc;
     }
     return get_next_idx_in_memory(rid);
