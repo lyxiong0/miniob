@@ -345,6 +345,7 @@ int CmpKey(AttrType attr_type[], int attr_length[], const char *pdata, const cha
   {
     return result;
   }
+
   int offset=0;
   for(int i=0;i<cmp_attr_num;i++){
     offset += attr_length[i];
@@ -2225,6 +2226,7 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
       {
         if (tmp >= 0)
         {
+          // 当i=0时，这里没有问题,当i=1时这里会产生BUFFERPOOL_CLOSED的问题，需要思考下这里需不需要还循环
           rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
           if (rc != SUCCESS)
           {
@@ -2238,6 +2240,7 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
             LOG_DEBUG("Failed to unpin_page. rc=%d:%s", rc, strrc(rc));
             return rc;
           }
+          return SUCCESS;
         }
       }
 
