@@ -263,7 +263,7 @@ int CompareKey(const char *pdata, const char *pkey, AttrType attr_type, int attr
   switch (attr_type)
   {
   case INTS:
-  {
+  { 
     i1 = *(int *)pdata;
     i2 = *(int *)pkey;
     if (i1 > i2)
@@ -1099,6 +1099,7 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
   // key_length包含了attr_length之和加上RID的长度
   memcpy(key, pkey, file_header_.total_attr_length);
   memcpy(key + file_header_.total_attr_length, rid, sizeof(*rid));
+  // key={attr1+attr2+rid}   rid表示实际存储的位置
   rc = find_leaf(key, &leaf_page,file_header_.field_num);
   if (rc != SUCCESS)
   {
@@ -2129,9 +2130,17 @@ RC BplusTreeHandler::find_first_index_satisfied_single(CompOp compop, const char
 
 RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_ops, std::vector<const char *>key, PageNum *page_num, int *rididx)
 {
-  // comp_ops中元素形式为 = ... = x 前几个为=，最后一个不为= 比如a=x,b=y,c>=z
-  int cmp_size = comp_ops.size(); 
-  CompOp compop = comp_ops[cmp_size-1];
+  // comp_ops中元素形式为 = ... = x 前几个为=，最后一个不为= 比如a=x,b=y,c>=z CompOp = 0表示为“=”
+  int cmp_size; 
+  CompOp compop = EQUAL_TO;
+  for(int i = 0; i < comp_ops.size(); i++){
+    if(comp_ops[i] != EQUAL_TO){
+      compop = comp_ops[i];
+      cmp_size = i+1;
+      break;
+    }
+  }
+  //CompOp compop = comp_ops[cmp_size-1];
   BPPageHandle page_handle;
   IndexNode *node;
   PageNum leaf_page, next;
@@ -2151,8 +2160,9 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
       return SUCCESS;
     }else{
       // 因为前几个条件是=，将前几个=当做一个key来执行 a=x b=y 相当于寻找满足a=x b=y的第一个index
-      compop = comp_ops[cmp_size];
       cmp_size-=1;
+      // compop = comp_ops[cmp_size];
+      compop = EQUAL_TO;
     }  
   }
   rid.page_num = -1;
@@ -2170,8 +2180,8 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
   }
   memcpy(pkey + file_header_.total_attr_length, &rid, sizeof(RID));
 
-  rc = find_leaf(pkey, &leaf_page, cmp_size);
-  if (rc != SUCCESS)
+  rc = find_leaf(pkey, &leaf_page, cmp_size);   
+  if (rc != SUCCESS)   // 2180
   {
     free(pkey);
     return rc;
@@ -2200,12 +2210,15 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
         LOG_ERROR("Failed to alloc memory for key. size=%d", file_header_.key_length);
         return RC::NOMEM;
       }
+      int offset = 0;
       for(int i = 0; i < key.size(); i++){
-        memcpy(key_, key[i], file_header_.attr_length[i]);
+        memcpy(key_+offset, key[i], file_header_.attr_length[i]);
+        offset += file_header_.attr_length[i];
       }
       memcpy(key_ + file_header_.total_attr_length, &rid, sizeof(RID));
 
-      tmp = CompareKeys(node->keys + i * file_header_.key_length, key_, file_header_.attr_type, file_header_.attr_length, cmp_size);
+      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, node->keys + i * file_header_.key_length, key_, cmp_size);
+      
       if (compop == EQUAL_TO || compop == GREAT_EQUAL)
       {
         if (tmp >= 0)
@@ -2359,6 +2372,7 @@ RC BplusTreeScanner::open_multi_index(std::vector<CompOp> comp_ops, std::vector<
     return RC::RECORD_OPENNED;
   }
   comp_ops_ = comp_ops;
+  condition_num = values.size();
   // for(const auto &value : values){
   for( int i = 0; i< values.size(); i++){
     // int length = index_handler_.file_header_.attr_length[i]+sizeof(RID);
@@ -2378,6 +2392,7 @@ RC BplusTreeScanner::open_multi_index(std::vector<CompOp> comp_ops, std::vector<
   {
     if (rc == RC::RECORD_EOF)
     {
+      LOG_DEBUG(" result of find_first_index_satisfied_multi is rc = RECORD_EOF");
       next_page_num_ = -1;
       index_in_node_ = -1;
     }

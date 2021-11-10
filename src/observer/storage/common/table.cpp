@@ -299,7 +299,8 @@ RC Table::insert_record(Trx *trx, int value_num, const Value *values, Record **r
   }
 
   // record_data只是单纯用来装数据
-  char *record_data;
+  char *record_data;            // 对应record.data
+  // 依次与table_meta中的内容对比来检验values，并将每项按照table_meta中的offset顺序放在record_data中
   RC rc = make_record(value_num, values, record_data);
   if (rc != RC::SUCCESS)
   {
@@ -308,7 +309,6 @@ RC Table::insert_record(Trx *trx, int value_num, const Value *values, Record **r
   }
   Record record;
   record.data = record_data;
-  // record.valid = true;
   rc = insert_record(trx, &record);
   if (ret_record != nullptr)
   {
@@ -380,6 +380,7 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
 
   Value new_value;
   const int normal_field_start_index = table_meta_.sys_field_num();
+  // 挨个验证values里的内容是否和table_meta中的field的内容相符合
   for (int i = 0; i < value_num; i++)
   {
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
@@ -1273,7 +1274,8 @@ const IndexMeta *Table::find_multi_index_by_Deaultfields(std::vector<const ConDe
 IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &filters)
 {
   int filter_num = filters.filter_num();
-  std::vector<const ConDesc *> field_cond_descs;
+  // std::vector<const ConDesc *> field_cond_descs;
+  const char *field_names[filter_num];
   std::vector<CompOp> comp_ops;
   std::vector<const char *> values;
   for(int i = 0; i < filter_num; i++){
@@ -1301,11 +1303,13 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
               field_cond_desc->attr_offset, name());
       return nullptr;
     }
-    field_cond_descs.push_back(field_cond_desc);
+    field_names[i] = field_meta->name();
     comp_ops.push_back(default_condition_filter->comp_op());
     values.push_back((char *)value_cond_desc->value);
   }
-  const IndexMeta *index_meta = find_multi_index_by_Deaultfields(field_cond_descs);
+
+  //const IndexMeta *index_meta = find_multi_index_by_Deaultfields(field_cond_descs);
+  const IndexMeta *index_meta = table_meta_.find_multi_index_by_fields(field_names,filter_num);
   if (nullptr == index_meta)
   {
     return nullptr;
