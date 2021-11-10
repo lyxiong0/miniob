@@ -2433,6 +2433,7 @@ RC BplusTreeScanner::next_entry(RID *rid)
     rc = find_idx_pages();
     if (rc != SUCCESS)
     {
+      LOG_DEBUG("rc = find_idx_pages() != success 是%d",rc);
       return rc;
     }
     return get_next_idx_in_memory(rid);

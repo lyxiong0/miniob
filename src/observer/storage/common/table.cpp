@@ -544,9 +544,10 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
   IndexScanner *index_scanner = find_index_for_scan(filter);
   if (index_scanner != nullptr)
   {
-    LOG_INFO("scan_record_by_index");
+    LOG_INFO("使用index,scan_record_by_index");
     return scan_record_by_index(trx, index_scanner, filter, limit, context, record_reader);
   }
+  LOG_INFO("没有使用index");
   // filter == nullptr时，scanner会扫描所有元组
   RC rc = RC::SUCCESS;
   RecordFileScanner scanner;
@@ -599,7 +600,7 @@ RC Table::scan_record_by_index(Trx *trx, IndexScanner *scanner, ConditionFilter 
     rc = scanner->next_entry(&rid);
     if (rc != RC::SUCCESS)
     {
-      if (RC::RECORD_EOF == rc)
+      if (RC::RECORD_EOF == rc || RC::RECORD_NO_MORE_IDX_IN_MEM == rc)
       {
         rc = RC::SUCCESS;
         break;
@@ -614,7 +615,6 @@ RC Table::scan_record_by_index(Trx *trx, IndexScanner *scanner, ConditionFilter 
       LOG_ERROR("Failed to fetch record of rid=%d:%d, rc=%d:%s", rid.page_num, rid.slot_num, rc, strrc(rc));
       break;
     }
-    LOG_INFO("get record");
 
     if ((trx == nullptr || trx->is_visible(this, &record)) && (filter == nullptr || filter->filter(record)))
     {
