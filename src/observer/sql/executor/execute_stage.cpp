@@ -992,7 +992,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           }
         }
 
-        reslt = std::move(tmp_res);
+        result = std::move(tmp_res);
       }
     }
     else
