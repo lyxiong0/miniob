@@ -149,6 +149,7 @@ void ExecuteStage::handle_request(common::StageEvent *event)
   case SCF_SELECT:
   { // select
     TupleSet tmp;
+    is_related = false;
     do_select(current_db, sql->sstr.selection, exe_event->sql_event()->session_event(), tmp);
     exe_event->done_immediate();
   }
