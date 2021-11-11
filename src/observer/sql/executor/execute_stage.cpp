@@ -665,7 +665,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
       return rc;
     }
-    
+
     select_nodes.push_back(select_node);
   }
 
@@ -735,7 +735,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     result = std::move(tuple_sets.front());
   }
 
-  // result.print(std::cout);
+  result.print(std::cout);
 
   // 在此执行子查询操作
   bool has_subselect = false;
@@ -746,7 +746,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     memcpy(main_table, selects.relations[0], strlen(selects.relations[0]) + 1);
   }
 
-  for (size_t i = 0; i < selects.condition_num && result.size(); i++)
+  for (size_t i = 0; i < selects.condition_num; i++)
   {
     const Condition &condition = selects.conditions[i];
     // 查看是否有子查询
@@ -758,17 +758,17 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     // 处理子查询
     has_subselect = true;
     CompOp comp = condition.comp;
-    LOG_INFO("comp = %d", comp);
 
     Selects *sub_select = new Selects();
     memcpy(sub_select, condition.sub_select, sizeof(Selects));
 
     // 检查是否为关联子查询
     int n = sub_select->condition_num;
+
     for (size_t i = 0; i < n; i++)
     {
       const Condition &sub_cond = condition.sub_select->conditions[i];
-      
+
       // 查看条件中是否存在与主查询相关的条件，关联子查询必有表名
       if (sub_cond.right_is_attr == 1 && sub_cond.right_attr.relation_name != nullptr && strcmp(sub_cond.right_attr.relation_name, main_table) == 0)
       {
@@ -809,7 +809,10 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     free(condition.sub_select);
     TupleSet sub_res;
+
     rc = do_select(db, *sub_select, session_event, sub_res, true, main_table);
+    // sub_res.print(std::cout, true);
+
     if (rc != RC::SUCCESS)
     {
       rc = RC::GENERIC_ERROR;
@@ -817,6 +820,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
 
     // sub_res.print(std::cout);
+    // LOG_INFO("---------");
     // result.print(std::cout);
 
     // 如果查询结果不为单列则不合法
@@ -1127,6 +1131,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   }
 
   // 子查询结束
+  // LOG_INFO("子查询结束");
   // result.print(std::cout, true);
 
   if (rc != RC::SUCCESS)
@@ -1226,7 +1231,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
   }
 
-  if (result.size() > 0 && attr_function->get_size() > 0)
+  if (attr_function->get_size() > 0)
   {
     std::vector<TupleSet> tmp_res;
     int size = results.size();
@@ -1249,7 +1254,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         return rc;
       }
 
-      if (tmp_res.size() > 0)
+      if (tmp_res[0].get_schema().size() > 0)
       {
         isMultiTable = false;
         result = std::move(tmp_res[0]);
@@ -1286,6 +1291,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
     }
   }
+
+
   ////////////////////////////聚合函数结束/////////////////////////////
 
   // 有两种情况需要二次提取列
@@ -1355,6 +1362,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     result = std::move(final_set);
   }
 
+
   if (selects.order_num > 0)
   {
     // 当前没有group by，先假设聚合和排序是矛盾的，仍然用tuples_sets进行快速排序
@@ -1392,15 +1400,14 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   if (!is_sub_select)
   {
-    result.print(ss, isMultiTable);
+      result.print(ss, isMultiTable);
+
     session_event->set_response(ss.str());
     end_trx_if_need(session, trx, true);
-    result.print(std::cout, true);
   }
   else
   {
     // 子查询情况，将结果返回
-    result.print(std::cout, true);
     ret_tuple_set = std::move(result);
   }
 
@@ -1696,7 +1703,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       {
         // TODO: 显示什么，NULL会影响吗
         add_type = AttrType::CHARS;
-        tmp_tuple.add("NULL", 4);
+        // tmp_tuple.add("NULL", 4);
         break;
       }
 
@@ -1792,13 +1799,15 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       return rc;
     }
   }
+
+  TupleSet tmp_set;
+  tmp_set.set_schema(tmp_scheme);
   if (tmp_tuple.size() > 0)
   {
-    TupleSet tmp_set;
-    tmp_set.set_schema(tmp_scheme);
     tmp_set.add(std ::move(tmp_tuple));
-    results.push_back(std::move(tmp_set));
   }
+  tmp_set.print(std::cout);
+  results.push_back(std::move(tmp_set));
 
   return rc;
 }
@@ -2057,7 +2066,8 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
   case AttrType::INTS:
   case AttrType::FLOATS:
   {
-    if (left_type == AttrType::INTS && right_type == AttrType::INTS) {
+    if (left_type == AttrType::INTS && right_type == AttrType::INTS)
+    {
       int left;
       if (left_data != nullptr)
       {
