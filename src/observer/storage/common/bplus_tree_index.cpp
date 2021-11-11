@@ -150,6 +150,7 @@ RC BplusTreeIndex::delete_entry(const char *record, const RID *rid)
 // 这里和multi_index的差别主要是将null值分开
 IndexScanner *BplusTreeIndex::create_single_index_scanner(CompOp comp_op, const char *value, int null_field_index)
 {
+  
   BplusTreeScanner *bplus_tree_scanner = new BplusTreeScanner(index_handler_,1);
   RC rc = bplus_tree_scanner->open_single_index(comp_op, value, null_field_index);
   if (rc != RC::SUCCESS)

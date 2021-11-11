@@ -1310,7 +1310,7 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
   }
 
   //const IndexMeta *index_meta = find_multi_index_by_Deaultfields(field_cond_descs);
-  int match_num;
+  int match_num = 0;
   const IndexMeta *index_meta = table_meta_.find_multi_index_by_fields(field_names,filter_num,match_num);
   if (nullptr == index_meta)
   {
@@ -1374,21 +1374,23 @@ IndexScanner *Table::find_index_for_scan(const ConditionFilter *filter)
   {
     return nullptr;
   }
-
+  IndexScanner * index_scanner=nullptr;
   // remove dynamic_cast
   const DefaultConditionFilter *default_condition_filter = dynamic_cast<const DefaultConditionFilter *>(filter);
   if (default_condition_filter != nullptr)
   {
-    return find_single_index_for_scan(*default_condition_filter);
+    index_scanner =  find_single_index_for_scan(*default_condition_filter);
   }
-
+  if (index_scanner != nullptr){
+    return index_scanner;
+  }
   const CompositeConditionFilter *composite_condition_filter = dynamic_cast<const CompositeConditionFilter *>(filter);
   
   if (composite_condition_filter != nullptr)
   {
-    return find_multi_index_for_scan(*composite_condition_filter);
+    index_scanner =  find_multi_index_for_scan(*composite_condition_filter);
   }
-  return nullptr;
+  return index_scanner;
 }
 
 RC Table::sync()

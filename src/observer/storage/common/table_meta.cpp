@@ -244,17 +244,18 @@ const IndexMeta *TableMeta::find_multi_index_by_fields(const char *field_names[]
     }else{
       min_size = field_num;
     }
-    int match_num = 0;
+    int match_num_tmp = 0;
     // 按照index中field的顺序进行查找的，符合最左匹配原则。
     for(int i = 0; i < min_size; i++){
       if (field_map[index.field(i)]){
-        match_num +=1;
+        match_num_tmp +=1;
       }else{
         break;
       }
     }
-    if(match_num>best_match){
+    if(match_num_tmp>best_match){
       best_index_meta = &index;
+      best_match = match_num_tmp;
     }
   }
   //best_index_meta->set_match_num(best_match);
