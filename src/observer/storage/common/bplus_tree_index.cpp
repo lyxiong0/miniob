@@ -150,7 +150,7 @@ RC BplusTreeIndex::delete_entry(const char *record, const RID *rid)
 // 这里和multi_index的差别主要是将null值分开
 IndexScanner *BplusTreeIndex::create_single_index_scanner(CompOp comp_op, const char *value, int null_field_index)
 {
-  BplusTreeScanner *bplus_tree_scanner = new BplusTreeScanner(index_handler_);
+  BplusTreeScanner *bplus_tree_scanner = new BplusTreeScanner(index_handler_,1);
   RC rc = bplus_tree_scanner->open_single_index(comp_op, value, null_field_index);
   if (rc != RC::SUCCESS)
   {
@@ -163,10 +163,10 @@ IndexScanner *BplusTreeIndex::create_single_index_scanner(CompOp comp_op, const 
   return index_scanner;
 }
 
-IndexScanner *BplusTreeIndex::create_multi_index_scanner(const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values)
+IndexScanner *BplusTreeIndex::create_multi_index_scanner(const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values, int &match_num)
 {
   // 当前的BplusTreeIndex就是已经匹配上当前condition的index.
-  BplusTreeScanner *bplus_tree_scanner = new BplusTreeScanner(index_handler_);
+  BplusTreeScanner *bplus_tree_scanner = new BplusTreeScanner(index_handler_,match_num);
   RC rc = bplus_tree_scanner->open_multi_index(comp_ops, values);
   if (rc != RC::SUCCESS)
   {

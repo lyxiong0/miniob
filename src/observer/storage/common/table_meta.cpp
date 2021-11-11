@@ -227,7 +227,7 @@ bool TableMeta::find_multi_index_by_fields_for_check(const char *field_names[], 
 // 对于multi-index已经是最左匹配，根据匹配到的index的field数量筛选最适合的匹配，如果是只有一个field_name（a），
 // 可能会匹配到multi-index(a,b,c)和single-index(a)，这时multi-index也可以当做single-index使用。
 // 只用于condition中attr匹配到最合适的index.
-const IndexMeta *TableMeta::find_multi_index_by_fields(const char *field_names[], int field_num) const
+const IndexMeta *TableMeta::find_multi_index_by_fields(const char *field_names[], int field_num, int &match_num) const
 {
   const IndexMeta * best_index_meta = nullptr;
   int best_match=0;   // 根据长度记录最佳匹配 
@@ -257,6 +257,8 @@ const IndexMeta *TableMeta::find_multi_index_by_fields(const char *field_names[]
       best_index_meta = &index;
     }
   }
+  //best_index_meta->set_match_num(best_match);
+  match_num = best_match;
   return best_index_meta;
 }
 const IndexMeta *TableMeta::index(int i) const

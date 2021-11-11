@@ -47,7 +47,7 @@ public:
   virtual int Get_Field_Num() const = 0;
 
   // virtual IndexScanner *create_scanner(const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values, int null_field_index) = 0;
-  virtual IndexScanner *create_multi_index_scanner(const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values) = 0;
+  virtual IndexScanner *create_multi_index_scanner(const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values,int &match_num) = 0;
   virtual IndexScanner *create_single_index_scanner(CompOp comp_op, const char *value, int null_field_index) = 0;
   virtual RC sync() = 0;
 

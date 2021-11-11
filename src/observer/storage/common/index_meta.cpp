@@ -96,6 +96,7 @@ const char *IndexMeta::field(int id) const {
 const std::vector<std::string> IndexMeta::fields() const{
   return fields_;
 }
+
 const int &IndexMeta::field_num() const {
   return field_num_;
 }

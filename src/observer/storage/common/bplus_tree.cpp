@@ -2329,7 +2329,7 @@ RC BplusTreeHandler::get_first_leaf_page(PageNum *leaf_page)
   return SUCCESS;
 }
 
-BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &index_handler) : index_handler_(index_handler)
+BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &index_handler,int match_num) : index_handler_(index_handler),match_num_(match_num)
 {
 }
 // 在bplus_tree_index.cpp的create_scanner函数中进行调用
@@ -2548,7 +2548,7 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid)
 bool BplusTreeScanner::satisfy_multi_attr_condition(const char *pkey)
 {
   bool single_ = true;
-  for(int i = 0; i < index_handler_.file_header_.field_num; i++){
+  for(int i = 0; i < match_num_; i++){
     AttrType attr_t = index_handler_.file_header_.attr_type[i];
     int attr_len = index_handler_.file_header_.attr_length[i];
     int offset = 0;

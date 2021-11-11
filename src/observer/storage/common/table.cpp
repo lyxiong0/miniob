@@ -1261,6 +1261,7 @@ Index *Table::find_index(const char *index_name) const
   }
   return nullptr;
 }
+/*
 const IndexMeta *Table::find_multi_index_by_Deaultfields(std::vector<const ConDesc *> &field_cond_descs)
 {
   int size = field_cond_descs.size();
@@ -1270,7 +1271,7 @@ const IndexMeta *Table::find_multi_index_by_Deaultfields(std::vector<const ConDe
     field_names[i++] = (char *)field_cond_desc->value;
   }
   return  table_meta_.find_multi_index_by_fields(field_names,size);
-}
+}*/
 IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &filters)
 {
   int filter_num = filters.filter_num();
@@ -1309,7 +1310,8 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
   }
 
   //const IndexMeta *index_meta = find_multi_index_by_Deaultfields(field_cond_descs);
-  const IndexMeta *index_meta = table_meta_.find_multi_index_by_fields(field_names,filter_num);
+  int match_num;
+  const IndexMeta *index_meta = table_meta_.find_multi_index_by_fields(field_names,filter_num,match_num);
   if (nullptr == index_meta)
   {
     return nullptr;
@@ -1321,7 +1323,7 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
     return nullptr;
   }
                         // (const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values)
-  return index->create_multi_index_scanner(comp_ops, values);
+  return index->create_multi_index_scanner(comp_ops, values, match_num);
 }
 
 IndexScanner *Table::find_single_index_for_scan(const DefaultConditionFilter &filter)
