@@ -2329,8 +2329,9 @@ RC BplusTreeHandler::get_first_leaf_page(PageNum *leaf_page)
   return SUCCESS;
 }
 
-BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &index_handler,int match_num) : index_handler_(index_handler),match_num_(match_num)
+BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &index_handler,int match_num) : index_handler_(index_handler)
 {
+  match_num_ = match_num;
 }
 // 在bplus_tree_index.cpp的create_scanner函数中进行调用
 RC BplusTreeScanner::open_single_index(CompOp comp_op, const char *value, int null_index)
@@ -2379,9 +2380,9 @@ RC BplusTreeScanner::open_multi_index(std::vector<CompOp> comp_ops, std::vector<
     return RC::RECORD_OPENNED;
   }
   comp_ops_ = comp_ops;
-  condition_num = values.size();
+  condition_num = values.size();  //没什么用这个参数
   // for(const auto &value : values){
-  for( int i = 0; i< values.size(); i++){
+  for( int i = 0; i< match_num_; i++){
     // int length = index_handler_.file_header_.attr_length[i]+sizeof(RID);
     int length = index_handler_.file_header_.attr_length[i];
     char *value_copy = (char *)malloc(length);
@@ -2392,9 +2393,10 @@ RC BplusTreeScanner::open_multi_index(std::vector<CompOp> comp_ops, std::vector<
     }
     memcpy(value_copy, values[i], length);  
     values_.push_back(value_copy);
+    comp_ops_.push_back(comp_ops[i]);
   }
   // 在find_first_index_satisfied根据comp_op是否为=来确定需要比较多少attr_num
-  rc = index_handler_.find_first_index_satisfied_multi(comp_ops, values, &next_page_num_, &index_in_node_);
+  rc = index_handler_.find_first_index_satisfied_multi(comp_ops_, values_, &next_page_num_, &index_in_node_);
   if (rc != SUCCESS)
   {
     if (rc == RC::RECORD_EOF)
