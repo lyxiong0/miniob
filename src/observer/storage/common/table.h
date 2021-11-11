@@ -127,6 +127,7 @@ private:
   RC make_record(int value_num, const Value *values, char *&record_out);
 
 private:
+  void find_index_for_update(std::vector<Index *> &index_cover, const char *attr_name) const;
   Index *find_index(const char *index_name) const;
   RC is_legal(const Value &value, const FieldMeta *field);
 
