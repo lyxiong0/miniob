@@ -338,20 +338,21 @@ int CompareKeys(const char *pdata, const char *pkey, AttrType attr_type[], int a
   return 0;
 }
 
-int CmpKey(AttrType attr_type[], int attr_length[], const char *pdata, const char *pkey, int cmp_attr_num)
+int CmpKey(AttrType attr_type[], int attr_length[], const char *pdata, const char *pkey, int cmp_attr_num, int total_attr_length)
 {
   int result = CompareKeys(pdata, pkey, attr_type, attr_length, cmp_attr_num);
   if (0 != result)
   {
     return result;
   }
-
+  /*
   int offset=0;
-  for(int i=0;i<cmp_attr_num;i++){
+  // for(int i=0;i<cmp_attr_num;i++){
+  for(int i=0;i<cmp_attr_num;i++){    
     offset += attr_length[i];
-  }
-  RID *rid1 = (RID *)(pdata + offset);
-  RID *rid2 = (RID *)(pkey + offset);
+  }*/
+  RID *rid1 = (RID *)(pdata + total_attr_length);
+  RID *rid2 = (RID *)(pkey + total_attr_length);
   return CmpRid(rid1, rid2);
 }
 
@@ -380,7 +381,7 @@ RC BplusTreeHandler::find_leaf(const char *pkey, PageNum *leaf_page, int cmp_att
   {
     for (i = 0; i < node->key_num; i++)
     {
-      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + i * file_header_.key_length, cmp_attr_num);
+      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + i * file_header_.key_length, cmp_attr_num, file_header_.total_attr_length);
       if (tmp < 0)
         break;
     }
@@ -436,7 +437,7 @@ RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const
   }
   node = get_index_node(pdata);
   for(insert_pos = 0; insert_pos < node->key_num; insert_pos++){
-      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length, file_header_.field_num);
+      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length, file_header_.field_num, file_header_.total_attr_length);
       if (tmp == 0) {
         // 当key和rid完全相同时才会返回这个错误，unique——key可以借用这里进行判断
         return RC::RECORD_DUPLICATE_KEY;
@@ -578,7 +579,7 @@ RC BplusTreeHandler::insert_into_leaf_after_split(PageNum leaf_page, const char 
   for (insert_pos = 0; insert_pos < leaf->key_num; insert_pos++)
   {
     // int CmpKey(AttrType attr_type[], int attr_length[], const char *pdata, const char *pkey, int attr_num)
-    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, leaf->keys + insert_pos * file_header_.key_length, file_header_.field_num);
+    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, leaf->keys + insert_pos * file_header_.key_length, file_header_.field_num, file_header_.total_attr_length);
     if (tmp < 0)
       break;
   }
@@ -1079,6 +1080,7 @@ int BplusTreeHandler::get_key_total_length() const
 }
 RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
 {
+  LOG_INFO("调用bplustree handler中的insert_entry");
   RC rc;
   PageNum leaf_page;
   BPPageHandle page_handle;
@@ -1207,7 +1209,7 @@ RC BplusTreeHandler::get_entry(const char *pkey, RID *rid)
   leaf = get_index_node(pdata);
   for (i = 0; i < leaf->key_num; i++)
   {
-    if (CmpKey(file_header_.attr_type, file_header_.attr_length, key, leaf->keys + (i * file_header_.key_length),file_header_.field_num) == 0)
+    if (CmpKey(file_header_.attr_type, file_header_.attr_length, key, leaf->keys + (i * file_header_.key_length),file_header_.field_num, file_header_.total_attr_length) == 0)
     {
       memcpy(rid, leaf->rids + i, sizeof(RID));
       free(key);
@@ -1242,7 +1244,7 @@ RC BplusTreeHandler::delete_entry_from_node(PageNum node_page, const char *pkey)
 
   for (delete_index = 0; delete_index < node->key_num; delete_index++)
   {
-    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + delete_index * file_header_.key_length,file_header_.field_num);
+    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + delete_index * file_header_.key_length,file_header_.field_num,file_header_.total_attr_length);
     if (tmp == 0)
       break;
   }
@@ -2220,7 +2222,7 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
       }
       memcpy(key_ + file_header_.total_attr_length, &rid, sizeof(RID));
 
-      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, node->keys + i * file_header_.key_length, key_, cmp_size);
+      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, node->keys + i * file_header_.key_length, key_, cmp_size, file_header_.total_attr_length );
       
       if (compop == EQUAL_TO || compop == GREAT_EQUAL)
       {

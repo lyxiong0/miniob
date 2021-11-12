@@ -115,7 +115,7 @@ int BplusTreeIndex::Get_Field_Num() const
 { 
   return field_num_;
 }
-int BplusTreeIndex::Get_Total_length() const
+int BplusTreeIndex::Get_Key_length() const
 {
   return index_handler_.get_key_total_length();
 }
@@ -124,7 +124,8 @@ RC BplusTreeIndex::insert_entry(const char *record, const RID *rid)
   // 这里的field_meta_为index类中的内容
   // 根据offset确定初始位置 然后根据attr_length确定取内容的长度 这里存在顺序的问题
   // 在这里即可构造Key
-  int total_length = Get_Total_length();
+  LOG_INFO("调用bplustree index中的insert_entry");
+  int total_length = Get_Key_length();
   char *key = (char *)malloc(total_length);
   int acc_len=0;
   for(int i=0;i<field_num_;i++){

@@ -980,6 +980,7 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
 {
   // 这里的参数record是通过scan得到的满足filter条件的record，是原本数据库中的record
   // 1. 获得字段数据
+  LOG_INFO("进入table:update_record");
   int i = table_meta_.find_field_index_by_name(attribute_name);
   if (i == -1)
   {
@@ -1017,30 +1018,30 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
   memcpy(data, record->data, table_meta_.record_size());
   memcpy(data + field_meta->offset(), value->data, field_meta->len());
 
-  std::vector<Index *> index_cover;
-  //Index *index = find_index(attribute_name);
-  find_index_for_update(index_cover,attribute_name);
+  // std::vector<Index *> index_cover;
+  // Index *index = find_index(attribute_name);
+  // find_index_for_update(index_cover,attribute_name);
   // 插入new_record的index  删除record的index
-  for( const auto & index : index_cover){
-    // rc = insert_entry_of_indexes(record->data, record->rid);
-    rc = index->insert_entry(data, &record->rid);
-    if (rc != RC::SUCCESS)
-    {
-      free(data);
-      LOG_ERROR("insert_entry_of_indexes fail");
-      return rc;
-    }
-    // 只有data和rid完全一致才会执行删除 因为record本来就是原来里面原始的,索引在这里会被删除掉
-    // RC rc = delete_entry_of_indexes(record->data, record->rid, false); // 重复代码 refer to commit_delete
-    rc = index->delete_entry(record->data, &record->rid);
-    if (rc != RC::SUCCESS)
-    {
-      LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
-                record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
-      free(data);
-      return rc;
-    }
+  // for( const auto & index : index_cover){
+  rc = insert_entry_of_indexes(data, record->rid);
+    //rc = index->insert_entry(data, &record->rid);
+  if (rc != RC::SUCCESS)
+  {
+    free(data);
+    LOG_ERROR("insert_entry_of_indexes fail");
+    return rc;
   }
+  // 只有data和rid完全一致才会执行删除 因为record本来就是原来里面原始的,索引在这里会被删除掉
+  rc = delete_entry_of_indexes(record->data, record->rid, false); // 重复代码 refer to commit_delete
+  //rc = index->delete_entry(record->data, &record->rid);
+  if (rc != RC::SUCCESS)
+  {
+    LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
+               record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
+    free(data);
+    return rc;
+  }
+  //}
   // 更新null状态
   auto last_field = table_meta_.field(table_meta_.field_num() - 1);
   int null_field_index = last_field->offset() + last_field->len();
@@ -1222,7 +1223,6 @@ RC Table::insert_entry_of_indexes(const char *record, const RID &rid)
   RC rc = RC::SUCCESS;
   for (Index *index : indexes_)
   {
-    // 这里record就是Key,*rid就是value   bplustree的kv结构
     rc = index->insert_entry(record, &rid);
     if (rc != RC::SUCCESS)
     {
