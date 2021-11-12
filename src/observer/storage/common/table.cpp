@@ -1010,11 +1010,6 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
   memcpy(data, record->data, table_meta_.record_size());
   memcpy(data + field_meta->offset(), value->data, field_meta->len());
 
-  // std::vector<Index *> index_cover;
-  // Index *index = find_index(attribute_name);
-  // find_index_for_update(index_cover,attribute_name);
-  // 插入new_record的index  删除record的index
-  // for( const auto & index : index_cover){
   rc = insert_entry_of_indexes(data, record->rid);
     //rc = index->insert_entry(data, &record->rid);
   if (rc != RC::SUCCESS)

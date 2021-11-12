@@ -439,8 +439,9 @@ RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const
   for(insert_pos = 0; insert_pos < node->key_num; insert_pos++){
       tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length, file_header_.field_num, file_header_.total_attr_length);
       if (tmp == 0) {
-        // 当key和rid完全相同时才会返回这个错误，unique——key可以借用这里进行判断
-        return RC::RECORD_DUPLICATE_KEY;
+        // 当key和rid完全相同时才会返回这个错误，就表示没有必要插入，因为是同一个key与同一个rid，表示的相同的数据
+        // return RC::RECORD_DUPLICATE_KEY; 直接当插入成功了
+        return RC::SUCCESS;
       }
       if(tmp < 0)
         break;
