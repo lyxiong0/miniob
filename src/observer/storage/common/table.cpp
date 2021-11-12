@@ -1009,10 +1009,11 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
   memcpy(data, record->data, table_meta_.record_size());
   memcpy(data + field_meta->offset(), value->data, field_meta->len());
 
-  Index *index = find_index(attribute_name);
+  std::vector<Index *> index_cover;
+  //Index *index = find_index(attribute_name);
+  find_index_for_update(index_cover,attribute_name);
   // 插入new_record的index  删除record的index
-  if (index != nullptr)
-  {
+  for( const auto & index : index_cover){
     // rc = insert_entry_of_indexes(record->data, record->rid);
     rc = index->insert_entry(data, &record->rid);
     if (rc != RC::SUCCESS)
@@ -1239,7 +1240,20 @@ RC Table::delete_entry_of_indexes(const char *record, const RID &rid, bool error
   }
   return rc;
 }
-
+void Table::find_index_for_update(std::vector<Index *> &index_cover,const char *attr_name) const{
+  for (Index *index : indexes_)
+  {
+    auto fields = index->index_meta().fields();
+    for(const auto &field : fields){
+      int tmp =strcmp(field.c_str(), attr_name);  
+      if (0 == tmp)
+      {
+        index_cover.push_back(index);
+        break;
+      }
+    }
+  }
+}
 Index *Table::find_index(const char *index_name) const
 {
   // 实际上index_name为attribute_name,传进来的就是attribute_name
@@ -1302,7 +1316,7 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
   }
 
   //const IndexMeta *index_meta = find_multi_index_by_Deaultfields(field_cond_descs);
-  int match_num;
+  int match_num = 0;
   const IndexMeta *index_meta = table_meta_.find_multi_index_by_fields(field_names,filter_num,match_num);
   if (nullptr == index_meta)
   {
@@ -1366,21 +1380,23 @@ IndexScanner *Table::find_index_for_scan(const ConditionFilter *filter)
   {
     return nullptr;
   }
-
+  IndexScanner * index_scanner=nullptr;
   // remove dynamic_cast
   const DefaultConditionFilter *default_condition_filter = dynamic_cast<const DefaultConditionFilter *>(filter);
   if (default_condition_filter != nullptr)
   {
-    return find_single_index_for_scan(*default_condition_filter);
+    index_scanner =  find_single_index_for_scan(*default_condition_filter);
   }
-
+  if (index_scanner != nullptr){
+    return index_scanner;
+  }
   const CompositeConditionFilter *composite_condition_filter = dynamic_cast<const CompositeConditionFilter *>(filter);
   
   if (composite_condition_filter != nullptr)
   {
-    return find_multi_index_for_scan(*composite_condition_filter);
+    index_scanner =  find_multi_index_for_scan(*composite_condition_filter);
   }
-  return nullptr;
+  return index_scanner;
 }
 
 RC Table::sync()

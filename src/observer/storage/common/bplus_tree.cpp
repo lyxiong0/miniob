@@ -302,7 +302,7 @@ int CompareKey(const char *pdata, const char *pkey, AttrType attr_type, int attr
   break;
   default:
   {
-    LOG_PANIC("Unknown attr type: %d", attr_type);
+    LOG_PANIC(" CompareKey Unknown attr type: %d", attr_type);
   }
   }
   return -2; // This means error happens
@@ -2329,8 +2329,9 @@ RC BplusTreeHandler::get_first_leaf_page(PageNum *leaf_page)
   return SUCCESS;
 }
 
-BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &index_handler,int match_num) : index_handler_(index_handler),match_num_(match_num)
+BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &index_handler,int match_num) : index_handler_(index_handler)
 {
+  match_num_ = match_num;
 }
 // 在bplus_tree_index.cpp的create_scanner函数中进行调用
 RC BplusTreeScanner::open_single_index(CompOp comp_op, const char *value, int null_index)
@@ -2378,10 +2379,11 @@ RC BplusTreeScanner::open_multi_index(std::vector<CompOp> comp_ops, std::vector<
   {
     return RC::RECORD_OPENNED;
   }
-  comp_ops_ = comp_ops;
-  condition_num = values.size();
+  condition_num = values.size();  //没什么用这个参数
   // for(const auto &value : values){
-  for( int i = 0; i< values.size(); i++){
+  values_.clear();
+  comp_ops_.clear();
+  for( int i = 0; i< match_num_; i++){
     // int length = index_handler_.file_header_.attr_length[i]+sizeof(RID);
     int length = index_handler_.file_header_.attr_length[i];
     char *value_copy = (char *)malloc(length);
@@ -2392,9 +2394,10 @@ RC BplusTreeScanner::open_multi_index(std::vector<CompOp> comp_ops, std::vector<
     }
     memcpy(value_copy, values[i], length);  
     values_.push_back(value_copy);
+    comp_ops_.push_back(comp_ops[i]);
   }
   // 在find_first_index_satisfied根据comp_op是否为=来确定需要比较多少attr_num
-  rc = index_handler_.find_first_index_satisfied_multi(comp_ops, values, &next_page_num_, &index_in_node_);
+  rc = index_handler_.find_first_index_satisfied_multi(comp_ops_, values_, &next_page_num_, &index_in_node_);
   if (rc != SUCCESS)
   {
     if (rc == RC::RECORD_EOF)
@@ -2598,7 +2601,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
     s2 = values_[idx];
     break;
   default:
-    LOG_PANIC("Unknown attr type: %d", attr_type);
+    LOG_PANIC(" satisfy_single_attr_condition Unknown attr type1: %d", attr_type);
   }
 
   bool flag = false;
@@ -2622,7 +2625,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) == 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type2: %d", attr_type);
     }
     break;
   case LESS_THAN:
@@ -2641,7 +2644,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) < 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type3: %d", attr_type);
     }
     break;
   case GREAT_THAN:
@@ -2660,7 +2663,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) > 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type4: %d", attr_type);
     }
     break;
   case LESS_EQUAL:
@@ -2679,7 +2682,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) <= 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type5: %d", attr_type);
     }
     break;
   case GREAT_EQUAL:
@@ -2698,7 +2701,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) >= 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type6: %d", attr_type);
     }
     break;
   case NOT_EQUAL:
@@ -2717,7 +2720,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) != 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type7: %d", attr_type);
     }
     break;
   case IS_NULL:
@@ -2736,11 +2739,11 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, "NULL", attr_length) == 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type8: %d", attr_type);
     }
     break;
   default:
-    LOG_PANIC("Unknown comp op: %d", comp_op_);
+    LOG_PANIC("satisfy_single_attr_condition Unknown comp op: %d", comp_op_);
   }
   return flag;
 }

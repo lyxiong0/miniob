@@ -60,6 +60,9 @@ public:
   const IndexMeta * find_multi_index_by_fields(const char *field_names[], int field_num, int &match_num) const;
   const IndexMeta * find_single_index_by_field(const char *field) const;
   const IndexMeta * index(int i) const;
+  const std::vector<IndexMeta> get_indexes() const{
+    return indexes_;
+  }
   int index_num() const;
 
   int record_size() const;
