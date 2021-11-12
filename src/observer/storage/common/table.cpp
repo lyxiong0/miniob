@@ -1014,7 +1014,7 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
   if (rc != RC::SUCCESS)
   {
     free(data);
-    LOG_ERROR("update_entry_of_indexes fail");
+    LOG_ERROR("update_entry_of_indexes fail rc=%d:%s ",rc, strrc(rc));
     return rc;
   }
   /*
@@ -1222,6 +1222,7 @@ RC Table::update_entry_of_indexes(const char *record_i, const RID &rid_i,
     rc = index->insert_entry(record_i, &rid_i);
     if (rc == RC::RECORD_DUPLICATE_KEY){
       // 已经当前索引保持原样即可, 后面也不要去删除
+      rc = RC::SUCCESS;
       continue;
     }else if (rc != RC::SUCCESS)
     {
