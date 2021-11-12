@@ -1010,6 +1010,14 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
   memcpy(data, record->data, table_meta_.record_size());
   memcpy(data + field_meta->offset(), value->data, field_meta->len());
 
+  rc = update_entry_of_indexes(data, record->rid,record->data, record->rid, false);
+  if (rc != RC::SUCCESS)
+  {
+    free(data);
+    LOG_ERROR("update_entry_of_indexes fail");
+    return rc;
+  }
+  /*
   rc = insert_entry_of_indexes(data, record->rid);
     //rc = index->insert_entry(data, &record->rid);
   if (rc != RC::SUCCESS)
@@ -1027,7 +1035,8 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
                record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
     free(data);
     return rc;
-  }
+  }*/
+
   //}
   // 更新null状态
   auto last_field = table_meta_.field(table_meta_.field_num() - 1);
@@ -1204,14 +1213,45 @@ RC Table::rollback_delete(Trx *trx, const RID &rid)
 
   return trx->rollback_delete(this, record); // update record in place
 }
-
+RC Table::update_entry_of_indexes(const char *record_i, const RID &rid_i,
+                                  const char *record_d, const RID &rid_d, bool error_on_not_exists)
+{
+  RC rc = RC::SUCCESS;
+  for (Index *index : indexes_)
+  {
+    rc = index->insert_entry(record_i, &rid_i);
+    if (rc == RC::RECORD_DUPLICATE_KEY){
+      // 已经当前索引保持原样即可, 后面也不要去删除
+      continue;
+    }else if (rc != RC::SUCCESS)
+    {
+      LOG_ERROR("Failed to insert indexes of record (rid=%d.%d). rc=%d:%s",
+                rid_i.page_num, rid_i.slot_num, rc, strrc(rc));
+      break;
+    }
+    rc = index->delete_entry(record_d, &rid_d);
+    if (rc != RC::SUCCESS)
+    {
+      if (rc != RC::RECORD_INVALID_KEY || !error_on_not_exists)
+      {
+        LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
+               rid_d.page_num, rid_d.slot_num, rc, strrc(rc));
+        break;
+      }
+    }
+  }
+  return rc;
+}
 RC Table::insert_entry_of_indexes(const char *record, const RID &rid)
 {
   RC rc = RC::SUCCESS;
   for (Index *index : indexes_)
   {
     rc = index->insert_entry(record, &rid);
-    if (rc != RC::SUCCESS)
+    if (rc == RC::RECORD_DUPLICATE_KEY){
+      // 已经当前索引保持原样即可, 后面也不要去删除
+
+    }else if (rc != RC::SUCCESS)
     {
       break;
     }
