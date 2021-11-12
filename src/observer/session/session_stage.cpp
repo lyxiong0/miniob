@@ -113,10 +113,14 @@ void SessionStage::callback_event(StageEvent *event, CallbackContext *context) {
 
   const char *response = sev->get_response();
   int len = sev->get_response_len();
+
+  // LOG_INFO("sev->get_response_len()!!!!!!!!!!!!!!!!!!!!!!: %d", len);
+
   if (len <= 0 || response == nullptr) {
     response = "No data\n";
     len = strlen(response) + 1;
   }
+
   Server::send(sev->get_client(), response, len);
 	if ('\0' != response[len - 1]) {
 		// 这里强制性的给发送一个消息终结符，如果需要发送多条消息，需要调整

@@ -201,6 +201,7 @@ RC Table::open(const char *meta_file, const char *base_dir)
 RC Table::commit_insert(Trx *trx, const RID &rid)
 {
   Record record;
+  LOG_INFO("RID: %d:%d!!!!!!!!!!!!!!!!!!!!!!!", rid.page_num, rid.slot_num);
   RC rc = record_handler_->get_record(&rid, &record);
   if (rc != RC::SUCCESS)
   {
@@ -330,12 +331,6 @@ const TableMeta &Table::table_meta() const
 
 RC Table::is_legal(const Value &value, const FieldMeta *field)
 {
-  // 比赛里暂时不要支持这种转换
-  // if (value.type == AttrType::INTS && field->type() == AttrType::FLOATS)
-  // {
-  //   // 允许int类型给float类型赋值，例如17 -> 17.00
-  //   return RC::SUCCESS;
-  // }
 
   if (value.type == AttrType::NULLS)
   {
@@ -379,6 +374,7 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
   }
 
   Value new_value;
+  // 每个record前面有sys_field
   const int normal_field_start_index = table_meta_.sys_field_num();
   // 挨个验证values里的内容是否和table_meta中的field的内容相符合
   for (int i = 0; i < value_num; i++)
@@ -395,6 +391,7 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
 
   // 复制所有字段的值
   int record_size = table_meta_.record_size();
+  LOG_INFO("record_size: %d", record_size);
   const FieldMeta *field = table_meta_.field(value_num - 1 + normal_field_start_index);
   int null_field_index = field->offset() + field->len();
   // record大小增加value_num个字节，用来存放是否null值
@@ -450,11 +447,6 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
       is_null = false;
       memcpy(record + null_field_index + i, &is_null, 1);
     }
-    // LOG_INFO("name = %s,index = %d, is null = %d", field->name(), i, is_null);
-    // 用于char 乱码问题追踪测试   如果是char则存储中只会放入4字节内容
-    // if(value.type==1){
-    //   LOG_INFO("调用make record函数，将value值 %s 放进内存 record中结果为 %s",value.data,record+field->offset());
-    // }
   }
 
   record_out = record;
