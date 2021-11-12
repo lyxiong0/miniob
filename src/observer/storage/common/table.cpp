@@ -1248,10 +1248,7 @@ RC Table::insert_entry_of_indexes(const char *record, const RID &rid)
   for (Index *index : indexes_)
   {
     rc = index->insert_entry(record, &rid);
-    if (rc == RC::RECORD_DUPLICATE_KEY){
-      // 已经当前索引保持原样即可, 后面也不要去删除
-
-    }else if (rc != RC::SUCCESS)
+    if (rc != RC::SUCCESS)
     {
       break;
     }
