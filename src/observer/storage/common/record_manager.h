@@ -78,11 +78,12 @@ public:
 
   bool is_full() const;
 
+    PageHeader    *  page_header_;
 private:
   DiskBufferPool * disk_buffer_pool_;
   int              file_id_;
   BPPageHandle     page_handle_;
-  PageHeader    *  page_header_;
+  
   char *           bitmap_;
 };
 
@@ -114,6 +115,8 @@ public:
    * @return
    */
   RC insert_record(const char *data, int record_size, RID *rid);
+
+  RC insert_record_with_text(const char *data, int record_size, RID *rid);
 
   /**
    * 获取指定文件中标识符为rid的记录内容到rec指向的记录结构中

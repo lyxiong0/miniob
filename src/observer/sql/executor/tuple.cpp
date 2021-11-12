@@ -317,6 +317,7 @@ void TupleRecordConverter::add_record(const char *record)
     int i = table_meta.find_field_index_by_name(field.field_name());
     assert(i != -1);
     const FieldMeta *field_meta = table_meta.field(i);
+    // LOG_INFO("field_meta->offset(): %d", field_meta->offset());
     // 不管什么类型都有可能插入null
     bool is_null = false;
     // -1是因为field[0]为_trx
@@ -341,16 +342,6 @@ void TupleRecordConverter::add_record(const char *record)
       {
         float value = *(float *)(record + field_meta->offset());
         tuple.add(value, false);
-        // 不考虑用int给float赋值
-        // float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));
-        // if (value > -1e-6 && value < 1e-6)
-        // {
-        //   tuple.add(value_other);
-        // }
-        // else
-        // {
-        //   tuple.add(value);
-        // }
       }
       break;
       case CHARS:
@@ -372,9 +363,12 @@ void TupleRecordConverter::add_record(const char *record)
         //const char *s = num2date(value);
         tuple.add(str, 10);
         free(str);
-
-        // const char *s = num2date(value).data();
-        // tuple.add(s, strlen(s));
+      }
+      break;
+      case TEXTS: {
+        const char *s = record + field_meta->offset();
+        const int len = 4096;
+        tuple.add(s, len, false);
       }
       break;
       default:
