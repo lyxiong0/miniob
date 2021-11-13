@@ -47,7 +47,6 @@ public:
 
 private:
   std::string       name_;
-  //int             match_num_;        // 表示多列索引中和条件match的field数量，只在这个数量里进行比较
   int             field_num_;       
   std::vector<std::string>  fields_;
 };

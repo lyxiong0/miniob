@@ -41,7 +41,11 @@ public:
   const IndexMeta &index_meta() const {
     return index_meta_;
   }
+  const std::vector<FieldMeta> &fields_meta() const {
+    return fields_meta_;
+  }
 
+  // virtual int get_key_length() const = 0;
   virtual RC insert_entry(const char *record, const RID *rid) = 0;
   virtual RC delete_entry(const char *record, const RID *rid) = 0;
   virtual int Get_Field_Num() const = 0;
@@ -57,7 +61,6 @@ protected:
   // int Get_Field_Num() const;
 protected:
   IndexMeta   index_meta_;
-  // FieldMeta   field_meta_;    /// 当前实现仅考虑一个字段的索引
   int field_num_;
   std::vector<FieldMeta>  fields_meta_;  // for multi-index
 };
