@@ -414,7 +414,7 @@ value:
 		// null不需要加双引号，当作字符串插入
 		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
 	}
-    |SSS {
+    | SSS {
         // 没有末位的"\0"
 		$1 = substr($1, 1, strlen($1)-2);
         // 长度大于4就当作tetx来处理
