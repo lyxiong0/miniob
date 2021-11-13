@@ -440,8 +440,7 @@ RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const
       tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length, file_header_.field_num, file_header_.total_attr_length);
       if (tmp == 0) {
         // 当key和rid完全相同时才会返回这个错误，就表示没有必要插入，因为是同一个key与同一个rid，表示的相同的数据
-        // return RC::RECORD_DUPLICATE_KEY; 直接当插入成功了
-        return RC::SUCCESS;
+        return RC::RECORD_DUPLICATE_KEY; // 不能直接当插入成功了 后面需要进行删除处理
       }
       if(tmp < 0)
         break;
