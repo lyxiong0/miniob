@@ -137,11 +137,6 @@ RC RecordPageHandler::init_empty_page(DiskBufferPool &buffer_pool, int file_id, 
 
 RC RecordPageHandler::deinit()
 {
-  // if (page_header_ != nullptr) {
-  //   disk_buffer_pool_->unpin_page(&page_handle_);
-  //   disk_buffer_pool_->force_page(file_id_, page_handle_.frame->page.page_num);
-  //   page_header_ = nullptr;
-  // }
   if (disk_buffer_pool_ != nullptr)
   {
     RC rc = disk_buffer_pool_->unpin_page(&page_handle_);
@@ -249,6 +244,7 @@ RC RecordPageHandler::delete_record(const RID *rid)
   {
     bitmap.clear_bit(rid->slot_num);
     page_header_->record_num--;
+    page_header_->has_next = 0;
     ret = disk_buffer_pool_->mark_dirty(&page_handle_);
     if (ret != RC::SUCCESS)
     {
@@ -595,7 +591,45 @@ RC RecordFileHandler::delete_record(const RID *rid)
               rid->page_num, file_id_);
     return ret;
   }
+
+  if (page_handler.page_header_->has_next == 1) {
+      return delete_record_with_text(rid);
+  }
   return page_handler.delete_record(rid);
+}
+
+RC RecordFileHandler::delete_record_with_text(const RID *rid)
+{
+  RC ret = RC::SUCCESS;
+  RecordPageHandler page_handler;
+  if ((ret != page_handler.init(*disk_buffer_pool_, file_id_, rid->page_num)) != RC::SUCCESS)
+  {
+    LOG_ERROR("Failed to init record page handler.page number=%d, file_id:%d",
+              rid->page_num, file_id_);
+    return ret;
+  }
+  
+  assert(page_handler.page_header_->has_next == 1);
+
+  ret = page_handler.delete_record(rid);
+  if (ret != RC::SUCCESS) {
+      LOG_ERROR("Delete first page failed!");
+      return ret;
+  }
+  // 删除第二页
+  PageNum next_page_num = rid->page_num + 1;
+  // 切换page_handler
+  page_handler.deinit();
+  if ((ret != page_handler.init(*disk_buffer_pool_, file_id_, next_page_num)) != RC::SUCCESS)
+  {
+    LOG_ERROR("Failed to init record page handler.page number=%d, file_id:%d",
+              next_page_num, file_id_);
+    return ret;
+  }
+  RID tmp_rid;
+  tmp_rid.page_num = next_page_num;
+  tmp_rid.slot_num = 0;
+  return page_handler.delete_record(&tmp_rid);
 }
 
 RC RecordFileHandler::get_record(const RID *rid, Record *rec)
@@ -651,16 +685,16 @@ RC RecordFileScanner::close_scan()
   return RC::SUCCESS;
 }
 
-RC RecordFileScanner::get_first_record(Record *rec)
+RC RecordFileScanner::get_first_record(Record *rec, bool& has_text)
 {
   rec->rid.page_num = 1; // from 1 参考DiskBufferPool
   rec->rid.slot_num = -1;
   // rec->valid = false;
-  return get_next_record(rec);
+  return get_next_record(rec, has_text);
 }
 
 // rec同时作为入参和出参，入参时是上一条记录，出参是下一条记录
-RC RecordFileScanner::get_next_record(Record *rec)
+RC RecordFileScanner::get_next_record(Record *rec, bool& has_text)
 {
   if (nullptr == disk_buffer_pool_)
   {
@@ -682,6 +716,9 @@ RC RecordFileScanner::get_next_record(Record *rec)
   {
     return RC::RECORD_EOF;
   }
+
+  bool text = false;
+  Record final_record;
 
   while (current_record.rid.page_num < page_count)
   {
@@ -707,9 +744,8 @@ RC RecordFileScanner::get_next_record(Record *rec)
 
     ret = record_page_handler_.get_next_record(&current_record);
 
-    if (RC::SUCCESS == ret) {
-        // 有下一页，把两页的数据拼起来
-      if (record_page_handler_.page_header_->has_next == 1) {
+    // TEXT
+        if (record_page_handler_.page_header_->has_next == 1) {
           // LOG_INFO("has next!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
           // 保存第一页的数据
           const char *first_data = current_record.data;
@@ -727,6 +763,7 @@ RC RecordFileScanner::get_next_record(Record *rec)
               LOG_ERROR("Failed to init record page handler. page num=%d", first_rid.page_num + 1);
               return ret;
           }
+
           // 取下一页的数据
           ret = record_page_handler_.get_next_record(&current_record);
 
@@ -745,21 +782,31 @@ RC RecordFileScanner::get_next_record(Record *rec)
           memcpy(final_data, first_data, first_page_real_size);
           memcpy(final_data + first_page_real_size, second_data, second_page_real_size);
 
-          Record final_record;
+          
           final_record.data = final_data;
           // 这里的rid要置为第二页的RID，因为后面的数据需要在此页的基础上找
           final_record.rid = second_rid;
+          
+          has_text = true;
 
           if (ret == RC::SUCCESS) {
-              *rec = final_record;
+              if (condition_filter_ == nullptr || condition_filter_->filter(final_record)) {
+                text = true;
+                break;
+              }
           } else if (RC::RECORD_EOF == ret) {
                 current_record.rid.page_num++;
                 current_record.rid.slot_num = -1;
+          } else {
+              break; // ERROR
           }
-          return ret;
-      }
-      if (condition_filter_ == nullptr || condition_filter_->filter(current_record))
-      {
+          
+          // return ret;
+    }
+    ////////////////
+  else {
+    if (RC::SUCCESS == ret) {
+      if (condition_filter_ == nullptr || condition_filter_->filter(current_record)) {
         break; // got one
       }
     } else if (RC::RECORD_EOF == ret)
@@ -769,11 +816,16 @@ RC RecordFileScanner::get_next_record(Record *rec)
     } else {
       break; // ERROR
     }
+  } // while 
   }
 
   if (RC::SUCCESS == ret)
   {
-    *rec = current_record;
+      if (text == true) {
+          *rec = final_record;
+      } else {
+        *rec = current_record;
+      }
   }
 
   return ret;

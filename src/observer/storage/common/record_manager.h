@@ -107,7 +107,7 @@ public:
    * @return
    */
   RC delete_record(const RID *rid);
-
+  RC delete_record_with_text(const RID *rid);
   /**
    * 插入一个新的记录到指定文件中，pData为指向新纪录内容的指针，返回该记录的标识符rid
    * @param data
@@ -171,7 +171,7 @@ public:
    */
   RC close_scan();
 
-  RC get_first_record(Record *rec);
+  RC get_first_record(Record *rec, bool& has_text);
 
   /**
    * 获取下一个符合扫描条件的记录。
@@ -180,7 +180,7 @@ public:
    * @param rec 上一条记录。如果为NULL，就返回第一条记录
    * @return
    */
-  RC get_next_record(Record *rec);
+  RC get_next_record(Record *rec, bool& has_text);
 
 private:
   DiskBufferPool  *   disk_buffer_pool_;

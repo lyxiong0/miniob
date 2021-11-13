@@ -552,20 +552,35 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
 
   int record_count = 0;
   Record record;
-  rc = scanner.get_first_record(&record);
-  for (; RC::SUCCESS == rc && record_count < limit; rc = scanner.get_next_record(&record))
+
+  bool has_next = false;
+  rc = scanner.get_first_record(&record, has_next);
+  
+  for (; RC::SUCCESS == rc && record_count < limit; rc = scanner.get_next_record(&record, has_next))
   {
-    if (trx == nullptr || trx->is_visible(this, &record))
-    {
-      // 将record添加进tupleset
-      rc = record_reader(&record, context);
-      if (rc != RC::SUCCESS)
-      {
-        break;
-      }
-      record_count++;
+      // 如果是TEXT，这里拿到的record的RID是第二页的
+    if (has_next == true) {
+        Record tmp;
+        tmp.data = record.data;
+        tmp.rid = record.rid;
+        tmp.rid.page_num--;
+        if (trx == nullptr || trx->is_visible(this, &tmp)) {
+            rc = record_reader(&tmp, context);
+            record_count++;
+            has_next = false;
+        }
+    } else {
+        if (trx == nullptr || trx->is_visible(this, &record))
+        {
+            rc = record_reader(&record, context);
+            if (rc != RC::SUCCESS)
+            {
+                break;
+            }
+            record_count++;
+        }
     }
-  }
+  } // for
 
   if (RC::RECORD_EOF == rc)
   {

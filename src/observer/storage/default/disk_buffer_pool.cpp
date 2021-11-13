@@ -435,8 +435,10 @@ RC DiskBufferPool::dispose_page(int file_id, PageNum page_num)
     }
 
     if (bp_manager_.frame[i].page.page_num == page_num) {
-      if (bp_manager_.frame[i].pin_count != 0)
+        LOG_INFO("bp_manager_.frame[%d].pin_count: %d!!!!!!!!!!!!!!!!!!!", i, bp_manager_.frame[i].pin_count);
+      if (bp_manager_.frame[i].pin_count != 0){
         return RC::BUFFERPOOL_PAGE_PINNED;
+      }
       bp_manager_.allocated[i] = false;
     }
   }
@@ -641,11 +643,13 @@ RC DiskBufferPool::get_page_count(int file_id, int *page_count)
 
 RC DiskBufferPool::check_page_num(PageNum page_num, BPFileHandle *file_handle)
 {
+
   if (page_num >= file_handle->file_sub_header->page_count) {
     LOG_ERROR("Invalid pageNum:%d, file's name:%s", page_num, file_handle->file_name);
     return RC::BUFFERPOOL_INVALID_PAGE_NUM;
   }
   if ((file_handle->bitmap[page_num / 8] & (1 << (page_num % 8))) == 0) {
+      LOG_INFO("file_handle->bitmap[page_num / 8] & (1 << (page_num % 8))) == 0!!!!!!!!!!!!");
     LOG_ERROR("Invalid pageNum:%d, file's name:%s", page_num, file_handle->file_name);
     return RC::BUFFERPOOL_INVALID_PAGE_NUM;
   }
