@@ -26,7 +26,7 @@ typedef struct ParserContext {
   Condition conditions[MAX_NUM];
   char id[MAX_NUM];
   const char *rels[MAX_NUM];
-  const char *exps[MAX_NUM];
+  const char *exps[50];
   RelAttr rel_attrs[MAX_NUM];
 } ParserContext;
 
@@ -528,6 +528,13 @@ expression:
 		CONTEXT->exp_length = 0; // 清空
 		CONTEXT->value_length = 0;
 	}
+	| minus exp exp_list {
+		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
+		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
+		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
+		CONTEXT->exp_length = 0; // 清空
+		CONTEXT->value_length = 0;
+	}
 	;
 
 exp_list:
@@ -565,6 +572,12 @@ rbrace_list:
 	}
 	;
 
+minus:
+	'-' {
+		CONTEXT->exps[CONTEXT->exp_length++] = "-";
+	}
+	;
+
 op:
 	STAR {
 		// *
@@ -574,10 +587,7 @@ op:
 		// +
 		CONTEXT->exps[CONTEXT->exp_length++] = "+";
 	}
-	| '-' {
-		// -
-		CONTEXT->exps[CONTEXT->exp_length++] = "-";
-	}
+	| minus
 	| DIV {
 		// 除法
 		CONTEXT->exps[CONTEXT->exp_length++] = "/";

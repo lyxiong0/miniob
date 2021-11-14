@@ -471,11 +471,13 @@ RC check_table_name(const Selects &selects, const char *db)
           break;
         }
       }
+
       // t1.*
       if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
       {
         table_name_in_from = true;
       }
+
       if (table_name_in_from == false)
       {
         LOG_WARN("Table [%s] not in from", attr.relation_name);
@@ -486,7 +488,7 @@ RC check_table_name(const Selects &selects, const char *db)
     {
       if ((attr.relation_name != nullptr) && (0 != strcmp(attr.relation_name, selects.relations[0])))
       {
-        LOG_WARN("Table [%s] not in from", attr.relation_name);
+        LOG_WARN("Table [%s.%s] not in from", attr.relation_name, attr.attribute_name);
         return RC::SCHEMA_TABLE_NOT_EXIST;
       }
     }
@@ -605,6 +607,8 @@ RC check_table_name(const Selects &selects, const char *db)
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
 RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_sub_select, char *main_table)
 {
+
+  LOG_INFO("start do_select");
   RC rc = RC::SUCCESS;
   Session *session = session_event->get_client()->session;
   Trx *trx = session->current_trx();
@@ -1149,15 +1153,13 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   for (int i = selects.condition_num - 1; i >= 0; --i)
   {
     const Condition &condition = selects.conditions[i];
+    TupleSet left_result;
+    TupleSet right_result;
+    int n = result.size();
 
     if (condition.left_is_attr == 3)
     {
-      // 左表达式，右value
-      AttrType right_type = condition.right_value.type;
-      void *right_data = condition.right_value.data;
-      TupleSet left_result;
-
-      if (right_type == NULLS || right_type == CHARS || calculate(result, left_result, condition.expression, 0, condition.exp_num) != RC::SUCCESS)
+      if (calculate(result, left_result, condition.expression, 0, condition.exp_num) != RC::SUCCESS)
       {
         for (SelectExeNode *&tmp_node : select_nodes)
         {
@@ -1174,31 +1176,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
       LOG_INFO("where左表达式计算结果：");
       left_result.print(std::cout, true);
-
-      int n = result.size();
-      TupleSet new_result;
-      new_result.set_schema(result.get_schema());
-
-      for (int j = 0; j < n; ++j)
-      {
-        const std::shared_ptr<TupleValue> &left_value = left_result.get(j).get_pointer(0);
-        if (cmp_value(FLOATS, right_type, nullptr, left_value, condition.comp, left_value, right_data))
-        {
-          result.copy_ith_to(new_result, j);
-        }
-      }
-
-      result = std::move(new_result);
     }
 
     if (condition.right_is_attr == 3)
     {
-      // 左value，右表达式
-      AttrType left_type = condition.left_value.type;
-      void *left_data = condition.left_value.data;
-      TupleSet right_result;
-
-      if (left_type == NULLS || left_type == CHARS || calculate(result, right_result, condition.right_expression, 0, condition.right_exp_num) != RC::SUCCESS)
+      if (calculate(result, right_result, condition.right_expression, 0, condition.right_exp_num) != RC::SUCCESS)
       {
         for (SelectExeNode *&tmp_node : select_nodes)
         {
@@ -1215,11 +1197,68 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
       LOG_INFO("where右表达式计算结果：");
       right_result.print(std::cout, true);
+    }
 
-      int n = result.size();
+    if (condition.left_is_attr == 3 && condition.right_is_attr == 0)
+    {
+      // 左表达式右值
+      AttrType right_type = condition.right_value.type;
+      void *right_data = condition.right_value.data;
+
+      if (right_type == NULLS || right_type == CHARS)
+      {
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        if (!is_sub_select)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
+        return RC::GENERIC_ERROR;
+      }
+
       TupleSet new_result;
       new_result.set_schema(result.get_schema());
-      for (int j = 0; j < n; ++j)
+
+      for (int j = 0; j < left_result.size(); ++j)
+      {
+        const std::shared_ptr<TupleValue> &left_value = left_result.get(j).get_pointer(0);
+        if (cmp_value(FLOATS, right_type, nullptr, left_value, condition.comp, left_value, right_data))
+        {
+          result.copy_ith_to(new_result, j);
+        }
+      }
+
+      result = std::move(new_result);
+    }
+
+    if (condition.left_is_attr == 0 && condition.right_is_attr == 3)
+    {
+      // 右表达式左值
+      AttrType left_type = condition.left_value.type;
+      void *left_data = condition.left_value.data;
+
+      if (left_type == NULLS || left_type == CHARS)
+      {
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        if (!is_sub_select)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
+        return RC::GENERIC_ERROR;
+      }
+
+      TupleSet new_result;
+      new_result.set_schema(result.get_schema());
+      for (int j = 0; j < right_result.size(); ++j)
       {
         const std::shared_ptr<TupleValue> &right_value = right_result.get(j).get_pointer(0);
         if (cmp_value(left_type, FLOATS, left_data, right_value, condition.comp, right_value, nullptr))
@@ -1230,7 +1269,28 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
       result = std::move(new_result);
     }
+
+    if (condition.left_is_attr == 3 && condition.right_is_attr == 3)
+    {
+      // 左右都是表达式
+      TupleSet new_result;
+      new_result.set_schema(result.get_schema());
+      for (int j = 0; j < right_result.size(); ++j)
+      {
+        const std::shared_ptr<TupleValue> &left_value = left_result.get(j).get_pointer(0);
+        const std::shared_ptr<TupleValue> &right_value = right_result.get(j).get_pointer(0);
+        if (cmp_value(FLOATS, FLOATS, nullptr, right_value, condition.comp, left_value, nullptr))
+        {
+          result.copy_ith_to(new_result, j);
+        }
+      }
+
+      result = std::move(new_result);
+    }
   }
+
+  LOG_INFO("经过where表达式计算后");
+  result.print(std::cout, true);
 
   // Select表达式计算
   TupleSet new_result;
@@ -1309,9 +1369,12 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
       attribute_name = strdup(tmp);
       int index = -1;
-      if (relation_name == nullptr) {
+      if (relation_name == nullptr)
+      {
         index = result.get_schema().index_of_field(attribute_name);
-      } else {
+      }
+      else
+      {
         index = result.get_schema().index_of_field(relation_name, attribute_name);
       }
       new_schema.add(result.get_schema().field(index).type(), "", tmp, result.get_schema().field(index).is_nullable());
@@ -2430,6 +2493,7 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
   char sign = '+';
   char final_name[100] = "\0";
   bool add_to_stack;
+  std::vector<int> is_include(size, 1);
 
   for (int j = left; j < right; ++j)
   {
@@ -2441,11 +2505,19 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
     add_to_stack = true;
     const char *s = expression[i];
 
-    // 处理数字
-    if (s[0] >= '0' && s[0] <= '9')
+    // 处理数字，或者表达式第一个为负数
+    if ((s[0] >= '0' && s[0] <= '9') || (s[0] == '-' && i == left))
     {
-      float digit = 0;
       int j = 0;
+
+      bool is_neg = false;
+      if (s[j] == '-')
+      {
+        is_neg = true;
+        ++j;
+      }
+
+      float digit = 0;
       while (s[j] != '\0' && s[j] != '.')
       {
         digit = digit * 10 + (s[j] - '0');
@@ -2462,6 +2534,11 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
           digit += (s[j++] - '0') / div_num;
           div_num /= 10;
         }
+      }
+
+      if (is_neg)
+      {
+        digit = -digit;
       }
 
       TupleSchema pre_schema;
@@ -2506,18 +2583,21 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
         tmp[idx] = '\0';
         relation_name = strdup(tmp);
       }
-      
+
       attribute_name = strdup(tmp);
       int target_idx = -1;
-      if (relation_name == nullptr) {
+      if (relation_name == nullptr)
+      {
         target_idx = total_set.get_schema().index_of_field(attribute_name);
-      } else {
+      }
+      else
+      {
         target_idx = total_set.get_schema().index_of_field(relation_name, attribute_name);
       }
-      if (target_idx == -1) {
+      if (target_idx == -1)
+      {
         return RC::GENERIC_ERROR;
       }
-
 
       AttrType type = total_set.get_schema().field(target_idx).type();
       if (type == CHARS)
@@ -2546,8 +2626,6 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
         t.add(f);
         pre.add(std::move(t));
       }
-
-      pre.print(std::cout, true);
 
       add_to_stack = false;
     }
@@ -2630,6 +2708,9 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
       }
       case '/':
       {
+        tuple_stack.back().print(std::cout, true);
+        pre.print(std::cout, true);
+
         TupleSet tmp_set;
         tmp_set.set_schema(pre.get_schema());
 
@@ -2637,8 +2718,18 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
         {
           Tuple t;
           float f;
+          float right = std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
 
-          f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() / std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
+          if (right == 0)
+          {
+            // = 0需要把这行排除掉
+            f = -9999.9;
+            is_include[j] = 0;
+          }
+          else
+          {
+            f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() / right;
+          }
           t.add(f);
           tmp_set.add(std::move(t));
         }
@@ -2654,6 +2745,9 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
       }
 
       sign = s[0];
+      pre.clear();
+      // LOG_INFO("calculate - after sign = %c", sign);
+      // tuple_stack.back().print(std::cout, true);
     }
     ++i;
   }
@@ -2689,8 +2783,27 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
     tuple_stack.pop_back();
   }
 
+  // 过滤除数为0的项
+  pre.clear();
+  pre.set_schema(result_schema);
+
+  for (int j = 0; j < size; ++j)
+  {
+    if (is_include[j] == 0) {
+      continue;
+    }
+    Tuple t;
+    float f;
+
+    f = std::dynamic_pointer_cast<FloatValue>(result.get(j).get_pointer(0))->get_value();
+    t.add(f);
+    pre.add(std::move(t));
+  }
+
+  result = std::move(pre);
+
   result.set_schema(result_schema);
-  result.print(std::cout);
+  result.print(std::cout, true);
 
   return RC::SUCCESS;
 }
