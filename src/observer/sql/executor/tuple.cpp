@@ -44,10 +44,6 @@ Tuple &Tuple::operator=(Tuple &&other) noexcept
   return *this;
 }
 
-Tuple::~Tuple()
-{
-}
-
 // add (Value && value)
 void Tuple::add(TupleValue *value)
 {
@@ -155,7 +151,7 @@ int TupleSchema::index_of_field(const char *field_name) const
   return -1;
 }
 
-void TupleSchema::print(std::ostream &os, bool isMultiTable) const
+void TupleSchema::print(std::ostream &os, bool is_multi_table) const
 {
   if (fields_.empty())
   {
@@ -173,14 +169,14 @@ void TupleSchema::print(std::ostream &os, bool isMultiTable) const
   for (std::vector<TupleField>::const_iterator iter = fields_.begin(), end = --fields_.end();
        iter != end; ++iter)
   {
-    if (table_names.size() > 1 || isMultiTable == true)
+    if (table_names.size() > 1 || is_multi_table == true)
     {
       os << iter->table_name() << ".";
     }
     os << iter->field_name() << " | ";
   }
 
-  if (table_names.size() > 1 || isMultiTable == true)
+  if (table_names.size() > 1 || is_multi_table == true)
   {
     os << fields_.back().table_name() << ".";
   }
@@ -220,7 +216,7 @@ void TupleSet::clear()
   schema_.clear();
 }
 
-void TupleSet::print(std::ostream &os, bool isMultiTable) const
+void TupleSet::print(std::ostream &os, bool is_multi_table) const
 {
   if (schema_.fields().empty())
   {
@@ -228,7 +224,7 @@ void TupleSet::print(std::ostream &os, bool isMultiTable) const
     return;
   }
 
-  schema_.print(os, isMultiTable);
+  schema_.print(os, is_multi_table);
 
   for (const Tuple &item : tuples_)
   {
@@ -250,7 +246,7 @@ void TupleSet::set_schema(const TupleSchema &schema)
 }
 
 void TupleSet::copy_ith_to(TupleSet &lhs, int i) const {
-  // 将第i个指
+  // 将第i个值
   Tuple tmp = tuples_[i];
   lhs.add(std::move(tmp));
 }
@@ -317,6 +313,7 @@ void TupleRecordConverter::add_record(const char *record)
     int i = table_meta.find_field_index_by_name(field.field_name());
     assert(i != -1);
     const FieldMeta *field_meta = table_meta.field(i);
+    // LOG_INFO("field_meta->offset(): %d", field_meta->offset());
     // 不管什么类型都有可能插入null
     bool is_null = false;
     // -1是因为field[0]为_trx
@@ -341,16 +338,6 @@ void TupleRecordConverter::add_record(const char *record)
       {
         float value = *(float *)(record + field_meta->offset());
         tuple.add(value, false);
-        // 不考虑用int给float赋值
-        // float value_other = static_cast<float>(*(int *)(record + field_meta->offset()));
-        // if (value > -1e-6 && value < 1e-6)
-        // {
-        //   tuple.add(value_other);
-        // }
-        // else
-        // {
-        //   tuple.add(value);
-        // }
       }
       break;
       case CHARS:
@@ -370,11 +357,14 @@ void TupleRecordConverter::add_record(const char *record)
         num2date(value,str);
         // const char *s = str;
         //const char *s = num2date(value);
-        tuple.add(str, strlen(str));
+        tuple.add(str, 10);
         free(str);
-
-        // const char *s = num2date(value).data();
-        // tuple.add(s, strlen(s));
+      }
+      break;
+      case TEXTS: {
+        const char *s = record + field_meta->offset();
+        const int len = 4096;
+        tuple.add(s, len, false);
       }
       break;
       default:

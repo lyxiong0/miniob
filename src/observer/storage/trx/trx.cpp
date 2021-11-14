@@ -111,7 +111,7 @@ RC Trx::insert_record(Table *table, Record *record)
 
 RC Trx::delete_record(Table *table, Record *record)
 {
-  ("delete_record record: %d - %d", record->rid.page_num, record->rid.slot_num);
+  // ("delete_record record: %d - %d", record->rid.page_num, record->rid.slot_num);
   RC rc = RC::SUCCESS;
   start_if_not_started();
   Operation *old_oper = find_operation(table, record->rid);
@@ -129,16 +129,6 @@ RC Trx::delete_record(Table *table, Record *record)
       return RC::GENERIC_ERROR;
     }
   }
-
-  // if (old_oper != nullptr)
-  // {
-  //   if (old_oper->type() == Operation::Type::DELETE)
-  //   {
-  //     return RC::GENERIC_ERROR;
-  //   }
-  //   // 上次操作是插入或更新，删除即为撤销
-  //   delete_operation(table, record->rid);
-  // }
 
   set_record_trx_id(table, *record, trx_id_, true);
   insert_operation(table, Operation::Type::DELETE, record->rid);

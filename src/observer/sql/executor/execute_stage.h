@@ -186,12 +186,13 @@ protected:
                       common::CallbackContext *context) override;
 
   void handle_request(common::StageEvent *event);
-  RC do_select(const char *db, Query *sql, SessionEvent *session_event);
+  RC do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_sub_select = false, char *main_table = nullptr);
 
 protected:
 private:
   Stage *default_storage_stage_ = nullptr;
   Stage *mem_storage_stage_ = nullptr;
+  bool is_related = false;
 };
 
 #endif //__OBSERVER_SQL_EXECUTE_STAGE_H__

@@ -26,7 +26,7 @@ See the Mulan PSL v2 for more details. */
 #define MAX_DATA 50
 
 //属性结构体
-typedef struct
+typedef struct _RelAttr
 {
   int is_desc;                // 默认采用升序asc，=1降序
   char *relation_name;        // relation name (may be NULL) 表名
@@ -37,8 +37,8 @@ typedef struct
 typedef enum
 {
   EQUAL_TO,    //"="     0
-  LESS_EQUAL,  //"<="    1
-  NOT_EQUAL,   //"<>"    2
+  NOT_EQUAL,   //"<>"    1
+  LESS_EQUAL,  //"<="    2
   LESS_THAN,   //"<"     3
   GREAT_EQUAL, //">="    4
   GREAT_THAN,  //">"     5
@@ -57,6 +57,7 @@ typedef enum
   INTS,
   FLOATS,
   DATES,
+  TEXTS,
   NULLS
 } AttrType;
 
@@ -76,40 +77,57 @@ typedef struct _Value
   int is_null;   // 1:null, 0:not null
 } Value;
 
+// Condition conditions[MAX_NUM]需要先定义完整结构体Condition
+// 但Selects *sub_select可以只有声明
+typedef struct _Selects Selects;
+
 typedef struct _Condition
 {
-  bool is_valid;      // added for check if date value is valid
-  int left_is_attr;   // TRUE if left-hand side is an attribute
-                      // 1时，操作符左边是属性名，0时，是属性值
-  Value left_value;   // left-hand side value if left_is_attr = FALSE
-                      // left_is_attr = 0时，操作符左侧的属性值
-  RelAttr left_attr;  // left-hand side attribute
-                      // left_is_attr = 0时，操作符左侧的属性名
+  int left_is_attr;   // 1时，操作符左边是属性名，0时，是属性值
+  Value left_value;   // left_is_attr = 0时，操作符左侧的属性值
+  RelAttr left_attr;  // left_is_attr = 0时，操作符左侧的属性名
+                      
   CompOp comp;        // comparison operator
-  int right_is_attr;  // TRUE if right-hand side is an attribute
-                      // 1时，操作符右边是属性名，0时，是属性值
+
+  int right_is_attr;  // 1时，操作符右边是属性名，0时，是属性值
   RelAttr right_attr; // right-hand side attribute if right_is_attr = TRUE 右边的属性
   Value right_value;  // right-hand side value if right_is_attr = FALSE
+  Selects *sub_select; 
+  Selects *another_sub_select; // 左侧的复杂子查询
+  
+  size_t exp_num;
+  size_t right_exp_num;
+  char *expression[MAX_NUM]; // 表达式
+  char *right_expression[MAX_NUM];
 } Condition;
 
 // struct of select
 // SELECT column_name,column_name
 // FROM table_name
 // WHERE column_name operator value;
-typedef struct
+struct _Selects
 {
   
   size_t attr_num;               // Length of attrs in Select clause
   RelAttr attributes[MAX_NUM];   // attrs in Select clause
+
   size_t relation_num;           // Length of relations in For clause
   char *relations[MAX_NUM];      // relations in From clause
+
   size_t condition_num;          // Length of conditions in Where clause
   Condition conditions[MAX_NUM]; // conditions in Where clause
+
   size_t order_num;
   RelAttr order_attrs[MAX_NUM]; // order by数组
+
   size_t group_num;
   RelAttr group_attrs[MAX_NUM]; // group by 数组
-} Selects;
+
+  size_t exp_num[MAX_NUM];
+  size_t total_exp;
+  char *expression[MAX_NUM][MAX_NUM]; // 表达式
+};
+
 
 // struct of insert
 typedef struct
@@ -167,7 +185,9 @@ typedef struct
   int is_unique;           // unique =1 means unique index
   char *index_name;     // Index name
   char *relation_name;  // Relation name
-  char *attribute_name; // Attribute name
+  // char *attribute_name; // Attribute name
+  char *attribute_name[MAX_NUM];  // Attribute name   char指针数组
+  size_t attr_num;         // for multi-index 
 } CreateIndex;
 
 // struct of  drop_index
@@ -235,40 +255,51 @@ typedef struct Query
 extern "C"
 {
 #endif // __cplusplus
+  char *substr(const char *s, int n1, int n2);
+  void init_attr_or_value(RelAttr *attr, Value *value, int *is_attr, const char *s);
+  void condition_exp(Condition *condition, const char **left_exp_names, CompOp comp, const char **right_exp_names);
 
   void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *agg_function_name, int _is_desc);
+  void relation_rel_attr_init(RelAttr *relation_attr, const char *rel_attr_name, const char *agg_function_name, int _is_desc);
   void relation_attr_destroy(RelAttr *relation_attr);
 
   void value_init_integer(Value *value, int v, int is_null);
   void value_init_float(Value *value, float v, int is_null);
+  void value_init_string_with_text(Value *value, const char *v, int is_null, int len);
   void value_init_string(Value *value, const char *v, int is_null);
   void value_destroy(Value *value);
 
   void condition_init(Condition *condition, CompOp comp, int left_is_attr, RelAttr *left_attr, Value *left_value,
-                      int right_is_attr, RelAttr *right_attr, Value *right_value);
+                      int right_is_attr, RelAttr *right_attr, Value *right_value, Selects *sub_select, Selects *another_sub_select);
   void condition_destroy(Condition *condition);
+  void condition_init_expression(Condition *condition, const char **exp_names, int is_left);
 
   void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, TrueOrFalse is_nullable);
   void attr_info_destroy(AttrInfo *attr_info);
 
   void selects_init(Selects *selects, ...);
   void selects_append_attribute(Selects *selects, RelAttr *rel_attr);
+  void selects_append_attributes(Selects *selects, RelAttr *rel_attrs);
   void selects_append_relation(Selects *selects, const char *relation_name);
-  // void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
-  void selects_append_conditions(Query *sql, Condition conditions[], size_t condition_num);
+  void selects_append_relations(Selects *selects, const char **relation_names);
+  void selects_append_expressions(Selects *selects, const char **exp_names);
+  void selects_append_conditions_with_num(Selects *selects, Condition conditions[], size_t condition_num);
+  void selects_append_conditions(Selects *selects, Condition *conditions);
   void selects_append_order(Selects *selects, RelAttr *rel_attr);
-  void selects_append_group(Selects *selects, RelAttr *rel_attr);
+  void selects_append_groups(Selects *selects, RelAttr *rel_attr);
   void selects_destroy(Selects *selects);
+  void print_num(int num);
+  void print_str(const char *s);
 
   void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index);
   void inserts_destroy(Inserts *inserts);
 
   void deletes_init_relation(Deletes *deletes, const char *relation_name);
-  void deletes_set_conditions(Deletes *deletes, Condition conditions[], size_t condition_num);
+  void deletes_set_conditions(Deletes *deletes, Condition *conditions);
   void deletes_destroy(Deletes *deletes);
 
-  void updates_init(Updates *updates, const char *relation_name, const char *attribute_name, Value *value,
-                    Condition conditions[], size_t condition_num);
+  void updates_init(Updates *updates, const char *relation_name, const char *attribute_name, Value *value);
+  void updates_init_condition(Updates *updates, Condition *conditions);
   void updates_destroy(Updates *updates);
 
   void create_table_append_attribute(CreateTable *create_table, AttrInfo *attr_info);
@@ -279,7 +310,8 @@ extern "C"
   void drop_table_destroy(DropTable *drop_table);
 
   void create_index_init(
-      CreateIndex *create_index, const char *index_name, const char *relation_name, const char *attr_name, int is_unique);
+      CreateIndex *create_index, const char *index_name, const char *relation_name, int is_unique);
+  void create_index_append(CreateIndex *create_index,const char *attr_name);
   void create_index_destroy(CreateIndex *create_index);
 
   void drop_index_init(DropIndex *drop_index, const char *index_name);

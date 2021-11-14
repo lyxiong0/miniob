@@ -30,12 +30,13 @@ const char *ATTR_TYPE_NAME[] = {
     "chars",
     "ints",
     "floats",
-    "dates"};
+    "dates",
+    "texts"};
 
 const char *attr_type_to_string(AttrType type)
 {
   // std::cout<<"the type in the attr_type_to_string is "<<type<<std::endl;
-  if (type >= UNDEFINED && type <= DATES)
+  if (type >= UNDEFINED && type <= TEXTS)
   {
     return ATTR_TYPE_NAME[type];
   }
@@ -84,7 +85,6 @@ RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int at
   visible_ = visible;
   nullable_ = nullable;
 
-  LOG_INFO("Init a field with name=%s type =%d, attr_offset=%d,attr_len=%d,nullable_=%d", name, attr_type, attr_offset, attr_len, nullable_);
   return RC::SUCCESS;
 }
 

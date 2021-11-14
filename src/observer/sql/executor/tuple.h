@@ -44,7 +44,7 @@ public:
 
   Tuple(const Tuple &other);
 
-  ~Tuple();
+  ~Tuple() = default;
 
   Tuple(Tuple &&other) noexcept;
   Tuple &operator=(Tuple &&other) noexcept;
@@ -157,6 +157,17 @@ public:
   // void merge(const TupleSchema &other);
   void append(const TupleSchema &other);
 
+  void append(const TupleField &other) {
+    add(other.type(), other.table_name(), other.field_name(), other.is_nullable());
+  }
+
+  void remove(const TupleSchema &other)
+  {
+        while (!fields_.empty() && (0 == strcmp(fields_.back().table_name(), other.field(0).table_name()))) {
+            fields_.pop_back();
+        }
+  }
+
   const std::vector<TupleField> &fields() const
   {
     return fields_;
@@ -173,7 +184,7 @@ public:
     fields_.clear();
   }
 
-  void print(std::ostream &os, bool isMultiTable = false) const;
+  void print(std::ostream &os, bool is_multi_table = false) const;
 
   int index_of_field(const char *field_name) const;
 
@@ -218,14 +229,22 @@ public:
   const Tuple &get(int index) const;
   const std::vector<Tuple> &tuples() const;
 
-  void print(std::ostream &os, bool isMultiTable = false) const;
+  void print(std::ostream &os, bool is_multi_table = false) const;
 
   void swap_tuple(int i, int j)
   {
     std::swap(tuples_[i], tuples_[j]);
   }
 
+  void merge(const Tuple &lhs, int i) {
+    tuples_[i].merge(lhs);
+  }
+
   void copy_ith_to(TupleSet &lhs, int i) const;
+
+  void clear_tuples() {
+    tuples_.clear();
+  }
 
 public:
   const TupleSchema &schema() const

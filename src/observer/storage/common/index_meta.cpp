@@ -22,55 +22,86 @@ See the Mulan PSL v2 for more details. */
 
 const static Json::StaticString FIELD_NAME("name");
 const static Json::StaticString FIELD_FIELD_NAME("field_name");
-
-RC IndexMeta::init(const char *name, const FieldMeta &field) {
+const static Json::StaticString FIELD_NUM("field_num");
+RC IndexMeta::init(const char *name, const FieldMeta &field)
+{
   if (nullptr == name || common::is_blank(name)) {
     LOG_ERROR("IndexMeta::init - RC::INVALID_ARGUMENT");
     return RC::INVALID_ARGUMENT;
   }
-
   name_ = name;
-  field_ = field.name();
+  field_num_ = 1;
+  fields_.push_back(field.name());
+  return RC::SUCCESS;
+}
+RC IndexMeta::init(const char *name, const FieldMeta *fields[], int field_num)
+{
+  if (nullptr == name || common::is_blank(name)) {
+    LOG_ERROR("IndexMeta::init - RC::INVALID_ARGUMENT");
+    return RC::INVALID_ARGUMENT;
+  }
+  name_ = name;
+  field_num_= field_num;
+  for(int i=0;i<field_num;i++){
+    fields_.push_back(fields[i]->name());
+  }
   return RC::SUCCESS;
 }
 
 void IndexMeta::to_json(Json::Value &json_value) const {
   json_value[FIELD_NAME] = name_;
-  json_value[FIELD_FIELD_NAME] = field_;
+  json_value[FIELD_NUM] = field_num_;
+  Json::Value fields;
+  for(int i = 0; i < field_num_; i++){
+    Json::Value field;
+    field[std::to_string(i)] = fields_[i];
+    fields.append(field);
+  }
+  json_value[FIELD_FIELD_NAME] = std::move(fields);
 }
 
 RC IndexMeta::from_json(const TableMeta &table, const Json::Value &json_value, IndexMeta &index) {
   const Json::Value &name_value = json_value[FIELD_NAME];
-  const Json::Value &field_value = json_value[FIELD_FIELD_NAME];
+  const Json::Value &field_num_value = json_value[FIELD_NUM];
+  
   if (!name_value.isString()) {
     LOG_ERROR("Index name is not a string. json value=%s", name_value.toStyledString().c_str());
     return RC::GENERIC_ERROR;
   }
-
-  if (!field_value.isString()) {
-    LOG_ERROR("Field name of index [%s] is not a string. json value=%s",
+  const FieldMeta *fields[field_num_value.asInt64()];
+  for (int i = 0; i < field_num_value.asInt64(); i++){
+    const Json::Value &field_value = json_value[std::to_string(i)];
+    if (!field_value.isString()) {
+      LOG_ERROR("Field name of index [%s] is not a string. json value=%s",
               name_value.asCString(), field_value.toStyledString().c_str());
-    return RC::GENERIC_ERROR;
+      return RC::GENERIC_ERROR;
+    }
+    const FieldMeta *field = table.field(field_value.asCString());
+    if (nullptr == field) {
+      LOG_ERROR("Deserialize index [%s]: no such field: %s", name_value.asCString(), field_value.asCString());
+      return RC::SCHEMA_FIELD_MISSING;
+    }
+    fields[i] = field;
   }
-
-  const FieldMeta *field = table.field(field_value.asCString());
-  if (nullptr == field) {
-    LOG_ERROR("Deserialize index [%s]: no such field: %s", name_value.asCString(), field_value.asCString());
-    return RC::SCHEMA_FIELD_MISSING;
-  }
-
-  return index.init(name_value.asCString(), *field);
+  return index.init(name_value.asCString(), fields, field_num_value.asInt64());
 }
 
 const char *IndexMeta::name() const {
   return name_.c_str();
 }
 
-const char *IndexMeta::field() const {
-  return field_.c_str();
+const char *IndexMeta::field(int id) const {
+  return fields_[id].c_str();
+}
+const std::vector<std::string> IndexMeta::fields() const{
+  return fields_;
 }
 
+const int &IndexMeta::field_num() const {
+  return field_num_;
+}
+// 描述只输出第一个field
 void IndexMeta::desc(std::ostream &os) const {
   os << "index name=" << name_
-      << ", field=" << field_;
+      << ", field=" << fields_[0];
 }

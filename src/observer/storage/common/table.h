@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 #define __OBSERVER_STORAGE_COMMON_TABLE_H__
 
 #include "storage/common/table_meta.h"
+#include "storage/common/condition_filter.h"
 
 #include <cstring>
 
@@ -23,6 +24,7 @@ class DiskBufferPool;
 class RecordFileHandler;
 class ConditionFilter;
 class DefaultConditionFilter;
+class CompositeConditionFilter;
 struct Record;
 struct RID;
 class Index;
@@ -78,7 +80,9 @@ public:
 
   RC scan_record(Trx *trx, ConditionFilter *filter, int limit, void *context, void (*record_reader)(const char *data, void *context));
 
-  RC create_index(Trx *trx, const char *index_name, const char *attribute_name,int is_unique);
+  RC create_index(Trx *trx, const char *index_name, const int& attr_num, const char *attribute_name[],int is_unique);
+
+  RC create_index(Trx *trx, const char *index_name,const char *attribute_name,int is_unique);
 
   std::vector<const char *> get_index_names();
 
@@ -100,7 +104,12 @@ private:
   RC scan_record(Trx *trx, ConditionFilter *filter, int limit, void *context, RC (*record_reader)(Record *record, void *context));
   RC scan_record_by_index(Trx *trx, IndexScanner *scanner, ConditionFilter *filter, int limit, void *context, RC (*record_reader)(Record *record, void *context));
   IndexScanner *find_index_for_scan(const ConditionFilter *filter);
-  IndexScanner *find_index_for_scan(const DefaultConditionFilter &filter);
+  IndexScanner *find_single_index_for_scan(const DefaultConditionFilter &filter);
+  IndexScanner *find_multi_index_for_scan(const CompositeConditionFilter &filter);
+  // IndexScanner *find_index_multi_for_scan(std::vector<DefaultConditionFilter> &filters);
+  // default return the longest index(multi-index) if not multi-index then return single index
+  const IndexMeta *find_multi_index_by_Deaultfields(std::vector<const ConDesc *> &field_cond_descs);
+  
 
   RC insert_record(Trx *trx, Record *record);
   RC delete_record(Trx *trx, Record *record);
@@ -109,7 +118,7 @@ private:
 private:
   friend class RecordUpdater;
   friend class RecordDeleter;
-
+  RC update_entry_of_indexes(const char *record_i, const RID &rid_i,const char *record_d, const RID &rid_d, bool error_on_not_exists);
   RC insert_entry_of_indexes(const char *record, const RID &rid);
   RC delete_entry_of_indexes(const char *record, const RID &rid, bool error_on_not_exists);
 
@@ -118,6 +127,7 @@ private:
   RC make_record(int value_num, const Value *values, char *&record_out);
 
 private:
+  void find_index_for_update(std::vector<Index *> &index_cover, const char *attr_name) const;
   Index *find_index(const char *index_name) const;
   RC is_legal(const Value &value, const FieldMeta *field);
 

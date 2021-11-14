@@ -22,16 +22,21 @@ class BplusTreeIndex : public Index {
 public:
   BplusTreeIndex() = default;
   virtual ~BplusTreeIndex() noexcept;
-
+  int Get_Key_length() const;
+  // create函数重载
   RC create(const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta, int is_unique);
+  RC create(const char *file_name, const IndexMeta &index_meta, const FieldMeta *field_meta[], int field_num, int is_unique);
+  
   RC open(const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta);
+  RC open(const char *file_name, const IndexMeta &index_meta, const FieldMeta *field_meta[], int field_num);
   RC close();
 
   RC insert_entry(const char *record, const RID *rid) override;
   RC delete_entry(const char *record, const RID *rid) override;
+  int Get_Field_Num() const override;
 
-  IndexScanner *create_scanner(CompOp comp_op, const char *value, int null_field_index) override;
-
+  IndexScanner *create_multi_index_scanner(const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values,int &match_num) override;
+  IndexScanner *create_single_index_scanner(CompOp comp_op, const char *value, int null_field_index) override;
   RC sync() override;
 
 private:
