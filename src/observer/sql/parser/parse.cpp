@@ -149,7 +149,6 @@ extern "C"
       condition_init_expression(condition, right_exp_names, 0);
     }
 
-    LOG_INFO("lfet_name = %s, right_value = %d", left_attr.attribute_name, *(int *)right_value.data);
     condition_init(condition, comp, left_is_attr, &left_attr, &left_value, right_is_attr, &right_attr, &right_value, NULL, NULL);
   }
 
@@ -211,6 +210,7 @@ extern "C"
 
   void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *agg_function_name, int _is_desc)
   {
+      LOG_INFO("relation_attr_init - rel_name = %s, attr_name = %s", relation_name, attribute_name);
     if (relation_name != nullptr)
     {
       relation_attr->relation_name = strdup(relation_name);
@@ -221,7 +221,6 @@ extern "C"
     }
 
     relation_attr->attribute_name = strdup(attribute_name);
-
     if (agg_function_name != nullptr)
     {
       relation_attr->agg_function_name = strdup(agg_function_name);
@@ -617,9 +616,11 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     RelAttr *rel_attr = rel_attrs;
     int flag = rel_attr->is_desc;
 
+
     while (flag != 2)
     {
       selects->attributes[selects->attr_num++] = *rel_attr;
+      LOG_INFO("rel_name = %s, attr_name = %s", rel_attr->relation_name, rel_attr->attribute_name);
       ++rel_attr;
       flag = rel_attr->is_desc;
     }

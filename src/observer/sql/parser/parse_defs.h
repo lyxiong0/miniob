@@ -97,8 +97,8 @@ typedef struct _Condition
   
   size_t exp_num;
   size_t right_exp_num;
-  char *expression[MAX_NUM]; // 表达式
-  char *right_expression[MAX_NUM];
+  char *expression[50]; // 表达式
+  char *right_expression[50];
 } Condition;
 
 // struct of select
@@ -125,7 +125,7 @@ struct _Selects
 
   size_t exp_num[MAX_NUM];
   size_t total_exp;
-  char *expression[MAX_NUM][MAX_NUM]; // 表达式
+  char *expression[MAX_NUM][50]; // 表达式
 };
 
 
