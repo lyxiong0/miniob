@@ -149,7 +149,6 @@ extern "C"
       condition_init_expression(condition, right_exp_names, 0);
     }
 
-    LOG_INFO("lfet_name = %s, right_value = %d", left_attr.attribute_name, *(int *)right_value.data);
     condition_init(condition, comp, left_is_attr, &left_attr, &left_value, right_is_attr, &right_attr, &right_value, NULL, NULL);
   }
 
