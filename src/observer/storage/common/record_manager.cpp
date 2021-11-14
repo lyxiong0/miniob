@@ -484,7 +484,7 @@ RC RecordFileHandler::insert_record(const char *data, int record_size, RID *rid)
 RC RecordFileHandler::insert_record_with_text(const char *data, int record_size, RID *rid)
 {
   RC ret = RC::SUCCESS;
-
+  // 找到没有填满的页面
   int page_count = 0;
   if ((ret = disk_buffer_pool_->get_page_count(file_id_, &page_count)) != RC::SUCCESS)
   {
@@ -769,7 +769,7 @@ RC RecordFileScanner::get_next_record(Record *rec, bool& has_text)
 
           // 保存第二页数据
           int second_page_real_size = record_page_handler_.page_header_->record_real_size;
-          const char *second_data = current_record.data + record_page_handler_.page_header_->first_record_offset;
+          const char *second_data = current_record.data;
           RID second_rid = current_record.rid;
 
           // 拼接两页的数据
@@ -786,7 +786,7 @@ RC RecordFileScanner::get_next_record(Record *rec, bool& has_text)
           final_record.data = final_data;
           // 这里的rid要置为第二页的RID，因为后面的数据需要在此页的基础上找
           final_record.rid = second_rid;
-
+          
           has_text = true;
 
           if (ret == RC::SUCCESS) {

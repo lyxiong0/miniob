@@ -429,6 +429,8 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
         value->type = CHARS;
         value->data = strdup(v);
       }
+
+      
     }
 
     value->is_null = is_null;
