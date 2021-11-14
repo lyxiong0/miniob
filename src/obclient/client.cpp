@@ -39,6 +39,10 @@ bool is_exit_command(const char *cmd) {
          0 == strncasecmp("bye", cmd, 3);
 }
 
+bool is_file(const char *cmd) {
+  return 0 == strncasecmp("file", cmd, 4);
+}
+
 int init_unix_sock(const char *unix_sock_path) {
   int sockfd = socket(PF_UNIX, SOCK_STREAM, 0);
   if (sockfd < 0) {
@@ -164,6 +168,24 @@ int main(int argc, char *argv[]) {
 
     if (is_exit_command(send_buf)) {
       break;
+    }
+
+    if (is_file(send_buf)) {
+        printf("YES!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+        const size_t len = 8192;
+        char* tmp = new char[len];
+        memset(tmp, 0, len);
+        // FILE *fp = fopen("/data/miniob/src/obclient/input.txt", "r");
+        int fd = fileno(fopen("/data/miniob/src/obclient/input.txt", "r"));
+        printf("file fd: %d\n", fd);
+        int n = read(fd, tmp, len);
+        printf("read %d bytes data\n", n);
+        // fgets(tmp, len, fp);
+        // printf("%s\n", tmp);
+        int send_n = write(sockfd, tmp, strlen(tmp) + 1);
+        printf("send %d bytes\n", send_n);
+        delete [] tmp;
+        // break;
     }
 
     if ((send_bytes = write(sockfd, send_buf, strlen(send_buf) + 1)) == -1) {

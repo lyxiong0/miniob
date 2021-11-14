@@ -567,7 +567,7 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
         if (trx == nullptr || trx->is_visible(this, &tmp)) {
             rc = record_reader(&tmp, context);
             record_count++;
-            has_next = false;
+            // has_next = false;
         }
     } else {
         if (trx == nullptr || trx->is_visible(this, &record))
