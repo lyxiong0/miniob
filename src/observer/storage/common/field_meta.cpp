@@ -30,12 +30,13 @@ const char *ATTR_TYPE_NAME[] = {
     "chars",
     "ints",
     "floats",
-    "dates"};
+    "dates",
+    "texts"};
 
 const char *attr_type_to_string(AttrType type)
 {
   // std::cout<<"the type in the attr_type_to_string is "<<type<<std::endl;
-  if (type >= UNDEFINED && type <= DATES)
+  if (type >= UNDEFINED && type <= TEXTS)
   {
     return ATTR_TYPE_NAME[type];
   }

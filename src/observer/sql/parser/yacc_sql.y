@@ -131,6 +131,7 @@ ParserContext *get_context(yyscan_t scanner)
         INNER
         JOIN
 		IN
+		TEXT_T
         
 %union {
   struct _Attr *attr;
@@ -315,10 +316,6 @@ attr_def:
 			AttrInfo attribute;
 			attr_info_init(&attribute, CONTEXT->id, $2, 4, $3);
 			create_table_append_attribute(&CONTEXT->ssql->sstr.create_table, &attribute);
-			// CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].name=(char*)malloc(sizeof(char));
-			// strcpy(CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].name, CONTEXT->id); 
-			// CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].type=$2;  
-			// CONTEXT->ssql->sstr.create_table.attributes[CONTEXT->value_length].length=4; // default attribute length
 			CONTEXT->value_length++;
 		}
     ;
@@ -354,7 +351,9 @@ type:
 	   | DATE_T { 
 		   $$=DATES;
 		// printf("CREATE 语句语法解析 type 为 DATE_T\n");
-	}  
+	}  | TEXT_T {
+	    $$=TEXTS;
+	}
        ;
 ID_get:
 	ID 
@@ -415,9 +414,11 @@ value:
 		// null不需要加双引号，当作字符串插入
 		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
 	}
-    |SSS {
-		$1 = substr($1,1,strlen($1)-2);
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1, false);
+    | SSS {
+        // 没有末位的"\0"
+		$1 = substr($1, 1, strlen($1)-2);
+        // 长度大于4就当作tetx来处理
+		value_init_string_with_text(&CONTEXT->values[CONTEXT->value_length++], $1, false, strlen($1));
 		}
     ;
 

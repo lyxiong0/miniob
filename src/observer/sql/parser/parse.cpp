@@ -97,19 +97,7 @@ extern "C"
     }
     return false;
   }
-  /*  放弃使用regex
-bool check_date_data(const char *s)
-  {
-    //
-    std::string str = s;
-    std::regex pattern("((19[7-9][0-9]|20[0-2][0-9]|203[0-7])-(((0?[13578]|1[02])-([12][0-9]|3[01]|0?[1-9]))|((0?[469]|11)-([12][0-9]|30|0?[1-9]))|(0?2-([1][0-9]|2[0-8]|0?[1-9]))))|((2000|19(8[048]|[79][26]))-0?2-29)|(2038-((0?1-([1-2][0-9]|3[0-1]|0?[1-9]))|(0?2-(1[0-9]|2[0-8]|0?[1-9]))))");
-    if (std::regex_match(str, pattern))
-    {
-      return true;
-    }
-    return false;
-  }
-*/
+
   int date2num(const char *s)
   {
     // 这个函数写的比较丑，先用着（后期可以考虑使用strtok字符串分割函数进行改写）
@@ -215,6 +203,54 @@ bool check_date_data(const char *s)
     }
   }
 
+void value_init_string_with_text(Value *value, const char *v, int is_null, int len)
+  {
+    if (is_null)
+    {
+      value->type = NULLS;
+      value->data = strdup(v);
+    }
+    else if (check_date_format(v))
+    {
+      // LOG_INFO("成功匹配日期格式开始检查具体日期");
+      // 转换为数字
+      int t=1;
+      int date_num = check_date_data_convert(v,t);
+      if(t){
+        // LOG_INFO("通过具体日期检测，将输入值作为dates处理");
+        value->type = DATES;
+        value->data = malloc(sizeof(date_num));
+        memcpy(value->data, &date_num, sizeof(date_num));
+      }
+      else
+      {
+        value->type = CHARS;
+        value->data = strdup(v);
+      }
+    }
+    else
+    {
+      if (len > 4) {
+          LOG_INFO("LEN = %d!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", len);
+        value->type = TEXTS;
+
+        const int text_size = 4096;
+        char *tmp = new char[text_size];
+        memset(tmp, 0, text_size);
+        memcpy(tmp, v, len);
+        value->data = tmp;
+
+        // value->data = strdup(tmp);
+      } else {
+        value->type = CHARS;
+        value->data = strdup(v);
+      }
+    }
+
+    value->is_null = is_null;
+  }
+
+
   void value_init_string(Value *value, const char *v, int is_null)
   {
     if (is_null)
@@ -236,18 +272,14 @@ bool check_date_data(const char *s)
       }
       else
       {
-        //没有通过具体日期检测  因为后面插入表格的时候会有table_meta与value_type的检测，就不用再这里将解析识别为错误，
-        // 对于不通过日期检测的字符串解析为正常字符串
-        // LOG_INFO("成功匹配日期格式但没有通过具体日期检测，将输入值作为char处理");
         value->type = CHARS;
         value->data = strdup(v);
       }
     }
     else
     {
-      // LOG_INFO("没有成功匹配日期格式将输入值作为char处理");     
-      value->type = CHARS;
-      value->data = strdup(v);
+        value->type = CHARS;
+        value->data = strdup(v);
     }
 
     value->is_null = is_null;
@@ -332,8 +364,11 @@ bool check_date_data(const char *s)
   {
     attr_info->name = strdup(name);
     attr_info->type = type;
-
-    attr_info->length = length;
+    if (type == AttrType::TEXTS) {
+        attr_info->length = 4096;
+    } else {
+        attr_info->length = length;
+    }
 
     if (is_nullable == ISTRUE)
     {

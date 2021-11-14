@@ -263,7 +263,7 @@ int CompareKey(const char *pdata, const char *pkey, AttrType attr_type, int attr
   switch (attr_type)
   {
   case INTS:
-  {
+  { 
     i1 = *(int *)pdata;
     i2 = *(int *)pkey;
     if (i1 > i2)
@@ -302,7 +302,7 @@ int CompareKey(const char *pdata, const char *pkey, AttrType attr_type, int attr
   break;
   default:
   {
-    LOG_PANIC("Unknown attr type: %d", attr_type);
+    LOG_PANIC(" CompareKey Unknown attr type: %d", attr_type);
   }
   }
   return -2; // This means error happens
@@ -338,19 +338,21 @@ int CompareKeys(const char *pdata, const char *pkey, AttrType attr_type[], int a
   return 0;
 }
 
-int CmpKey(AttrType attr_type[], int attr_length[], const char *pdata, const char *pkey, int cmp_attr_num)
+int CmpKey(AttrType attr_type[], int attr_length[], const char *pdata, const char *pkey, int cmp_attr_num, int total_attr_length)
 {
   int result = CompareKeys(pdata, pkey, attr_type, attr_length, cmp_attr_num);
   if (0 != result)
   {
     return result;
   }
+  /*
   int offset=0;
-  for(int i=0;i<cmp_attr_num;i++){
+  // for(int i=0;i<cmp_attr_num;i++){
+  for(int i=0;i<cmp_attr_num;i++){    
     offset += attr_length[i];
-  }
-  RID *rid1 = (RID *)(pdata + offset);
-  RID *rid2 = (RID *)(pkey + offset);
+  }*/
+  RID *rid1 = (RID *)(pdata + total_attr_length);
+  RID *rid2 = (RID *)(pkey + total_attr_length);
   return CmpRid(rid1, rid2);
 }
 
@@ -379,7 +381,7 @@ RC BplusTreeHandler::find_leaf(const char *pkey, PageNum *leaf_page, int cmp_att
   {
     for (i = 0; i < node->key_num; i++)
     {
-      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + i * file_header_.key_length, cmp_attr_num);
+      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + i * file_header_.key_length, cmp_attr_num, file_header_.total_attr_length);
       if (tmp < 0)
         break;
     }
@@ -435,10 +437,10 @@ RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const
   }
   node = get_index_node(pdata);
   for(insert_pos = 0; insert_pos < node->key_num; insert_pos++){
-      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length, file_header_.field_num);
+      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length, file_header_.field_num, file_header_.total_attr_length);
       if (tmp == 0) {
-        // 当key和rid完全相同时才会返回这个错误，unique——key可以借用这里进行判断
-        return RC::RECORD_DUPLICATE_KEY;
+        // 当key和rid完全相同时才会返回这个错误，就表示没有必要插入，因为是同一个key与同一个rid，表示的相同的数据
+        return RC::RECORD_DUPLICATE_KEY; // 不能直接当插入成功了 后面需要进行删除处理
       }
       if(tmp < 0)
         break;
@@ -577,7 +579,7 @@ RC BplusTreeHandler::insert_into_leaf_after_split(PageNum leaf_page, const char 
   for (insert_pos = 0; insert_pos < leaf->key_num; insert_pos++)
   {
     // int CmpKey(AttrType attr_type[], int attr_length[], const char *pdata, const char *pkey, int attr_num)
-    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, leaf->keys + insert_pos * file_header_.key_length, file_header_.field_num);
+    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, leaf->keys + insert_pos * file_header_.key_length, file_header_.field_num, file_header_.total_attr_length);
     if (tmp < 0)
       break;
   }
@@ -1078,6 +1080,7 @@ int BplusTreeHandler::get_key_total_length() const
 }
 RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
 {
+  LOG_INFO("调用bplustree handler中的insert_entry");
   RC rc;
   PageNum leaf_page;
   BPPageHandle page_handle;
@@ -1099,6 +1102,7 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid)
   // key_length包含了attr_length之和加上RID的长度
   memcpy(key, pkey, file_header_.total_attr_length);
   memcpy(key + file_header_.total_attr_length, rid, sizeof(*rid));
+  // key={attr1+attr2+rid}   rid表示实际存储的位置
   rc = find_leaf(key, &leaf_page,file_header_.field_num);
   if (rc != SUCCESS)
   {
@@ -1205,7 +1209,7 @@ RC BplusTreeHandler::get_entry(const char *pkey, RID *rid)
   leaf = get_index_node(pdata);
   for (i = 0; i < leaf->key_num; i++)
   {
-    if (CmpKey(file_header_.attr_type, file_header_.attr_length, key, leaf->keys + (i * file_header_.key_length),file_header_.field_num) == 0)
+    if (CmpKey(file_header_.attr_type, file_header_.attr_length, key, leaf->keys + (i * file_header_.key_length),file_header_.field_num, file_header_.total_attr_length) == 0)
     {
       memcpy(rid, leaf->rids + i, sizeof(RID));
       free(key);
@@ -1240,7 +1244,7 @@ RC BplusTreeHandler::delete_entry_from_node(PageNum node_page, const char *pkey)
 
   for (delete_index = 0; delete_index < node->key_num; delete_index++)
   {
-    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + delete_index * file_header_.key_length,file_header_.field_num);
+    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + delete_index * file_header_.key_length,file_header_.field_num,file_header_.total_attr_length);
     if (tmp == 0)
       break;
   }
@@ -2129,9 +2133,17 @@ RC BplusTreeHandler::find_first_index_satisfied_single(CompOp compop, const char
 
 RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_ops, std::vector<const char *>key, PageNum *page_num, int *rididx)
 {
-  // comp_ops中元素形式为 = ... = x 前几个为=，最后一个不为= 比如a=x,b=y,c>=z
+  // comp_ops中元素形式为 = ... = x 前几个为=，最后一个不为= 比如a=x,b=y,c>=z CompOp = 0表示为“=”
   int cmp_size = comp_ops.size(); 
-  CompOp compop = comp_ops[cmp_size-1];
+  CompOp compop = CompOp::EQUAL_TO;
+  for(int i = 0; i < comp_ops.size(); i++){
+    if(comp_ops[i] != CompOp::EQUAL_TO){
+      compop = comp_ops[i];
+      cmp_size = i+1;
+      break;
+    }
+  }
+  //CompOp compop = comp_ops[cmp_size-1];
   BPPageHandle page_handle;
   IndexNode *node;
   PageNum leaf_page, next;
@@ -2151,8 +2163,9 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
       return SUCCESS;
     }else{
       // 因为前几个条件是=，将前几个=当做一个key来执行 a=x b=y 相当于寻找满足a=x b=y的第一个index
-      compop = comp_ops[cmp_size];
       cmp_size-=1;
+      // compop = comp_ops[cmp_size];
+      compop = EQUAL_TO;
     }  
   }
   rid.page_num = -1;
@@ -2170,8 +2183,8 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
   }
   memcpy(pkey + file_header_.total_attr_length, &rid, sizeof(RID));
 
-  rc = find_leaf(pkey, &leaf_page, cmp_size);
-  if (rc != SUCCESS)
+  rc = find_leaf(pkey, &leaf_page, cmp_size);   
+  if (rc != SUCCESS)   // 2180
   {
     free(pkey);
     return rc;
@@ -2183,11 +2196,13 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
     rc = disk_buffer_pool_->get_this_page(file_id_, next, &page_handle);
     if (rc != SUCCESS)
     {
+      LOG_DEBUG("Failed to get_this_page. rc=%d:%s", rc, strrc(rc));
       return rc;
     }
     rc = disk_buffer_pool_->get_data(&page_handle, &pdata);
     if (rc != SUCCESS)
     {
+      LOG_DEBUG("Failed to get_data. rc=%d:%s", rc, strrc(rc));
       return rc;
     }
     node = get_index_node(pdata);
@@ -2200,27 +2215,34 @@ RC BplusTreeHandler::find_first_index_satisfied_multi(std::vector<CompOp> comp_o
         LOG_ERROR("Failed to alloc memory for key. size=%d", file_header_.key_length);
         return RC::NOMEM;
       }
+      int offset = 0;
       for(int i = 0; i < key.size(); i++){
-        memcpy(key_, key[i], file_header_.attr_length[i]);
+        memcpy(key_+offset, key[i], file_header_.attr_length[i]);
+        offset += file_header_.attr_length[i];
       }
       memcpy(key_ + file_header_.total_attr_length, &rid, sizeof(RID));
 
-      tmp = CompareKeys(node->keys + i * file_header_.key_length, key_, file_header_.attr_type, file_header_.attr_length, cmp_size);
+      tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, node->keys + i * file_header_.key_length, key_, cmp_size, file_header_.total_attr_length );
+      
       if (compop == EQUAL_TO || compop == GREAT_EQUAL)
       {
         if (tmp >= 0)
         {
+          // 当i=0时，这里没有问题,当i=1时这里会产生BUFFERPOOL_CLOSED的问题，需要思考下这里需不需要还循环
           rc = disk_buffer_pool_->get_page_num(&page_handle, page_num);
           if (rc != SUCCESS)
           {
+            LOG_DEBUG("Failed to get_page_num. rc=%d:%s", rc, strrc(rc));
             return rc;
           }
           *rididx = i;
           rc = disk_buffer_pool_->unpin_page(&page_handle);
           if (rc != SUCCESS)
           {
+            LOG_DEBUG("Failed to unpin_page. rc=%d:%s", rc, strrc(rc));
             return rc;
           }
+          return SUCCESS;
         }
       }
 
@@ -2309,8 +2331,9 @@ RC BplusTreeHandler::get_first_leaf_page(PageNum *leaf_page)
   return SUCCESS;
 }
 
-BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &index_handler) : index_handler_(index_handler)
+BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &index_handler,int match_num) : index_handler_(index_handler)
 {
+  match_num_ = match_num;
 }
 // 在bplus_tree_index.cpp的create_scanner函数中进行调用
 RC BplusTreeScanner::open_single_index(CompOp comp_op, const char *value, int null_index)
@@ -2358,9 +2381,11 @@ RC BplusTreeScanner::open_multi_index(std::vector<CompOp> comp_ops, std::vector<
   {
     return RC::RECORD_OPENNED;
   }
-  comp_ops_ = comp_ops;
+  condition_num = values.size();  //没什么用这个参数
   // for(const auto &value : values){
-  for( int i = 0; i< values.size(); i++){
+  values_.clear();
+  comp_ops_.clear();
+  for( int i = 0; i< match_num_; i++){
     // int length = index_handler_.file_header_.attr_length[i]+sizeof(RID);
     int length = index_handler_.file_header_.attr_length[i];
     char *value_copy = (char *)malloc(length);
@@ -2371,18 +2396,22 @@ RC BplusTreeScanner::open_multi_index(std::vector<CompOp> comp_ops, std::vector<
     }
     memcpy(value_copy, values[i], length);  
     values_.push_back(value_copy);
+    comp_ops_.push_back(comp_ops[i]);
   }
   // 在find_first_index_satisfied根据comp_op是否为=来确定需要比较多少attr_num
-  rc = index_handler_.find_first_index_satisfied_multi(comp_ops, values, &next_page_num_, &index_in_node_);
+  rc = index_handler_.find_first_index_satisfied_multi(comp_ops_, values_, &next_page_num_, &index_in_node_);
   if (rc != SUCCESS)
   {
     if (rc == RC::RECORD_EOF)
     {
+      LOG_DEBUG(" result of find_first_index_satisfied_multi is rc = RECORD_EOF");
       next_page_num_ = -1;
       index_in_node_ = -1;
     }
-    else
+    else{
+      LOG_DEBUG("Failed to find_first_index_satisfied_multi. rc=%d:%s", rc, strrc(rc));
       return rc;
+    }
   }
   num_fixed_pages_ = 1;
   next_index_of_page_handle_ = 0;
@@ -2418,6 +2447,7 @@ RC BplusTreeScanner::next_entry(RID *rid)
     rc = find_idx_pages();
     if (rc != SUCCESS)
     {
+      LOG_DEBUG("rc = find_idx_pages() != success 是%d:%s",rc,strrc(rc));
       return rc;
     }
     return get_next_idx_in_memory(rid);
@@ -2523,7 +2553,7 @@ RC BplusTreeScanner::get_next_idx_in_memory(RID *rid)
 bool BplusTreeScanner::satisfy_multi_attr_condition(const char *pkey)
 {
   bool single_ = true;
-  for(int i = 0; i < index_handler_.file_header_.field_num; i++){
+  for(int i = 0; i < match_num_; i++){
     AttrType attr_t = index_handler_.file_header_.attr_type[i];
     int attr_len = index_handler_.file_header_.attr_length[i];
     int offset = 0;
@@ -2573,7 +2603,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
     s2 = values_[idx];
     break;
   default:
-    LOG_PANIC("Unknown attr type: %d", attr_type);
+    LOG_PANIC(" satisfy_single_attr_condition Unknown attr type1: %d", attr_type);
   }
 
   bool flag = false;
@@ -2597,7 +2627,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) == 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type2: %d", attr_type);
     }
     break;
   case LESS_THAN:
@@ -2616,7 +2646,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) < 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type3: %d", attr_type);
     }
     break;
   case GREAT_THAN:
@@ -2635,7 +2665,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) > 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type4: %d", attr_type);
     }
     break;
   case LESS_EQUAL:
@@ -2654,7 +2684,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) <= 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type5: %d", attr_type);
     }
     break;
   case GREAT_EQUAL:
@@ -2673,7 +2703,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) >= 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type6: %d", attr_type);
     }
     break;
   case NOT_EQUAL:
@@ -2692,7 +2722,7 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, s2, attr_length) != 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type7: %d", attr_type);
     }
     break;
   case IS_NULL:
@@ -2711,11 +2741,11 @@ bool BplusTreeScanner::satisfy_single_attr_condition(const char *pkey, AttrType 
       flag = (strncmp(s1, "NULL", attr_length) == 0);
       break;
     default:
-      LOG_PANIC("Unknown attr type: %d", attr_type);
+      LOG_PANIC("satisfy_single_attr_condition Unknown attr type8: %d", attr_type);
     }
     break;
   default:
-    LOG_PANIC("Unknown comp op: %d", comp_op_);
+    LOG_PANIC("satisfy_single_attr_condition Unknown comp op: %d", comp_op_);
   }
   return flag;
 }

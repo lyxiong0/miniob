@@ -177,11 +177,25 @@ class StringValue : public TupleValue
 public:
   StringValue(const char *value, int len, bool is_null) : value_(value, len), is_null_(is_null)
   {
+    remove_zero();
   }
   explicit StringValue(const char *value, bool is_null) : value_(value), is_null_(is_null)
   {
+      
   }
 
+  void remove_zero()
+  {
+    // 在这里处理中间的一端'\0'
+    size_t first = value_.find_first_of('\0');
+    size_t last = value_.find_last_of('\0');
+    if (first != last) {
+        size_t len = last - first + 1;
+        // std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!first_index " << first << std::endl;
+        // std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!last_index: " << last << std::endl;
+        value_.erase(first, len);
+    }
+  }
   void to_string(std::ostream &os) const override
   {
     os << value_;

@@ -38,6 +38,7 @@ public:
   const char *field(int id) const;
   const std::vector<std::string> fields() const;
   const int &field_num() const;
+  //void set_match_num(int num);
 
   void desc(std::ostream &os) const;
 public:
@@ -46,8 +47,7 @@ public:
 
 private:
   std::string       name_;
-  // std::string       field_;
-  int field_num_;       
+  int             field_num_;       
   std::vector<std::string>  fields_;
 };
 #endif // __OBSERVER_STORAGE_COMMON_INDEX_META_H__

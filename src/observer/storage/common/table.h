@@ -118,7 +118,7 @@ private:
 private:
   friend class RecordUpdater;
   friend class RecordDeleter;
-
+  RC update_entry_of_indexes(const char *record_i, const RID &rid_i,const char *record_d, const RID &rid_d, bool error_on_not_exists);
   RC insert_entry_of_indexes(const char *record, const RID &rid);
   RC delete_entry_of_indexes(const char *record, const RID &rid, bool error_on_not_exists);
 
@@ -127,6 +127,7 @@ private:
   RC make_record(int value_num, const Value *values, char *&record_out);
 
 private:
+  void find_index_for_update(std::vector<Index *> &index_cover, const char *attr_name) const;
   Index *find_index(const char *index_name) const;
   RC is_legal(const Value &value, const FieldMeta *field);
 

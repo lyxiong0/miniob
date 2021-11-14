@@ -173,7 +173,6 @@ void ExecuteStage::handle_request(common::StageEvent *event)
       event->done_immediate();
       return;
     }
-
     default_storage_stage_->handle_event(storage_event);
   }
   break;
@@ -735,7 +734,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     result = std::move(tuple_sets.front());
   }
 
-  result.print(std::cout);
+   // result.print(std::cout);
 
   // 在此执行子查询操作
   bool has_subselect = false;

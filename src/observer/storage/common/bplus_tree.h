@@ -142,7 +142,7 @@ private:
 
 class BplusTreeScanner {
 public:
-  BplusTreeScanner(BplusTreeHandler &index_handler);
+  BplusTreeScanner(BplusTreeHandler &index_handler, int match_num);
 
   /**
    * 用于在indexHandle对应的索引上初始化一个基于条件的扫描。
@@ -182,6 +182,7 @@ private:
   // 下面两行仅适用于single index的情况
   //CompOp comp_op_ = NO_OP;                      // 用于比较的操作符
   //const char *value_ = nullptr;		              // 与属性行比较的值  就是condition 中的值
+  int match_num_ = 0;                                  // 表示与key比较的属性数量，condition与索引match的最大数量
   int condition_num;
   std::vector<CompOp> comp_ops_;                      // 用于比较的操作符
   std::vector<const char *> values_;		              // 与属性行比较的值  就是condition 中的值

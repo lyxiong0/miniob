@@ -57,6 +57,7 @@ typedef enum
   INTS,
   FLOATS,
   DATES,
+  TEXTS,
   NULLS
 } AttrType;
 
@@ -251,6 +252,7 @@ extern "C"
 
   void value_init_integer(Value *value, int v, int is_null);
   void value_init_float(Value *value, float v, int is_null);
+  void value_init_string_with_text(Value *value, const char *v, int is_null, int len);
   void value_init_string(Value *value, const char *v, int is_null);
   void value_destroy(Value *value);
 

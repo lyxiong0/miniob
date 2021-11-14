@@ -202,12 +202,11 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   {
     // 两侧只要有一侧的类型为null，则传递null类型
     main_type = NULLS;
-  }
-  else
-  {
+  } else {
     main_type = attr_type_;
   }
-
+    LOG_INFO("main_type: %d!!!!!!!!!!!!!!!!!!!!!!!!!!!!", main_type);
+    
   // 对于null的一般运算符，全部返回错误
   if (main_type == AttrType::NULLS && comp_op_ != IS_NULL && comp_op_ != IS_NOT_NULL)
   {

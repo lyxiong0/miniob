@@ -37,6 +37,7 @@ void SessionEvent::set_response(const char *response, int len) {
 
 void SessionEvent::set_response(std::string &&response) {
   response_ = std::move(response);
+  std::cout << "str in SessionEvent::set_response:" << response_ << std::endl;
 }
 
 int SessionEvent::get_response_len() const { return response_.size(); }
