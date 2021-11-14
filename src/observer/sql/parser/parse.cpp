@@ -26,6 +26,189 @@ RC parse(char *st, Query *sqln);
 extern "C"
 {
 #endif // __cplusplus
+
+  //获取子串
+  char *substr(const char *s, int n1, int n2) /*从s中提取下标为n1~n2的字符组成一个新字符串，然后返回这个新串的首地址*/
+  {
+    // printf("start call substr on s %s with n1 is %d and n2 is %d \n",s,n1,n2);
+    char *sp = (char *)malloc(sizeof(char) * (n2 - n1 + 2));
+    int i, j = 0;
+
+    // printf("now the substr is going \n");
+    for (i = n1; i <= n2; i++)
+    {
+      sp[j++] = s[i];
+    }
+    sp[j] = 0;
+    // printf("now the substr end and new string is %s \n",sp);
+    return sp;
+  }
+
+  void init_attr_or_value(RelAttr *attr, Value *value, int *is_attr, const char *s)
+  {
+    // 左侧是ID.ID / ID / number
+    if (s[0] >= '0' && s[0] <= '9')
+    {
+      // 左侧是数字
+      *is_attr = 0;
+      int digit = 0;
+      int j = 0;
+      while (s[j] != '\0' && s[j] != '.')
+      {
+        digit = digit * 10 + (s[j] - '0');
+        ++j;
+      }
+
+      if (s[j] == '.')
+      {
+        // 存在小数
+        float digit_f = (float)digit;
+        float div_num = 10;
+        ++j;
+        while (s[j] != '\0')
+        {
+          digit_f += (s[j++] - '0') / div_num;
+          div_num /= 10;
+        }
+        value_init_float(value, digit_f, false);
+      }
+      else
+      {
+        value_init_integer(value, digit, false);
+      }
+    }
+    else if (s[0] == '"')
+    {
+      // 左侧是字符串
+      value_init_string(value, substr(s, 1, strlen(s) - 2), false);
+    } else if (strcmp(s, "NULL") == 0) {
+      // 左侧为NULL值
+      value_init_string(value, "NULL", true);
+    } 
+    else
+    {
+      // 左侧是ID或ID.ID
+      *is_attr = 1;
+      char tmp[20];
+      int j = 0;
+
+      while (s[j] != '\0' && s[j] != '.')
+      {
+        tmp[j] = s[j];
+        ++j;
+      }
+
+      tmp[j] = '\0';
+      char *relation_name = nullptr;
+      char *attribute_name = nullptr;
+
+      if (s[j] == '.')
+      {
+        // ID.ID的形式
+        relation_name = strdup(tmp);
+        ++j;
+        int idx = 0;
+        while (s[j] != '\0')
+        {
+          tmp[idx++] = s[j];
+          ++j;
+        }
+
+        tmp[idx] = '\0';
+      }
+      attribute_name = strdup(tmp);
+      relation_attr_init(attr, relation_name, attribute_name, NULL, 0);
+    }
+  }
+
+  void condition_exp(Condition *condition, const char **left_exp_names, CompOp comp, const char **right_exp_names)
+  {
+    int left_is_attr = 3;
+    RelAttr left_attr;
+    Value left_value;
+
+    if (strcmp(left_exp_names[1], "NULL") == 0)
+    {
+      init_attr_or_value(&left_attr, &left_value, &left_is_attr, left_exp_names[0]);
+    }
+    else
+    {
+      condition_init_expression(condition, left_exp_names, 1);
+    }
+
+    int right_is_attr = 3;
+    RelAttr right_attr;
+    Value right_value;
+
+    if (strcmp(right_exp_names[1], "NULL") == 0)
+    {
+      init_attr_or_value(&right_attr, &right_value, &right_is_attr, right_exp_names[0]);
+    }
+    else
+    {
+      condition_init_expression(condition, right_exp_names, 0);
+    }
+
+    LOG_INFO("lfet_name = %s, right_value = %d", left_attr.attribute_name, *(int *)right_value.data);
+    condition_init(condition, comp, left_is_attr, &left_attr, &left_value, right_is_attr, &right_attr, &right_value, NULL, NULL);
+  }
+
+  void relation_rel_attr_init(RelAttr *relation_attr, const char *rel_attr_name, const char *agg_function_name, int _is_desc)
+  {
+    char tmp[20];
+    int j = 0;
+
+    while (rel_attr_name[j] != '\0' && rel_attr_name[j] != '.')
+    {
+      tmp[j] = rel_attr_name[j];
+      ++j;
+    }
+
+    tmp[j] = '\0';
+    char *relation_name = nullptr;
+    char *attribute_name = nullptr;
+
+    if (rel_attr_name[j] == '.')
+    {
+      // ID.ID的形式
+      relation_name = strdup(tmp);
+      ++j;
+      int idx = 0;
+      while (rel_attr_name[j] != '\0')
+      {
+        tmp[idx++] = rel_attr_name[j];
+        ++j;
+      }
+
+      tmp[idx] = '\0';
+    }
+    attribute_name = strdup(tmp);
+
+    LOG_INFO("condition: rel_name = %s, cond_name = %s", relation_name, attribute_name);
+
+    if (relation_name != nullptr)
+    {
+      relation_attr->relation_name = strdup(relation_name);
+    }
+    else
+    {
+      relation_attr->relation_name = nullptr;
+    }
+
+    relation_attr->attribute_name = strdup(attribute_name);
+
+    if (agg_function_name != nullptr)
+    {
+      relation_attr->agg_function_name = strdup(agg_function_name);
+    }
+    else
+    {
+      relation_attr->agg_function_name = nullptr;
+    }
+
+    relation_attr->is_desc = _is_desc;
+  }
+
   void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *agg_function_name, int _is_desc)
   {
     if (relation_name != nullptr)
@@ -214,9 +397,10 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     {
       // LOG_INFO("成功匹配日期格式开始检查具体日期");
       // 转换为数字
-      int t=1;
-      int date_num = check_date_data_convert(v,t);
-      if(t){
+      int t = 1;
+      int date_num = check_date_data_convert(v, t);
+      if (t)
+      {
         // LOG_INFO("通过具体日期检测，将输入值作为dates处理");
         value->type = DATES;
         value->data = malloc(sizeof(date_num));
@@ -285,6 +469,26 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     value->is_null = is_null;
   }
 
+  void condition_init_expression(Condition *condition, const char **exp_names, int is_left)
+  {
+    const char **exp_name = exp_names;
+
+    if (is_left)
+    {
+      for (; strcmp(*exp_name, "NULL") != 0; ++exp_name)
+      {
+        condition->expression[condition->exp_num++] = strdup(*exp_name);
+      }
+    }
+    else
+    {
+      for (; strcmp(*exp_name, "NULL") != 0; ++exp_name)
+      {
+        condition->right_expression[condition->right_exp_num++] = strdup(*exp_name);
+      }
+    }
+  }
+
   void condition_init(Condition *condition, CompOp comp,
                       int left_is_attr, RelAttr *left_attr, Value *left_value,
                       int right_is_attr, RelAttr *right_attr, Value *right_value,
@@ -302,11 +506,11 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     }
     else
     {
-      if (left_is_attr)
+      if (left_is_attr == 1)
       {
         condition->left_attr = *left_attr;
       }
-      else
+      else if (left_is_attr == 0)
       {
         // check the date format
         condition->left_value = *left_value;
@@ -327,11 +531,11 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     }
 
     condition->right_is_attr = right_is_attr;
-    if (right_is_attr)
+    if (right_is_attr == 1)
     {
       condition->right_attr = *right_attr;
     }
-    else
+    else if (right_is_attr == 0)
     {
       condition->right_value = *right_value;
     }
@@ -358,6 +562,20 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
 
     free(condition->sub_select);
     condition->sub_select = nullptr;
+
+    for (int i = 0; i < condition->exp_num; ++i)
+    {
+      free(condition->expression[i]);
+      condition->expression[i] = nullptr;
+    }
+    condition->exp_num = 0;
+
+    for (int i = 0; i < condition->right_exp_num; ++i)
+    {
+      free(condition->right_expression[i]);
+      condition->right_expression[i] = nullptr;
+    }
+    condition->right_exp_num = 0;
   }
 
   void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, TrueOrFalse is_nullable)
@@ -420,16 +638,34 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     }
   }
 
+  void selects_append_expressions(Selects *selects, const char **exp_names)
+  {
+    const char **exp_name = exp_names;
+
+    for (; strcmp(*exp_name, "NULL") != 0; ++exp_name)
+    {
+      LOG_INFO("exp_name = %s, total = %d, num = %d", *exp_name, selects->total_exp, selects->exp_num[selects->total_exp]);
+      selects->expression[selects->total_exp][selects->exp_num[selects->total_exp]++] = strdup(*exp_name);
+    }
+
+    ++selects->total_exp;
+  }
+
   void print_num(int num)
   {
     LOG_INFO("num = %d", num);
+  }
+
+  void print_str(const char *s)
+  {
+    LOG_INFO("str = %s", s);
   }
 
   void selects_append_order(Selects *selects, RelAttr *rel_attr)
   {
     selects->order_attrs[selects->order_num++] = *rel_attr;
   }
-  
+
   void selects_append_groups(Selects *selects, RelAttr *rel_attrs)
   {
     RelAttr *rel_attr = rel_attrs;
@@ -447,12 +683,12 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
   {
     // assert(condition_num <= sizeof(selects->conditions) / sizeof(selects->conditions[0]));
     Condition *cond = conditions;
-    LOG_INFO("call");
 
     for (; cond->comp != NO_OP; ++cond)
     {
       selects->conditions[selects->condition_num++] = *cond;
     }
+
   }
 
   void selects_append_conditions_with_num(Selects *selects, Condition conditions[], size_t condition_num)
@@ -497,6 +733,17 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
       relation_attr_destroy(&selects->group_attrs[i]);
     }
     selects->group_num = 0;
+
+    for (size_t j = 0; j < selects->total_exp; ++j)
+    {
+      for (size_t i = 0; i < selects->exp_num[j]; i++)
+      {
+        free(selects->expression[j][i]);
+        selects->expression[j][i] = NULL;
+      }
+      selects->exp_num[j] = 0;
+    }
+    selects->total_exp = 0;
   }
 
   void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index)
@@ -616,19 +863,20 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     free(drop_table->relation_name);
     drop_table->relation_name = nullptr;
   }
-/*
-  void create_index_init(CreateIndex *create_index, const char *index_name,
-                         const char *relation_name, const char *attr_name, int is_unique)
-*/
+  /*
+    void create_index_init(CreateIndex *create_index, const char *index_name,
+                           const char *relation_name, const char *attr_name, int is_unique)
+  */
   void create_index_init(CreateIndex *create_index, const char *index_name,
                          const char *relation_name, int is_unique)
   {
     create_index->index_name = strdup(index_name);
     create_index->relation_name = strdup(relation_name);
     // create_index->attribute_name = strdup(attr_name);
-    create_index->is_unique=is_unique;
+    create_index->is_unique = is_unique;
   }
-  void create_index_append_attribute(CreateIndex *create_index,const char *attr_name){
+  void create_index_append_attribute(CreateIndex *create_index, const char *attr_name)
+  {
     create_index->attribute_name[create_index->attr_num++] = strdup(attr_name);
   }
 
@@ -640,10 +888,11 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
 
     create_index->index_name = nullptr;
     create_index->relation_name = nullptr;
-    for(size_t i = 0;i<create_index->attr_num;i++){
+    for (size_t i = 0; i < create_index->attr_num; i++)
+    {
       create_index->attribute_name[i] = nullptr;
     }
-    create_index->attr_num=0;
+    create_index->attr_num = 0;
   }
 
   void drop_index_init(DropIndex *drop_index, const char *index_name)

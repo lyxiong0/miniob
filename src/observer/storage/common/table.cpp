@@ -449,6 +449,8 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
     }
   }
 
+  
+
   record_out = record;
   return RC::SUCCESS;
 }

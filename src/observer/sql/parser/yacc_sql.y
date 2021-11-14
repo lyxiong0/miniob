@@ -20,29 +20,31 @@ typedef struct ParserContext {
   size_t insert_index;
   size_t rel_length;
   size_t rel_attr_length;
+  size_t exp_length;
 
   Value values[MAX_NUM];
   Condition conditions[MAX_NUM];
   char id[MAX_NUM];
   const char *rels[MAX_NUM];
+  const char *exps[MAX_NUM];
   RelAttr rel_attrs[MAX_NUM];
 } ParserContext;
 
-//获取子串
-char *substr(const char *s,int n1,int n2)/*从s中提取下标为n1~n2的字符组成一个新字符串，然后返回这个新串的首地址*/
-{
-  // printf("start call substr on s %s with n1 is %d and n2 is %d \n",s,n1,n2);
-  char *sp = malloc(sizeof(char) * (n2 - n1 + 2));
-  int i, j = 0;
+// //获取子串
+// char *substr(const char *s,int n1,int n2)/*从s中提取下标为n1~n2的字符组成一个新字符串，然后返回这个新串的首地址*/
+// {
+//   // printf("start call substr on s %s with n1 is %d and n2 is %d \n",s,n1,n2);
+//   char *sp = malloc(sizeof(char) * (n2 - n1 + 2));
+//   int i, j = 0;
   
-  // printf("now the substr is going \n");
-  for (i = n1; i <= n2; i++) {
-    sp[j++] = s[i];
-  }
-  sp[j] = 0;
-  // printf("now the substr end and new string is %s \n",sp);
-  return sp;
-}
+//   // printf("now the substr is going \n");
+//   for (i = n1; i <= n2; i++) {
+//     sp[j++] = s[i];
+//   }
+//   sp[j] = 0;
+//   // printf("now the substr end and new string is %s \n",sp);
+//   return sp;
+// }
 
 void yyerror(yyscan_t scanner, const char *str)
 {
@@ -55,6 +57,7 @@ void yyerror(yyscan_t scanner, const char *str)
   context->insert_index = 0;
   context->rel_length = 0;
   context->rel_attr_length = 0;
+  context->exp_length = 0;
 
   for (size_t i = 0; i < MAX_NUM; i++) {
   	context->ssql->sstr.insertion.value_num[i] = 0;
@@ -127,6 +130,8 @@ ParserContext *get_context(yyscan_t scanner)
         LE
         GE
         NE
+		PLUS
+		DIV
 		NULL_T
         INNER
         JOIN
@@ -172,6 +177,17 @@ ParserContext *get_context(yyscan_t scanner)
 %type <selnode> sub_select;
 %type <number> comOp;
 %type <relattr1> group_by;
+%type <relation> expression;
+
+// 解决value / value RBRACE冲突
+// 将更高优先级给shift，即value RBRACE
+// %nonassoc LOWER_THAN_BRACE
+// %nonassoc RBRACE
+
+%left PLUS '-'
+%left STAR DIV // 越靠后优先级越高
+
+%right LOWER_THAN_BRACE RBRACE NOT EQ LT GR LE GE NE IN IS GT
 
 %%
 
@@ -333,8 +349,11 @@ opt_null:
 	;
 
 number:
-		NUMBER {$$ = $1;}
-		;
+	NUMBER {
+		$$ = $1;
+	}
+	;
+
 type: 
 	INT_T { 
 		$$=INTS; 
@@ -403,24 +422,32 @@ value_list:
   		// CONTEXT->values[CONTEXT->value_length++] = *$2;
 	  }
     ;
+
 value:
     NUMBER{	
   		value_init_integer(&CONTEXT->values[CONTEXT->value_length++], $1, false);
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%d", $1);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
     |FLOAT{
   		value_init_float(&CONTEXT->values[CONTEXT->value_length++], $1, false);
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%f", $1);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	|NULL_T {
 		// null不需要加双引号，当作字符串插入
 		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
+		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 	}
-    | SSS {
-        // 没有末位的"\0"
-		$1 = substr($1, 1, strlen($1)-2);
-        // 长度大于4就当作tetx来处理
+    |SSS {
+		value_init_string(&CONTEXT->values[CONTEXT->value_length++], $1, false);
 		value_init_string_with_text(&CONTEXT->values[CONTEXT->value_length++], $1, false, strlen($1));
-		}
-    ;
+		$1 = substr($1,1,strlen($1)-2);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup($1);
+	}
+	;
 
     
 delete:		/*  delete 语句的语法解析树*/
@@ -486,8 +513,75 @@ select_attr:
     ;
 
 select_param:
-	id_type {}
-	| window_function {}
+	window_function {
+	}
+	| expression {
+		selects_append_expressions(&CONTEXT->ssql->sstr.selection, $1);
+	}
+	;
+
+expression:
+	exp exp_list {
+		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
+		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
+		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
+		CONTEXT->exp_length = 0; // 清空
+		CONTEXT->value_length = 0;
+	}
+	;
+
+exp_list:
+	/*empty*/
+	| op exp exp_list {}
+	;
+	
+
+exp:
+	id_type %prec LOWER_THAN_BRACE
+	| value %prec LOWER_THAN_BRACE
+	| lbrace_list id_type %prec LOWER_THAN_BRACE
+	| lbrace_list value %prec LOWER_THAN_BRACE
+	| id_type rbrace_list %prec LOWER_THAN_BRACE
+	| value rbrace_list %prec LOWER_THAN_BRACE
+	| lbrace_list id_type rbrace_list %prec LOWER_THAN_BRACE
+	| lbrace_list value rbrace_list %prec LOWER_THAN_BRACE
+	;
+
+lbrace_list:
+	LBRACE %prec LOWER_THAN_BRACE {
+		CONTEXT->exps[CONTEXT->exp_length++] = "(";
+	}
+	| lbrace_list LBRACE {
+		CONTEXT->exps[CONTEXT->exp_length++] = "(";
+	}
+	;
+
+rbrace_list:
+	RBRACE %prec LOWER_THAN_BRACE {
+		CONTEXT->exps[CONTEXT->exp_length++] = ")";
+	}
+	| rbrace_list RBRACE {
+		CONTEXT->exps[CONTEXT->exp_length++] = ")";
+	}
+	;
+
+op:
+	STAR {
+		// *
+		CONTEXT->exps[CONTEXT->exp_length++] = "*";
+	}
+	| PLUS {
+		// +
+		CONTEXT->exps[CONTEXT->exp_length++] = "+";
+	}
+	| '-' {
+		// -
+		CONTEXT->exps[CONTEXT->exp_length++] = "-";
+	}
+	| DIV {
+		// 除法
+		CONTEXT->exps[CONTEXT->exp_length++] = "/";
+	}
 	;
 
 id_type:
@@ -495,16 +589,28 @@ id_type:
 		RelAttr attr;
 		relation_attr_init(&attr, NULL, $1, NULL, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s", $1);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	| ID DOT ID { // select t1.age
 		RelAttr attr;
 		relation_attr_init(&attr, $1, $3, NULL, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s.%s", $1, $3);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	| ID DOT STAR{ // select t1.*
 		RelAttr attr;
 		relation_attr_init(&attr, $1, "*", NULL, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s.*", $1);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	;
 
@@ -619,177 +725,39 @@ on:
 condition_list:
     /* empty */
     | AND condition condition_list {
-				// CONTEXT->conditions[CONTEXT->condition_length++]=*$2;
-			}
+		// CONTEXT->conditions[CONTEXT->condition_length++]=*$2;
+	}
     ;
 
 condition:
-    ID comOp value 
-		{
-			RelAttr left_attr;
-			// $1 为属性名称
-			relation_attr_init(&left_attr, NULL, $1, NULL, 0);
-
-			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-			Condition condition;
-			condition_init(&condition, $2, 1, &left_attr, NULL, 0, NULL, right_value, NULL, NULL);
-			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-		}
-		|value comOp value 
-		{
-			Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
-			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-			Condition condition;
-			condition_init(&condition, $2, 0, NULL, left_value, 0, NULL, right_value, NULL, NULL);
-			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-
-		}
-		|ID comOp ID 
-		{
-			RelAttr left_attr;
-			relation_attr_init(&left_attr, NULL, $1, NULL, 0);
-			RelAttr right_attr;
-			relation_attr_init(&right_attr, NULL, $3, NULL, 0);
-
-			Condition condition;
-			condition_init(&condition, $2, 1, &left_attr, NULL, 1, &right_attr, NULL, NULL, NULL);
-			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-
-		}
-    |value comOp ID
-		{
-			Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
-			RelAttr right_attr;
-			relation_attr_init(&right_attr, NULL, $3, NULL, 0);
-
-			Condition condition;
-			condition_init(&condition, $2, 0, NULL, left_value, 1, &right_attr, NULL, NULL, NULL);
-			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-		}
-    |ID DOT ID comOp value
-		{
-			RelAttr left_attr;
-			// $1为表名，$3为属性名
-			relation_attr_init(&left_attr, $1, $3, NULL, 0);
-			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-			Condition condition;
-			condition_init(&condition, $4, 1, &left_attr, NULL, 0, NULL, right_value, NULL, NULL);
-			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-    }
-    |value comOp ID DOT ID
-		{
-			Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-			RelAttr right_attr;
-			relation_attr_init(&right_attr, $3, $5, NULL, 0);
-
-			Condition condition;
-			condition_init(&condition, $2, 0, NULL, left_value, 1, &right_attr, NULL, NULL, NULL);
-			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-    }
-    |ID DOT ID comOp ID DOT ID
-		{
-			RelAttr left_attr;
-			relation_attr_init(&left_attr, $1, $3, NULL, 0);
-			RelAttr right_attr;
-			relation_attr_init(&right_attr, $5, $7, NULL, 0);
-
-			Condition condition;
-			condition_init(&condition, $4, 1, &left_attr, NULL, 1, &right_attr, NULL, NULL, NULL);
-			CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-    }
-	|ID IS NULL_T {
-		RelAttr left_attr;
-		// $1 为属性名称
-		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
-
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
+	expression comOp expression {
+		// 左侧表达式，右侧表达式
 		Condition condition;
-		condition_init(&condition, IS_NULL, 1, &left_attr, NULL, 0, NULL, right_value, NULL, NULL);
+		condition_exp(&condition, $1, $2, $3);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
-	|ID IS NOT NULL_T { // id is not null
-		RelAttr left_attr;
-		// $1 为属性名称
-		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
+	// | id_type comOp sub_select{
+	// 	// RelAttr left_attr;
+	// 	// relation_attr_init(&left_attr, NULL, $1, NULL, 0);
+	// 	RelAttr *left_attr = &CONTEXT->rel_attrs[CONTEXT->rel_attr_length - 1];
 
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
+	// 	Condition condition;
+	// 	condition_init(&condition, $2, 1, left_attr, NULL, 2, NULL, NULL, $3, NULL);
+	// 	CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	// }
+	// | value comOp sub_select {
+	// 	Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
-		Condition condition;
-		condition_init(&condition, IS_NOT_NULL, 1, &left_attr, NULL, 0, NULL, right_value, NULL, NULL);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|ID DOT ID IS NULL_T {
-		RelAttr left_attr;
-		// $1为表名，$3为属性名
-		relation_attr_init(&left_attr, $1, $3, NULL, 0);
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NULL, 1, &left_attr, NULL, 0, NULL, right_value, NULL, NULL);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|ID DOT ID IS NOT NULL_T {
-		RelAttr left_attr;
-		// $1为表名，$3为属性名
-		relation_attr_init(&left_attr, $1, $3, NULL, 0);
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NOT_NULL, 1, &left_attr, NULL, 0, NULL, right_value, NULL, NULL);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|value IS NOT NULL_T { // null is null/value is not null
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
-		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NOT_NULL, 0, NULL, left_value, 0, NULL, right_value, NULL, NULL);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	|value IS NULL_T { //  null is not null/value is null
-		value_init_string(&CONTEXT->values[CONTEXT->value_length++], "NULL", true);
-		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
-		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, IS_NULL, 0, NULL, left_value, 0, NULL, right_value, NULL, NULL);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	| ID comOp sub_select{
-		RelAttr left_attr;
-		relation_attr_init(&left_attr, NULL, $1, NULL, 0);
-
-		Condition condition;
-		condition_init(&condition, $2, 1, &left_attr, NULL, 2, NULL, NULL, $3, NULL);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	| ID DOT ID comOp sub_select {
-		RelAttr left_attr;
-		relation_attr_init(&left_attr, $1, $3, NULL, 0);
-
-		Condition condition;
-		condition_init(&condition, $4, 1, &left_attr, NULL, 2, NULL, NULL, $5, NULL);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	| value comOp sub_select {
-		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-		Condition condition;
-		condition_init(&condition, $2, 0, NULL, left_value, 2, NULL, NULL, $3, NULL);
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	// 	Condition condition;
+	// 	condition_init(&condition, $2, 0, NULL, left_value, 2, NULL, NULL, $3, NULL);
+	// 	CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	// }
+	| expression comOp sub_select {
+		;
 	}
 	| sub_select comOp value {
 		// 反过来，当作正的解析
+		print_str("sub_select comOp value");
 		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
@@ -802,33 +770,19 @@ condition:
 		}
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
-	| sub_select comOp ID{
+	| sub_select comOp id_type{
 		// 反过来，当作正的解析
-		RelAttr left_attr;
-		relation_attr_init(&left_attr, NULL, $3, NULL, 0);
+		// RelAttr left_attr;
+		// relation_attr_init(&left_attr, NULL, $3, NULL, 0);
+		RelAttr *left_attr = &CONTEXT->rel_attrs[CONTEXT->rel_attr_length - 1];
 
 		Condition condition;
 		if ($2 == GREAT_THAN || $2 == GREAT_EQUAL) {
-			condition_init(&condition, $2 - 2, 1, &left_attr, NULL, 2, NULL, NULL, $1, NULL);
+			condition_init(&condition, $2 - 2, 1, left_attr, NULL, 2, NULL, NULL, $1, NULL);
 		} else if ($2 == LESS_THAN || $2 == LESS_EQUAL) {
-			condition_init(&condition, $2 + 2, 1, &left_attr, NULL, 2, NULL, NULL, $1, NULL);
+			condition_init(&condition, $2 + 2, 1, left_attr, NULL, 2, NULL, NULL, $1, NULL);
 		} else {
-			condition_init(&condition, $2, 1, &left_attr, NULL, 2, NULL, NULL, $1, NULL);
-		}
-		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	}
-	| sub_select comOp ID DOT ID {
-		// 反过来，当作正的解析
-		RelAttr left_attr;
-		relation_attr_init(&left_attr, $3, $5, NULL, 0);
-
-		Condition condition;
-		if ($2 == GREAT_THAN || $2 == GREAT_EQUAL) {
-			condition_init(&condition, $2 - 2, 1, &left_attr, NULL, 2, NULL, NULL, $1, NULL);
-		} else if ($2 == LESS_THAN || $2 == LESS_EQUAL) {
-			condition_init(&condition, $2 + 2, 1, &left_attr, NULL, 2, NULL, NULL, $1, NULL);
-		} else {
-			condition_init(&condition, $2, 1, &left_attr, NULL, 2, NULL, NULL, $1, NULL);
+			condition_init(&condition, $2, 1, left_attr, NULL, 2, NULL, NULL, $1, NULL);
 		}
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
@@ -848,6 +802,8 @@ comOp:
     | NE { $$ = 1; }
 	| IN { $$ = 8; }
 	| NOT IN { $$ = 9; }
+	| IS {$$ = 6;}
+	| IS NOT {$$ = 7;}
     ;
 
 sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
