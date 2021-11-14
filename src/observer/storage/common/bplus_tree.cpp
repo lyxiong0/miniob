@@ -2037,7 +2037,6 @@ RC BplusTreeHandler::find_first_index_satisfied_single(CompOp compop, const char
       {
         // 找出所有可能是null的值
         // 实际上是否为null依靠add_record判断
-        // 这里只能假设attr_num = 1 ? 
         switch (file_header_.attr_type[0])
         {
         case INTS:
