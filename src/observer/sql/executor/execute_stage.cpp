@@ -2507,7 +2507,7 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
     const char *s = expression[i];
 
     // 处理数字，或者表达式第一个为负数
-    if ((s[0] >= '0' && s[0] <= '9') || (s[0] == '-' && i == left))
+    if (s[0] >= '0' && s[0] <= '9')
     {
       int j = 0;
 
@@ -2662,87 +2662,90 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
     if (add_to_stack)
     {
       // 处理操作符，将结果压栈
-      switch (sign)
+      if (i != left)
       {
-      case '+':
-      {
-        tuple_stack.push_back(std::move(pre));
-        break;
-      }
-      case '-':
-      {
-        TupleSet tmp_set;
-        tmp_set.set_schema(pre.get_schema());
-
-        // pre已经全部转换成float形式
-        for (int j = 0; j < size; ++j)
+        switch (sign)
         {
-          Tuple t;
-          float f;
-
-          f = -1.0 * std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
-          t.add(f);
-          tmp_set.add(std::move(t));
+        case '+':
+        {
+          tuple_stack.push_back(std::move(pre));
+          break;
         }
-
-        tuple_stack.push_back(std::move(tmp_set));
-        break;
-      }
-      case '*':
-      {
-        TupleSet tmp_set;
-        tmp_set.set_schema(pre.get_schema());
-
-        for (int j = 0; j < size; ++j)
+        case '-':
         {
-          Tuple t;
-          float f;
+          TupleSet tmp_set;
+          tmp_set.set_schema(pre.get_schema());
 
-          f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() * std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
-          t.add(f);
-          tmp_set.add(std::move(t));
-        }
-
-        tuple_stack.pop_back();
-        tuple_stack.push_back(std::move(tmp_set));
-        break;
-      }
-      case '/':
-      {
-        tuple_stack.back().print(std::cout, true);
-        pre.print(std::cout, true);
-
-        TupleSet tmp_set;
-        tmp_set.set_schema(pre.get_schema());
-
-        for (int j = 0; j < size; ++j)
-        {
-          Tuple t;
-          float f;
-          float right = std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
-
-          if (right == 0)
+          // pre已经全部转换成float形式
+          for (int j = 0; j < size; ++j)
           {
-            // = 0需要把这行排除掉
-            f = -9999.9;
-            is_include[j] = 0;
+            Tuple t;
+            float f;
+
+            f = -1.0 * std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
+            t.add(f);
+            tmp_set.add(std::move(t));
           }
-          else
+
+          tuple_stack.push_back(std::move(tmp_set));
+          break;
+        }
+        case '*':
+        {
+          TupleSet tmp_set;
+          tmp_set.set_schema(pre.get_schema());
+
+          for (int j = 0; j < size; ++j)
           {
-            f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() / right;
+            Tuple t;
+            float f;
+
+            f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() * std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
+            t.add(f);
+            tmp_set.add(std::move(t));
           }
-          t.add(f);
-          tmp_set.add(std::move(t));
+
+          tuple_stack.pop_back();
+          tuple_stack.push_back(std::move(tmp_set));
+          break;
+        }
+        case '/':
+        {
+          tuple_stack.back().print(std::cout, true);
+          pre.print(std::cout, true);
+
+          TupleSet tmp_set;
+          tmp_set.set_schema(pre.get_schema());
+
+          for (int j = 0; j < size; ++j)
+          {
+            Tuple t;
+            float f;
+            float right = std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
+
+            if (right == 0)
+            {
+              // = 0需要把这行排除掉
+              f = -9999.9;
+              is_include[j] = 0;
+            }
+            else
+            {
+              f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() / right;
+            }
+            t.add(f);
+            tmp_set.add(std::move(t));
+          }
+
+          tuple_stack.pop_back();
+          tuple_stack.push_back(std::move(tmp_set));
+          break;
         }
 
-        tuple_stack.pop_back();
-        tuple_stack.push_back(std::move(tmp_set));
-        break;
-      }
-
-      default:
-        LOG_ERROR("错误操作符");
-        return RC::GENERIC_ERROR;
+        default:
+          LOG_ERROR("错误操作符");
+          return RC::GENERIC_ERROR;
+        }
       }
 
       sign = s[0];
@@ -2790,7 +2793,8 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
 
   for (int j = 0; j < size; ++j)
   {
-    if (is_include[j] == 0) {
+    if (is_include[j] == 0)
+    {
       continue;
     }
     Tuple t;
