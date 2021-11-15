@@ -1677,14 +1677,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   if (!is_sub_select)
   {
     LOG_INFO("is_calculate = %d", is_calculate);
-    if (is_calculate)
-    {
-      result.print(ss, false);
-    }
-    else
-    {
-      result.print(ss, is_multi_table);
-    }
+
+    result.print(ss, is_multi_table);
 
     session_event->set_response(ss.str());
     end_trx_if_need(session, trx, true);
