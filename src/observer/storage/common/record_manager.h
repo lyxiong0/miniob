@@ -79,10 +79,11 @@ public:
   bool is_full() const;
 
     PageHeader    *  page_header_;
+    BPPageHandle     page_handle_;
 private:
   DiskBufferPool * disk_buffer_pool_;
   int              file_id_;
-  BPPageHandle     page_handle_;
+  
   
   char *           bitmap_;
 };
@@ -107,7 +108,7 @@ public:
    * @return
    */
   RC delete_record(const RID *rid);
-
+  RC delete_record_with_text(const RID *rid);
   /**
    * 插入一个新的记录到指定文件中，pData为指向新纪录内容的指针，返回该记录的标识符rid
    * @param data
@@ -115,8 +116,7 @@ public:
    * @return
    */
   RC insert_record(const char *data, int record_size, RID *rid);
-
-  RC insert_record_with_text(const char *data, int record_size, RID *rid);
+    RC insert_record_with_text(const char *data, int record_size, RID *rid);
 
   /**
    * 获取指定文件中标识符为rid的记录内容到rec指向的记录结构中
@@ -171,7 +171,7 @@ public:
    */
   RC close_scan();
 
-  RC get_first_record(Record *rec);
+  RC get_first_record(Record *rec, bool& has_text);
 
   /**
    * 获取下一个符合扫描条件的记录。
@@ -180,14 +180,16 @@ public:
    * @param rec 上一条记录。如果为NULL，就返回第一条记录
    * @return
    */
-  RC get_next_record(Record *rec);
-
+  RC get_next_record(Record *rec, bool& has_text);
+  RC get_next_record_with_text(Record *rec, bool& has_text);
 private:
   DiskBufferPool  *   disk_buffer_pool_;
   int                 file_id_;                    // 参考DiskBufferPool中的fileId
 
   ConditionFilter *   condition_filter_;
   RecordPageHandler   record_page_handler_;
+
+  std::vector<bool> scanned_; // 标记每一页是否扫描过
 };
 
 

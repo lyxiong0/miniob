@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.  */
+/* A Bison parser, made by GNU Bison 3.5.1.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -31,9 +31,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
-   especially those whose name start with YY_ or yy_.  They are
-   private implementation details that can be changed or removed.  */
+/* Undocumented macros, especially those whose name start with YY_,
+   are private implementation details.  Do not rely on them.  */
 
 #ifndef YY_YY_YACC_SQL_TAB_H_INCLUDED
 # define YY_YY_YACC_SQL_TAB_H_INCLUDED
@@ -45,89 +44,88 @@
 extern int yydebug;
 #endif
 
-/* Token kinds.  */
+/* Token type.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    YYEMPTY = -2,
-    YYEOF = 0,                     /* "end of file"  */
-    YYerror = 256,                 /* error  */
-    YYUNDEF = 257,                 /* "invalid token"  */
-    SEMICOLON = 258,               /* SEMICOLON  */
-    CREATE = 259,                  /* CREATE  */
-    DROP = 260,                    /* DROP  */
-    TABLE = 261,                   /* TABLE  */
-    TABLES = 262,                  /* TABLES  */
-    INDEX = 263,                   /* INDEX  */
-    SELECT = 264,                  /* SELECT  */
-    DESC = 265,                    /* DESC  */
-    SHOW = 266,                    /* SHOW  */
-    SYNC = 267,                    /* SYNC  */
-    INSERT = 268,                  /* INSERT  */
-    DELETE = 269,                  /* DELETE  */
-    UPDATE = 270,                  /* UPDATE  */
-    LBRACE = 271,                  /* LBRACE  */
-    RBRACE = 272,                  /* RBRACE  */
-    COMMA = 273,                   /* COMMA  */
-    TRX_BEGIN = 274,               /* TRX_BEGIN  */
-    TRX_COMMIT = 275,              /* TRX_COMMIT  */
-    TRX_ROLLBACK = 276,            /* TRX_ROLLBACK  */
-    INT_T = 277,                   /* INT_T  */
-    STRING_T = 278,                /* STRING_T  */
-    FLOAT_T = 279,                 /* FLOAT_T  */
-    ORDER = 280,                   /* ORDER  */
-    ASC = 281,                     /* ASC  */
-    BY = 282,                      /* BY  */
-    DATE_T = 283,                  /* DATE_T  */
-    UNIQUE = 284,                  /* UNIQUE  */
-    HELP = 285,                    /* HELP  */
-    EXIT = 286,                    /* EXIT  */
-    DOT = 287,                     /* DOT  */
-    INTO = 288,                    /* INTO  */
-    VALUES = 289,                  /* VALUES  */
-    FROM = 290,                    /* FROM  */
-    WHERE = 291,                   /* WHERE  */
-    AND = 292,                     /* AND  */
-    SET = 293,                     /* SET  */
-    ON = 294,                      /* ON  */
-    LOAD = 295,                    /* LOAD  */
-    DATA = 296,                    /* DATA  */
-    INFILE = 297,                  /* INFILE  */
-    NULLABLE = 298,                /* NULLABLE  */
-    GROUP = 299,                   /* GROUP  */
-    IS = 300,                      /* IS  */
-    NOT = 301,                     /* NOT  */
-    EQ = 302,                      /* EQ  */
-    LT = 303,                      /* LT  */
-    GT = 304,                      /* GT  */
-    LE = 305,                      /* LE  */
-    GE = 306,                      /* GE  */
-    NE = 307,                      /* NE  */
-    NULL_T = 308,                  /* NULL_T  */
-    INNER = 309,                   /* INNER  */
-    JOIN = 310,                    /* JOIN  */
-    IN = 311,                      /* IN  */
-    TEXT_T = 312,                  /* TEXT_T  */
-    NUMBER = 313,                  /* NUMBER  */
-    FLOAT = 314,                   /* FLOAT  */
-    ID = 315,                      /* ID  */
-    PATH = 316,                    /* PATH  */
-    SSS = 317,                     /* SSS  */
-    STAR = 318,                    /* STAR  */
-    STRING_V = 319,                /* STRING_V  */
-    COUNT = 320,                   /* COUNT  */
-    OTHER_FUNCTION_TYPE = 321,     /* OTHER_FUNCTION_TYPE  */
-    Column = 322                   /* Column  */
+    SEMICOLON = 258,
+    CREATE = 259,
+    DROP = 260,
+    TABLE = 261,
+    TABLES = 262,
+    INDEX = 263,
+    SELECT = 264,
+    DESC = 265,
+    SHOW = 266,
+    SYNC = 267,
+    INSERT = 268,
+    DELETE = 269,
+    UPDATE = 270,
+    LBRACE = 271,
+    RBRACE = 272,
+    COMMA = 273,
+    TRX_BEGIN = 274,
+    TRX_COMMIT = 275,
+    TRX_ROLLBACK = 276,
+    INT_T = 277,
+    STRING_T = 278,
+    FLOAT_T = 279,
+    ORDER = 280,
+    ASC = 281,
+    BY = 282,
+    DATE_T = 283,
+    UNIQUE = 284,
+    HELP = 285,
+    EXIT = 286,
+    DOT = 287,
+    INTO = 288,
+    VALUES = 289,
+    FROM = 290,
+    WHERE = 291,
+    AND = 292,
+    SET = 293,
+    ON = 294,
+    LOAD = 295,
+    DATA = 296,
+    INFILE = 297,
+    NULLABLE = 298,
+    GROUP = 299,
+    IS = 300,
+    NOT = 301,
+    EQ = 302,
+    LT = 303,
+    GT = 304,
+    LE = 305,
+    GE = 306,
+    NE = 307,
+    PLUS = 308,
+    DIV = 309,
+    NULL_T = 310,
+    INNER = 311,
+    JOIN = 312,
+    IN = 313,
+    TEXT_T = 314,
+    NUMBER = 315,
+    FLOAT = 316,
+    ID = 317,
+    PATH = 318,
+    SSS = 319,
+    STAR = 320,
+    STRING_V = 321,
+    COUNT = 322,
+    OTHER_FUNCTION_TYPE = 323,
+    Column = 324,
+    LOWER_THAN_BRACE = 325,
+    GR = 326
   };
-  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 136 "yacc_sql.y"
+#line 141 "yacc_sql.y"
 
   struct _Attr *attr;
   struct _Condition *condition1;
@@ -141,7 +139,7 @@ union YYSTYPE
   struct _RelAttr *relattr1;
   struct _Selects *selnode;
 
-#line 145 "yacc_sql.tab.h"
+#line 143 "yacc_sql.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

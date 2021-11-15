@@ -449,6 +449,8 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out)
     }
   }
 
+  
+
   record_out = record;
   return RC::SUCCESS;
 }
@@ -552,20 +554,35 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
 
   int record_count = 0;
   Record record;
-  rc = scanner.get_first_record(&record);
-  for (; RC::SUCCESS == rc && record_count < limit; rc = scanner.get_next_record(&record))
+
+  bool has_next = false;
+  rc = scanner.get_first_record(&record, has_next);
+  
+  for (; RC::SUCCESS == rc && record_count < limit; rc = scanner.get_next_record(&record, has_next))
   {
-    if (trx == nullptr || trx->is_visible(this, &record))
-    {
-      // 将record添加进tupleset
-      rc = record_reader(&record, context);
-      if (rc != RC::SUCCESS)
-      {
-        break;
-      }
-      record_count++;
+      // 如果是TEXT，这里拿到的record的RID是第二页的
+    if (has_next == true) {
+        Record tmp;
+        tmp.data = record.data;
+        tmp.rid = record.rid;
+        tmp.rid.page_num--;
+        if (trx == nullptr || trx->is_visible(this, &tmp)) {
+            rc = record_reader(&tmp, context);
+            record_count++;
+            // has_next = false;
+        }
+    } else {
+        if (trx == nullptr || trx->is_visible(this, &record))
+        {
+            rc = record_reader(&record, context);
+            if (rc != RC::SUCCESS)
+            {
+                break;
+            }
+            record_count++;
+        }
     }
-  }
+  } // for
 
   if (RC::RECORD_EOF == rc)
   {
@@ -1014,7 +1031,7 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
   if (rc != RC::SUCCESS)
   {
     free(data);
-    LOG_ERROR("update_entry_of_indexes fail rc=%d:%s ",rc, strrc(rc));
+    LOG_ERROR("update_entry_of_indexes fail");
     return rc;
   }
   /*
@@ -1222,7 +1239,6 @@ RC Table::update_entry_of_indexes(const char *record_i, const RID &rid_i,
     rc = index->insert_entry(record_i, &rid_i);
     if (rc == RC::RECORD_DUPLICATE_KEY){
       // 已经当前索引保持原样即可, 后面也不要去删除
-      rc = RC::SUCCESS;
       continue;
     }else if (rc != RC::SUCCESS)
     {

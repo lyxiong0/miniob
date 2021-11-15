@@ -94,6 +94,11 @@ typedef struct _Condition
   Value right_value;  // right-hand side value if right_is_attr = FALSE
   Selects *sub_select; 
   Selects *another_sub_select; // 左侧的复杂子查询
+  
+  size_t exp_num;
+  size_t right_exp_num;
+  char *expression[50]; // 表达式
+  char *right_expression[50];
 } Condition;
 
 // struct of select
@@ -117,6 +122,10 @@ struct _Selects
 
   size_t group_num;
   RelAttr group_attrs[MAX_NUM]; // group by 数组
+
+  size_t exp_num[MAX_NUM];
+  size_t total_exp;
+  char *expression[MAX_NUM][50]; // 表达式
 };
 
 
@@ -246,8 +255,12 @@ typedef struct Query
 extern "C"
 {
 #endif // __cplusplus
+  char *substr(const char *s, int n1, int n2);
+  void init_attr_or_value(RelAttr *attr, Value *value, int *is_attr, const char *s);
+  void condition_exp(Condition *condition, const char **left_exp_names, CompOp comp, const char **right_exp_names);
 
   void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *agg_function_name, int _is_desc);
+  void relation_rel_attr_init(RelAttr *relation_attr, const char *rel_attr_name, const char *agg_function_name, int _is_desc);
   void relation_attr_destroy(RelAttr *relation_attr);
 
   void value_init_integer(Value *value, int v, int is_null);
@@ -259,6 +272,7 @@ extern "C"
   void condition_init(Condition *condition, CompOp comp, int left_is_attr, RelAttr *left_attr, Value *left_value,
                       int right_is_attr, RelAttr *right_attr, Value *right_value, Selects *sub_select, Selects *another_sub_select);
   void condition_destroy(Condition *condition);
+  void condition_init_expression(Condition *condition, const char **exp_names, int is_left);
 
   void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, TrueOrFalse is_nullable);
   void attr_info_destroy(AttrInfo *attr_info);
@@ -268,12 +282,14 @@ extern "C"
   void selects_append_attributes(Selects *selects, RelAttr *rel_attrs);
   void selects_append_relation(Selects *selects, const char *relation_name);
   void selects_append_relations(Selects *selects, const char **relation_names);
+  void selects_append_expressions(Selects *selects, const char **exp_names);
   void selects_append_conditions_with_num(Selects *selects, Condition conditions[], size_t condition_num);
   void selects_append_conditions(Selects *selects, Condition *conditions);
   void selects_append_order(Selects *selects, RelAttr *rel_attr);
   void selects_append_groups(Selects *selects, RelAttr *rel_attr);
   void selects_destroy(Selects *selects);
   void print_num(int num);
+  void print_str(const char *s);
 
   void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num, size_t index);
   void inserts_destroy(Inserts *inserts);

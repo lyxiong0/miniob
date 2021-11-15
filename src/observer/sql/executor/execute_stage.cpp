@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <stack>
 #include "execute_stage.h"
 
 #include "common/io/io.h"
@@ -43,13 +44,17 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 
 FuncType judge_function_type(char *agg_function_name);
 
-bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const std::shared_ptr<TupleValue> &right_data, CompOp op, const std::shared_ptr<TupleValue> &left_value);
+RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expression, int left, int right);
+
+bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const std::shared_ptr<TupleValue> &right_value, CompOp op, const std::shared_ptr<TupleValue> &left_value, void *right_data);
 
 int is_col_legal(const RelAttr &attr, const TupleSchema &schema);
 
 void quick_sort(TupleSet *tuple_set, int l, int r, OrderInfo *order_info);
 
 bool is_type_legal(AttrType left_type, AttrType right_type);
+
+int find_rbrace(const char *s[], int start, int end);
 
 //! Constructor
 ExecuteStage::ExecuteStage(const char *tag) : Stage(tag) {}
@@ -315,30 +320,6 @@ bool isTupleSatisfy(const Tuple &tp, const TupleSchema &schema, const Selects &s
   return valid;
 }
 
-// 回溯法求笛卡尔积
-// void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tuple &tmp, const Selects &selects, const TupleSchema &schema)
-// {
-//   if (index == -1)
-//   {
-//     Tuple t(tmp);
-//     // 满足条件再加入
-//     if (isTupleSatisfy(t, schema, selects))
-//     {
-//       ans.add(std::move(t));
-//     }
-//   }
-//   else
-//   {
-//     int len = sets[index].size();
-//     for (int i = 0; i < len; i++)
-//     {
-//       tmp.merge(sets[index].get(i));
-//       backtrack(ans, sets, index - 1, tmp, selects, schema);
-//       tmp.remove(sets[index].get(i));
-//     }
-//   }
-// }
-
 // 检查condition两边的列是否再元组中
 bool conditionInTuple(const TupleSchema &schema, const Condition &cond)
 {
@@ -490,11 +471,13 @@ RC check_table_name(const Selects &selects, const char *db)
           break;
         }
       }
+
       // t1.*
       if ((nullptr == attr.relation_name) && (0 == strcmp(attr.attribute_name, "*")))
       {
         table_name_in_from = true;
       }
+
       if (table_name_in_from == false)
       {
         LOG_WARN("Table [%s] not in from", attr.relation_name);
@@ -505,7 +488,7 @@ RC check_table_name(const Selects &selects, const char *db)
     {
       if ((attr.relation_name != nullptr) && (0 != strcmp(attr.relation_name, selects.relations[0])))
       {
-        LOG_WARN("Table [%s] not in from", attr.relation_name);
+        LOG_WARN("Table [%s.%s] not in from", attr.relation_name, attr.attribute_name);
         return RC::SCHEMA_TABLE_NOT_EXIST;
       }
     }
@@ -624,6 +607,8 @@ RC check_table_name(const Selects &selects, const char *db)
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
 RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_sub_select, char *main_table)
 {
+
+  LOG_INFO("start do_select");
   RC rc = RC::SUCCESS;
   Session *session = session_event->get_client()->session;
   Trx *trx = session->current_trx();
@@ -707,10 +692,10 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   std::stringstream ss;
   TupleSet result;
-  bool isMultiTable = false;
+  bool is_multi_table = false;
   if (tuple_sets.size() > 1)
   { // 本次查询了多张表，需要做join操作
-    isMultiTable = true;
+    is_multi_table = true;
 
     result = do_join(tuple_sets, selects, db);
     if (result.get_schema().size() == 0)
@@ -733,8 +718,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     // 当前只查询一张表，直接返回结果即可
     result = std::move(tuple_sets.front());
   }
-
-   // result.print(std::cout);
 
   // 在此执行子查询操作
   bool has_subselect = false;
@@ -788,7 +771,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
       else if (sub_cond.left_is_attr == 1 && sub_cond.left_attr.relation_name != nullptr && strcmp(sub_cond.left_attr.relation_name, main_table) == 0)
       {
-        LOG_INFO("add_sub");
         // 加入子查询
         sub_select->relations[sub_select->relation_num++] = main_table;
         // 加上group by
@@ -859,7 +841,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       const std::shared_ptr<TupleValue> &left_data = left_sub_res.get(0).get_pointer(0);
       const std::shared_ptr<TupleValue> &right_data = sub_res.get(0).get_pointer(0);
 
-      if (!cmp_value(left_type, right_type, nullptr, right_data, comp, left_data))
+      if (!cmp_value(left_type, right_type, nullptr, right_data, comp, left_data, nullptr))
       {
         // 比较，不相等则清空
         result.clear_tuples();
@@ -942,7 +924,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       if (condition.left_is_attr == 0)
       {
         // 左侧也是值
-        bool cmp_res = cmp_value(condition.left_value.type, right_type, condition.left_value.data, right_data, condition.comp, right_data);
+        bool cmp_res = cmp_value(condition.left_value.type, right_type, condition.left_value.data, right_data, condition.comp, right_data, nullptr);
 
         if (!cmp_res)
         {
@@ -963,7 +945,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
           // 遍历result，找出满足条件的tuple
           if (!is_related)
           {
-            if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index)))
+            if (cmp_value(left_type, right_type, nullptr, right_data, comp, result.get(j).get_pointer(index), nullptr))
             {
               result.copy_ith_to(tmp_res, j);
             }
@@ -975,7 +957,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
             int last_index = sub_res.get_schema().size() - 1;
             for (; k >= 0; --k)
             {
-              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(last_index), comp, result.get(j).get_pointer(index)) == 0)
+              if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(last_index), comp, result.get(j).get_pointer(index), nullptr) == 0)
               {
                 break;
               }
@@ -988,7 +970,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
               break;
             }
 
-            if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), comp, result.get(j).get_pointer(index)))
+            if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), comp, result.get(j).get_pointer(index), nullptr))
             {
               result.copy_ith_to(tmp_res, j);
             }
@@ -1019,7 +1001,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
         for (int k = 0; k < sub_size; ++k)
         {
-          if (cmp_value(left_type, right_type, condition.left_value.data, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, sub_res.get(k).get_pointer(0)))
+          if (cmp_value(left_type, right_type, condition.left_value.data, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, sub_res.get(k).get_pointer(0), nullptr))
           {
             in_target = true;
             break;
@@ -1069,7 +1051,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         tmp_res.set_schema(result.get_schema());
 
         int m = result.size();
-        LOG_INFO("index = %d, index_name = %s", index, result.get_schema().field(index).field_name());
         for (int j = 0; j < m; ++j)
         {
           // 遍历result，找出满足条件的tuple
@@ -1095,7 +1076,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
           for (int k = 0; k < sub_size; ++k)
           {
-            if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index)))
+            if (cmp_value(left_type, right_type, nullptr, sub_res.get(k).get_pointer(0), CompOp::EQUAL_TO, result.get(j).get_pointer(index), nullptr))
             {
               in_target = true;
               break;
@@ -1131,7 +1112,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   // 子查询结束
   // LOG_INFO("子查询结束");
-  // result.print(std::cout, true);
 
   if (rc != RC::SUCCESS)
   {
@@ -1147,7 +1127,287 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     return RC::GENERIC_ERROR;
   }
 
-  // ATTENTION: 现在假设group by里出现的列一定出现在result.schema里
+  // 表达式处理
+  // 记录<表名+列名，对应index>的哈希表
+  // std::unordered_map<size_t, int> map;
+  // std::hash<const char *> hash_func;
+  // for (int i = result.get_schema().size() - 1; i >= 0; --i)
+  // {
+  //   const char *table_name = result.get_schema().field(i).table_name();
+  //   const char *field_name = result.get_schema().field(i).field_name();
+  //   size_t key;
+
+  //   if (table_name == nullptr)
+  //   {
+  //     key = hash_func(field_name);
+  //   }
+  //   else
+  //   {
+  //     key = hash_func(field_name) ^ hash_func(table_name);
+  //   }
+
+  //   map[key] = i;
+  // }
+
+  // 处理where里的表达式，即left_is_attr, right_is_attr至少有一个== 3
+  for (int i = selects.condition_num - 1; i >= 0; --i)
+  {
+    const Condition &condition = selects.conditions[i];
+    TupleSet left_result;
+    TupleSet right_result;
+    int n = result.size();
+
+    if (condition.left_is_attr == 3)
+    {
+      if (calculate(result, left_result, condition.expression, 0, condition.exp_num) != RC::SUCCESS)
+      {
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        if (!is_sub_select)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
+        return RC::GENERIC_ERROR;
+      }
+
+      LOG_INFO("where左表达式计算结果：");
+      left_result.print(std::cout, true);
+    }
+
+    if (condition.right_is_attr == 3)
+    {
+      if (calculate(result, right_result, condition.right_expression, 0, condition.right_exp_num) != RC::SUCCESS)
+      {
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        if (!is_sub_select)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
+        return RC::GENERIC_ERROR;
+      }
+
+      LOG_INFO("where右表达式计算结果：");
+      right_result.print(std::cout, true);
+    }
+
+    if (condition.left_is_attr == 3 && condition.right_is_attr == 0)
+    {
+      // 左表达式右值
+      AttrType right_type = condition.right_value.type;
+      void *right_data = condition.right_value.data;
+
+      if (right_type == NULLS || right_type == CHARS)
+      {
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        if (!is_sub_select)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
+        return RC::GENERIC_ERROR;
+      }
+
+      TupleSet new_result;
+      new_result.set_schema(result.get_schema());
+
+      for (int j = 0; j < left_result.size(); ++j)
+      {
+        const std::shared_ptr<TupleValue> &left_value = left_result.get(j).get_pointer(0);
+        if (cmp_value(FLOATS, right_type, nullptr, left_value, condition.comp, left_value, right_data))
+        {
+          result.copy_ith_to(new_result, j);
+        }
+      }
+
+      result = std::move(new_result);
+    }
+
+    if (condition.left_is_attr == 0 && condition.right_is_attr == 3)
+    {
+      // 右表达式左值
+      AttrType left_type = condition.left_value.type;
+      void *left_data = condition.left_value.data;
+
+      if (left_type == NULLS || left_type == CHARS)
+      {
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        if (!is_sub_select)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
+        return RC::GENERIC_ERROR;
+      }
+
+      TupleSet new_result;
+      new_result.set_schema(result.get_schema());
+      for (int j = 0; j < right_result.size(); ++j)
+      {
+        const std::shared_ptr<TupleValue> &right_value = right_result.get(j).get_pointer(0);
+        if (cmp_value(left_type, FLOATS, left_data, right_value, condition.comp, right_value, nullptr))
+        {
+          result.copy_ith_to(new_result, j);
+        }
+      }
+
+      result = std::move(new_result);
+    }
+
+    if (condition.left_is_attr == 3 && condition.right_is_attr == 3)
+    {
+      // 左右都是表达式
+      TupleSet new_result;
+      new_result.set_schema(result.get_schema());
+      for (int j = 0; j < right_result.size(); ++j)
+      {
+        const std::shared_ptr<TupleValue> &left_value = left_result.get(j).get_pointer(0);
+        const std::shared_ptr<TupleValue> &right_value = right_result.get(j).get_pointer(0);
+        if (cmp_value(FLOATS, FLOATS, nullptr, right_value, condition.comp, left_value, nullptr))
+        {
+          result.copy_ith_to(new_result, j);
+        }
+      }
+
+      result = std::move(new_result);
+    }
+  }
+
+  LOG_INFO("经过where表达式计算后");
+  result.print(std::cout, true);
+
+  // Select表达式计算
+  TupleSet new_result;
+  TupleSchema new_schema;
+  int size = result.size();
+
+  for (int i = 0; i < selects.total_exp; ++i)
+  {
+    TupleSet tmp;
+
+    if (selects.exp_num[i] > 1)
+    {
+      // 参考LeetCode 772计算器
+      if (calculate(result, tmp, selects.expression[i], 0, selects.exp_num[i]) != RC::SUCCESS)
+      {
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        if (!is_sub_select)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
+        return RC::GENERIC_ERROR;
+      }
+
+      if (i == 0)
+      {
+        new_schema = tmp.get_schema();
+        new_result = std::move(tmp);
+      }
+      else
+      {
+        new_schema.append(tmp.get_schema());
+        for (int j = 0; j < size; ++j)
+        {
+          new_result.merge(tmp.get(j), j);
+        }
+      }
+    }
+    else
+    {
+      // 没有算式，转移原始结果列
+      // 处理ID或者ID.ID
+      // 提取表名、列名，重复代码
+      char tmp[20];
+      int j = 0;
+      const char *s = selects.expression[i][0];
+
+      while (s[j] != '\0' && s[j] != '.')
+      {
+        tmp[j] = s[j];
+        ++j;
+      }
+
+      tmp[j] = '\0';
+      char *relation_name = nullptr;
+      char *attribute_name = nullptr;
+
+      if (s[j] == '.')
+      {
+        // ID.ID的形式
+        ++j;
+        int idx = 0;
+        while (s[j] != '\0')
+        {
+          tmp[idx++] = s[j];
+          ++j;
+        }
+
+        tmp[idx] = '\0';
+        relation_name = strdup(tmp);
+      }
+
+      attribute_name = strdup(tmp);
+      int index = -1;
+      if (relation_name == nullptr)
+      {
+        index = result.get_schema().index_of_field(attribute_name);
+      }
+      else
+      {
+        index = result.get_schema().index_of_field(relation_name, attribute_name);
+      }
+      new_schema.add(result.get_schema().field(index).type(), "", tmp, result.get_schema().field(index).is_nullable());
+      if (i == 0)
+      {
+        for (int j = 0; j < size; ++j)
+        {
+          Tuple t;
+          t.add(result.get(j).get_pointer(index));
+          new_result.add(std::move(t));
+        }
+      }
+      else
+      {
+        for (int j = 0; j < size; ++j)
+        {
+          Tuple t;
+          t.add(result.get(j).get_pointer(index));
+          new_result.merge(t, j);
+        }
+      }
+    }
+    is_multi_table = false;
+  }
+
+  if (selects.total_exp)
+  {
+    // 如果出现*不会调用expression
+    result = std::move(new_result);
+    result.set_schema(new_schema);
+  }
+  result.print(std::cout, true);
+
   // tuple_to_indexes记录<group by哈希值，在result中对应的列>
   std::unordered_map<size_t, std::vector<int>> tuple_to_indexes;
   std::vector<TupleSet> results;
@@ -1186,6 +1446,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     n = result.size();
     for (int i = 0; i < n; ++i)
     {
+      
       tuple_to_indexes[result.get(i).to_hash(group_idx)].emplace_back(i);
     }
 
@@ -1255,7 +1516,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
       if (tmp_res[0].get_schema().size() > 0)
       {
-        isMultiTable = false;
+        is_multi_table = false;
         result = std::move(tmp_res[0]);
         tmp_res.clear();
       }
@@ -1282,7 +1543,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         }
       }
 
-      isMultiTable = false;
+      is_multi_table = false;
       result = std::move(tmp_res[0]);
       for (int i = 1; i < size; ++i)
       {
@@ -1290,7 +1551,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
     }
   }
-
 
   ////////////////////////////聚合函数结束/////////////////////////////
 
@@ -1361,7 +1621,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     result = std::move(final_set);
   }
 
-
   if (selects.order_num > 0)
   {
     // 当前没有group by，先假设聚合和排序是矛盾的，仍然用tuples_sets进行快速排序
@@ -1399,10 +1658,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   if (!is_sub_select)
   {
-      LOG_INFO("result.size: %d  !!!!!!!!!!!!!!!!!!!!!", result.tuples().size());
-      
-      result.print(ss, isMultiTable);
-        
+    result.print(ss, is_multi_table);
+
     session_event->set_response(ss.str());
     end_trx_if_need(session, trx, true);
   }
@@ -1975,6 +2232,11 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
       continue;
     }
 
+    if (condition.left_is_attr > 1 || condition.right_is_attr > 1)
+    {
+      continue;
+    }
+
     // 这里其实已经做了下推，即先在单张表上进行了过滤
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) ||                                                                         // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
@@ -2029,7 +2291,8 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   return select_node.init(trx, table, std::move(schema), std::move(condition_filters));
 }
 
-bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const std::shared_ptr<TupleValue> &right_data, CompOp op, const std::shared_ptr<TupleValue> &left_value)
+bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const std::shared_ptr<TupleValue> &right_value,
+               CompOp op, const std::shared_ptr<TupleValue> &left_value, void *right_data)
 {
   int ans = -1;
 
@@ -2046,7 +2309,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     {
       left = std::dynamic_pointer_cast<StringValue>(left_value)->get_value();
     }
-    const char *right = std::dynamic_pointer_cast<StringValue>(right_data)->get_value();
+    const char *right = std::dynamic_pointer_cast<StringValue>(right_value)->get_value();
     ans = strcmp(left, right);
     break;
   }
@@ -2061,7 +2324,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     {
       left = std::dynamic_pointer_cast<IntValue>(left_value)->get_value();
     }
-    ans = left - std::dynamic_pointer_cast<IntValue>(right_data)->get_value();
+    ans = left - std::dynamic_pointer_cast<IntValue>(right_value)->get_value();
     break;
   }
   case AttrType::INTS:
@@ -2079,7 +2342,7 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
         left = std::dynamic_pointer_cast<IntValue>(left_value)->get_value();
       }
 
-      int right = std::dynamic_pointer_cast<IntValue>(right_data)->get_value();
+      int right = std::dynamic_pointer_cast<IntValue>(right_value)->get_value();
 
       ans = left - right;
     }
@@ -2112,11 +2375,25 @@ bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const s
     float right;
     if (right_type == AttrType::FLOATS)
     {
-      right = std::dynamic_pointer_cast<FloatValue>(right_data)->get_value();
+      if (right_data != nullptr)
+      {
+        right = *(float *)right_data;
+      }
+      else
+      {
+        right = std::dynamic_pointer_cast<FloatValue>(right_value)->get_value();
+      }
     }
     else
     {
-      right = 1.0 * std::dynamic_pointer_cast<IntValue>(right_data)->get_value();
+      if (right_data != nullptr)
+      {
+        right = (*(int *)right_data) * 1.0;
+      }
+      else
+      {
+        right = 1.0 * std::dynamic_pointer_cast<IntValue>(right_value)->get_value();
+      }
     }
 
     float sub_res = left - right;
@@ -2181,4 +2458,353 @@ bool is_type_legal(AttrType left_type, AttrType right_type)
   }
 
   return true;
+}
+
+int find_rbrace(char *const *s, int start, int end)
+{
+  // 找到[start, end)中对应的右括号，如果没有则返回-1
+  int level = 0;
+  int i = start;
+
+  for (; i < end; ++i)
+  {
+    if (strcmp(s[i], "(") == 0)
+    {
+      ++level;
+    }
+    else if (strcmp(s[i], ")") == 0)
+    {
+      --level;
+      if (level == 0)
+      {
+        break;
+      }
+    }
+  }
+
+  return i == end ? -1 : i;
+}
+
+RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expression, int left, int right)
+{
+  int i = left;
+  int size = total_set.size();
+  TupleSet pre;
+  std::vector<TupleSet> tuple_stack;
+  char sign = '+';
+  char final_name[100] = "\0";
+  bool add_to_stack;
+  std::vector<int> is_include(size, 1);
+
+  for (int j = left; j < right; ++j)
+  {
+    strcat(final_name, expression[j]);
+  }
+
+  while (i < right)
+  {
+    add_to_stack = true;
+    const char *s = expression[i];
+
+    // 处理数字，或者表达式第一个为负数
+    if ((s[0] >= '0' && s[0] <= '9') || (s[0] == '-' && i == left))
+    {
+      int j = 0;
+
+      bool is_neg = false;
+      if (s[j] == '-')
+      {
+        is_neg = true;
+        ++j;
+      }
+
+      float digit = 0;
+      while (s[j] != '\0' && s[j] != '.')
+      {
+        digit = digit * 10 + (s[j] - '0');
+        ++j;
+      }
+
+      if (s[j] == '.')
+      {
+        // 存在小数
+        float div_num = 10;
+        ++j;
+        while (s[j] != '\0')
+        {
+          digit += (s[j++] - '0') / div_num;
+          div_num /= 10;
+        }
+      }
+
+      if (is_neg)
+      {
+        digit = -digit;
+      }
+
+      TupleSchema pre_schema;
+      pre_schema.add(FLOATS, "", s);
+      for (int j = 0; j < size; ++j)
+      {
+        Tuple t;
+        t.add(digit);
+        pre.add(std::move(t));
+      }
+      pre.set_schema(pre_schema);
+      add_to_stack = false;
+    }
+    else if ((s[0] >= 'a' && s[0] <= 'z') || (s[0] >= 'A' && s[0] <= 'Z'))
+    {
+      // 处理ID或者ID.ID
+      // 提取表名、列名
+      char tmp[20];
+      int j = 0;
+
+      while (s[j] != '\0' && s[j] != '.')
+      {
+        tmp[j] = s[j];
+        ++j;
+      }
+
+      tmp[j] = '\0';
+      char *relation_name = nullptr;
+      char *attribute_name = nullptr;
+
+      if (s[j] == '.')
+      {
+        // ID.ID的形式
+        ++j;
+        int idx = 0;
+        while (s[j] != '\0')
+        {
+          tmp[idx++] = s[j];
+          ++j;
+        }
+
+        tmp[idx] = '\0';
+        relation_name = strdup(tmp);
+      }
+
+      attribute_name = strdup(tmp);
+      int target_idx = -1;
+      if (relation_name == nullptr)
+      {
+        target_idx = total_set.get_schema().index_of_field(attribute_name);
+      }
+      else
+      {
+        target_idx = total_set.get_schema().index_of_field(relation_name, attribute_name);
+      }
+      if (target_idx == -1)
+      {
+        return RC::GENERIC_ERROR;
+      }
+
+      AttrType type = total_set.get_schema().field(target_idx).type();
+      if (type == CHARS)
+      {
+        // 暂定字符串不参与运算
+        return RC::GENERIC_ERROR;
+      }
+
+      TupleSchema pre_schema;
+      pre_schema.add(FLOATS, "", s);
+      pre.set_schema(pre_schema);
+      for (int j = 0; j < size; ++j)
+      {
+        // 全部转换成float计算
+        Tuple t;
+        float f;
+        if (type == INTS)
+        {
+          f = std::dynamic_pointer_cast<IntValue>(total_set.get(j).get_pointer(target_idx))->get_value() * 1.0;
+        }
+        else
+        {
+          f = std::dynamic_pointer_cast<FloatValue>(total_set.get(j).get_pointer(target_idx))->get_value();
+        }
+
+        t.add(f);
+        pre.add(std::move(t));
+      }
+
+      add_to_stack = false;
+    }
+    else if (strcmp(s, "(") == 0)
+    {
+      // 碰到左括号，把整个括号内当作一个新的被加数
+      int j = find_rbrace(expression, i, right);
+      // 没找到右括号，出现错误
+      if (j == -1)
+      {
+        return RC::GENERIC_ERROR;
+      }
+
+      RC rc = calculate(total_set, pre, expression, i + 1, j);
+      if (rc != RC::SUCCESS)
+      {
+        return rc;
+      }
+      i = j;
+      add_to_stack = false;
+    }
+    else if (strcmp(s, ")") == 0)
+    {
+      // 出现右括号则错误
+      return RC::GENERIC_ERROR;
+    }
+
+    if (i == right - 1)
+    {
+      add_to_stack = true;
+    }
+
+    if (add_to_stack)
+    {
+      // 处理操作符，将结果压栈
+      switch (sign)
+      {
+      case '+':
+      {
+        tuple_stack.push_back(std::move(pre));
+        break;
+      }
+      case '-':
+      {
+        TupleSet tmp_set;
+        tmp_set.set_schema(pre.get_schema());
+
+        // pre已经全部转换成float形式
+        for (int j = 0; j < size; ++j)
+        {
+          Tuple t;
+          float f;
+
+          f = -1.0 * std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
+          t.add(f);
+          tmp_set.add(std::move(t));
+        }
+
+        tuple_stack.push_back(std::move(tmp_set));
+        break;
+      }
+      case '*':
+      {
+        TupleSet tmp_set;
+        tmp_set.set_schema(pre.get_schema());
+
+        for (int j = 0; j < size; ++j)
+        {
+          Tuple t;
+          float f;
+
+          f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() * std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
+          t.add(f);
+          tmp_set.add(std::move(t));
+        }
+
+        tuple_stack.pop_back();
+        tuple_stack.push_back(std::move(tmp_set));
+        break;
+      }
+      case '/':
+      {
+        tuple_stack.back().print(std::cout, true);
+        pre.print(std::cout, true);
+
+        TupleSet tmp_set;
+        tmp_set.set_schema(pre.get_schema());
+
+        for (int j = 0; j < size; ++j)
+        {
+          Tuple t;
+          float f;
+          float right = std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
+
+          if (right == 0)
+          {
+            // = 0需要把这行排除掉
+            f = -9999.9;
+            is_include[j] = 0;
+          }
+          else
+          {
+            f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() / right;
+          }
+          t.add(f);
+          tmp_set.add(std::move(t));
+        }
+
+        tuple_stack.pop_back();
+        tuple_stack.push_back(std::move(tmp_set));
+        break;
+      }
+
+      default:
+        LOG_ERROR("错误操作符");
+        return RC::GENERIC_ERROR;
+      }
+
+      sign = s[0];
+      pre.clear();
+      // LOG_INFO("calculate - after sign = %c", sign);
+      // tuple_stack.back().print(std::cout, true);
+    }
+    ++i;
+  }
+
+  // 剩下在栈里的全部弹出做加法
+  TupleSchema result_schema;
+  result_schema.add(FLOATS, "", final_name);
+  // int k = 0;
+  // result = std::move(tuple_stack[k++]);
+  result = std::move(tuple_stack.back());
+  tuple_stack.pop_back();
+
+  // while (k != tuple_stack.size())
+  while (!tuple_stack.empty())
+  {
+    TupleSet &other = tuple_stack.back();
+    // other.print(std::cout);
+
+    pre.clear();
+    pre.set_schema(result_schema);
+
+    for (int j = 0; j < size; ++j)
+    {
+      Tuple t;
+      float f;
+
+      f = std::dynamic_pointer_cast<FloatValue>(other.get(j).get_pointer(0))->get_value() + std::dynamic_pointer_cast<FloatValue>(result.get(j).get_pointer(0))->get_value();
+      t.add(f);
+      pre.add(std::move(t));
+    }
+
+    result = std::move(pre);
+    tuple_stack.pop_back();
+  }
+
+  // 过滤除数为0的项
+  pre.clear();
+  pre.set_schema(result_schema);
+
+  for (int j = 0; j < size; ++j)
+  {
+    if (is_include[j] == 0) {
+      continue;
+    }
+    Tuple t;
+    float f;
+
+    f = std::dynamic_pointer_cast<FloatValue>(result.get(j).get_pointer(0))->get_value();
+    t.add(f);
+    pre.add(std::move(t));
+  }
+
+  result = std::move(pre);
+
+  result.set_schema(result_schema);
+  result.print(std::cout, true);
+
+  return RC::SUCCESS;
 }
