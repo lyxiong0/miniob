@@ -425,7 +425,9 @@ value_list:
     ;
 
 value_with_neg:
-	value
+	value {
+		CONTEXT->exp_length = 0;
+	}
 	| minus NUMBER {
 		value_init_integer(&CONTEXT->values[CONTEXT->value_length++], $2 * -1, false);
 	}
@@ -475,7 +477,7 @@ delete:		/*  delete 语句的语法解析树*/
     ;
 
 update:			/*  update 语句的语法解析树*/
-    UPDATE ID SET ID EQ value where SEMICOLON
+    UPDATE ID SET ID EQ value_with_neg where SEMICOLON
 	{
 		CONTEXT->ssql->flag = SCF_UPDATE;//"update";
 		Value *value = &CONTEXT->values[0];
@@ -538,14 +540,14 @@ expression:
 		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
 		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
 		CONTEXT->exp_length = 0; // 清空
-		CONTEXT->value_length = 0;
+		// CONTEXT->value_length = 0;
 	}
 	| exp_list {
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
 		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
 		CONTEXT->exp_length = 0; // 清空
-		CONTEXT->value_length = 0;
+		// CONTEXT->value_length = 0;
 	}
 	;
 
@@ -717,7 +719,6 @@ where:
 		// 这里不能清零，否则多个子查询条件时，子查询没有where会把主查询的condition清零 
 	}
     | WHERE condition condition_list {	
-		// CONTEXT->conditions[CONTEXT->condition_length++]=*$2;
 		RelAttr left_attr;
 		relation_attr_init(&left_attr, NULL, "NULL", NULL, 0);
 		RelAttr right_attr;
@@ -786,7 +787,6 @@ condition:
 	}
 	| sub_select comOp value {
 		// 反过来，当作正的解析
-		print_str("sub_select comOp value");
 		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;

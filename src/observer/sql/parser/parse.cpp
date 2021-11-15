@@ -92,6 +92,7 @@ extern "C"
     else
     {
       // 左侧是ID或ID.ID
+      LOG_INFO("init ID, s = %s", s);
       *is_attr = 1;
       char tmp[20];
       int j = 0;
@@ -130,6 +131,9 @@ extern "C"
     int left_is_attr = 3;
     RelAttr left_attr;
     Value left_value;
+
+    LOG_INFO("left_exp_names[1] = %s", left_exp_names[0]);
+    LOG_INFO("right_exp_names[1] = %s", right_exp_names[1]);
 
     if (strcmp(left_exp_names[1], "NULL") == 0)
     {
@@ -431,6 +435,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
 
         // value->data = strdup(tmp);
       } else {
+        LOG_INFO("v = %s", v);
         value->type = CHARS;
         value->data = strdup(v);
       }

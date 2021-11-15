@@ -345,6 +345,7 @@ RC Table::is_legal(const Value &value, const FieldMeta *field)
   {
     LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
               field->name(), field->type(), value.type);
+    
     return RC::SCHEMA_FIELD_TYPE_MISMATCH;
   }
 
