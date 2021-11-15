@@ -546,6 +546,7 @@ select_param:
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		// selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps);
 		memcpy(CONTEXT->exps_for_select[CONTEXT->exps_select_length++], CONTEXT->exps, sizeof(const char *) * CONTEXT->exp_length);
+		CONTEXT->exp_length = 0;
 	}
 	| expression {
 		// selects_append_expressions(&CONTEXT->ssql->sstr.selection, $1);
