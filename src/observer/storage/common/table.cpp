@@ -1035,27 +1035,6 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
     LOG_ERROR("update_entry_of_indexes fail");
     return rc;
   }
-  /*
-  rc = insert_entry_of_indexes(data, record->rid);
-    //rc = index->insert_entry(data, &record->rid);
-  if (rc != RC::SUCCESS)
-  {
-    free(data);
-    LOG_ERROR("insert_entry_of_indexes fail");
-    return rc;
-  }
-  // 只有data和rid完全一致才会执行删除 因为record本来就是原来里面原始的,索引在这里会被删除掉
-  rc = delete_entry_of_indexes(record->data, record->rid, false); // 重复代码 refer to commit_delete
-  //rc = index->delete_entry(record->data, &record->rid);
-  if (rc != RC::SUCCESS)
-  {
-    LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
-               record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
-    free(data);
-    return rc;
-  }*/
-
-  //}
   // 更新null状态
   auto last_field = table_meta_.field(table_meta_.field_num() - 1);
   int null_field_index = last_field->offset() + last_field->len();
@@ -1240,6 +1219,7 @@ RC Table::update_entry_of_indexes(const char *record_i, const RID &rid_i,
     rc = index->insert_entry(record_i, &rid_i);
     if (rc == RC::RECORD_DUPLICATE_KEY){
       // 已经当前索引保持原样即可, 后面也不要去删除
+      rc = RC::SUCCESS;
       continue;
     }else if (rc != RC::SUCCESS)
     {
