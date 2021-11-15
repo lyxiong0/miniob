@@ -454,11 +454,10 @@ value:
 	}
     |SSS {
         // 没有末位的"\0"
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup($1);
 		$1 = substr($1, 1, strlen($1)-2);
         // 长度大于4就当作tetx来处理
 		value_init_string_with_text(&CONTEXT->values[CONTEXT->value_length++], $1, false, strlen($1));
-		$1 = substr($1,1,strlen($1)-2);
-		CONTEXT->exps[CONTEXT->exp_length++] = strdup($1);
 	}
 	;
 

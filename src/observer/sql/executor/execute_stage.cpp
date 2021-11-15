@@ -1157,6 +1157,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     TupleSet right_result;
     int n = result.size();
 
+    LOG_INFO("condition.left_is_attr = %d, right_is_attr = %d", condition.left_is_attr, condition.right_is_attr);
+
+
     if (condition.left_is_attr == 3)
     {
       if (calculate(result, left_result, condition.expression, 0, condition.exp_num) != RC::SUCCESS)

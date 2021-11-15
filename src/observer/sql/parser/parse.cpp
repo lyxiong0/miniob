@@ -47,6 +47,7 @@ extern "C"
   void init_attr_or_value(RelAttr *attr, Value *value, int *is_attr, const char *s)
   {
     // 左侧是ID.ID / ID / number
+    LOG_INFO("init_attr_or_value - %s", s);
     if (s[0] >= '0' && s[0] <= '9')
     {
       // 左侧是数字
@@ -77,11 +78,14 @@ extern "C"
         value_init_integer(value, digit, false);
       }
     }
-    else if (s[0] == '"')
+    else if (s[0] == '\'')
     {
+      *is_attr = 0;
       // 左侧是字符串
-      value_init_string(value, substr(s, 1, strlen(s) - 2), false);
+      LOG_INFO("start init string");
+      value_init_string_with_text(value, substr(s, 1, strlen(s) - 2), false, strlen(s) - 2);
     } else if (strcmp(s, "NULL") == 0) {
+      *is_attr = 0;
       // 左侧为NULL值
       value_init_string(value, "NULL", true);
     } 
@@ -396,7 +400,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     }
     else if (check_date_format(v))
     {
-      // LOG_INFO("成功匹配日期格式开始检查具体日期");
+      LOG_INFO("成功匹配日期格式开始检查具体日期");
       // 转换为数字
       int t = 1;
       int date_num = check_date_data_convert(v, t);
@@ -447,7 +451,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     }
     else if (check_date_format(v))
     {
-      // LOG_INFO("成功匹配日期格式开始检查具体日期");
+      LOG_INFO("成功匹配日期格式开始检查具体日期");
       // 转换为数字
       int t=1;
       int date_num = check_date_data_convert(v,t);
