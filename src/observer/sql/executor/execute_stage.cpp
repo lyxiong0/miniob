@@ -1111,7 +1111,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   // 子查询结束
   LOG_INFO("子查询结束");
-  result.print(std::cout, true);
+  // result.print(std::cout, true);
 
   if (rc != RC::SUCCESS)
   {
@@ -1177,7 +1177,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
 
       LOG_INFO("where左表达式计算结果：");
-      left_result.print(std::cout, true);
+      // left_result.print(std::cout, true);
     }
 
     if (condition.right_is_attr == 3)
@@ -1198,7 +1198,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
 
       LOG_INFO("where右表达式计算结果：");
-      right_result.print(std::cout, true);
+      // right_result.print(std::cout, true);
     }
 
     if (condition.left_is_attr == 3 && condition.right_is_attr == 0)
@@ -1507,7 +1507,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   }
 
   LOG_INFO("聚合函数之前");
-  result.print(std::cout, true);
+  // result.print(std::cout, true);
 
   if (attr_function->get_size() > 0)
   {
@@ -1617,7 +1617,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     final_set.set_schema(final_schema);
 
     LOG_INFO("提取列");
-    result.print(std::cout, true);
+    // result.print(std::cout, true);
     // 取出需要的列
     for (const Tuple &tp : result.tuples())
     {
