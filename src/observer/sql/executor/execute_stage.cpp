@@ -1383,6 +1383,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
 
       // LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
+      if (relation_name == nullptr) {
+        relation_name = strdup(result.get_schema().field(0).table_name());
+      }
 
       new_schema.add(result.get_schema().field(index).type(), relation_name, attribute_name, result.get_schema().field(index).is_nullable());
       if (i == 0)
