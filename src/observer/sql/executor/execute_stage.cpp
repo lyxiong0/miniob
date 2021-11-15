@@ -798,7 +798,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     TupleSet sub_res;
 
     rc = do_select(db, *sub_select, session_event, sub_res, true, main_table);
-    // sub_res.print(std::cout, true);
+    LOG_INFO("子查询执行结果");
+    sub_res.print(std::cout, true);
 
     if (rc != RC::SUCCESS)
     {
@@ -1114,10 +1115,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
 
     rc = RC::SUCCESS;
+    LOG_INFO("子查询结束");
+    result.print(std::cout, true);
   }
 
   // 子查询结束
-  LOG_INFO("子查询结束");
   // result.print(std::cout, true);
 
   if (rc != RC::SUCCESS)

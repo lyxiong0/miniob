@@ -834,6 +834,8 @@ condition:
 		// RelAttr left_attr;
 		// relation_attr_init(&left_attr, NULL, $3, NULL, 0);
 		RelAttr *left_attr = &CONTEXT->rel_attrs[CONTEXT->rel_attr_length - 1];
+		--CONTEXT->rel_attr_length;
+		--CONTEXT->exp_length;
 
 		Condition condition;
 		if ($2 == GREAT_THAN || $2 == GREAT_EQUAL) {
