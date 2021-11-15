@@ -1299,6 +1299,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   TupleSchema new_schema;
   int size = result.size();
   bool is_calculate = false;
+  bool is_star = false;
 
   for (int i = 0; i < selects.total_exp; ++i)
   {
@@ -1383,6 +1384,10 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
 
       LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
+      if (strcmp(attribute_name, "*") == 0) {
+        is_star = true;
+        break;
+      }
       if (relation_name == nullptr)
       {
         relation_name = strdup(result.get_schema().field(0).table_name());
@@ -1410,7 +1415,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
   }
 
-  if (selects.total_exp)
+  if (selects.total_exp && !is_star)
   {
     // 如果出现*不会调用expression
     result = std::move(new_result);

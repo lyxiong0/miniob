@@ -528,6 +528,7 @@ select_attr:
 
 select_param:
 	window_function {
+		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps);
 		CONTEXT->exp_length = 0;
 	}
