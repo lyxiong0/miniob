@@ -2198,10 +2198,10 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
       else
       { // 对应select age/ select t1.age的情况
         RC rc = schema_add_field(table, attr.attribute_name, schema);
-        if (rc != RC::SUCCESS)
-        {
-          return rc;
-        }
+        // if (rc != RC::SUCCESS)
+        // {
+        //   return rc;
+        // }
         // 如果有group，检查合法性
         if (selects.group_num > 0)
         {

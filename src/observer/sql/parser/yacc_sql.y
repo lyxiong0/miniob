@@ -21,12 +21,15 @@ typedef struct ParserContext {
   size_t rel_length;
   size_t rel_attr_length;
   size_t exp_length;
+  size_t exps_select_length;
+  size_t tmp_len;
 
   Value values[MAX_NUM];
   Condition conditions[MAX_NUM];
   char id[MAX_NUM];
   const char *rels[MAX_NUM];
   const char *exps[50];
+  const char *exps_for_select[50];
   RelAttr rel_attrs[MAX_NUM];
 } ParserContext;
 
@@ -58,6 +61,8 @@ void yyerror(yyscan_t scanner, const char *str)
   context->rel_length = 0;
   context->rel_attr_length = 0;
   context->exp_length = 0;
+  context->exps_select_length = 0;
+  context->tmp_len = 0;
 
   for (size_t i = 0; i < MAX_NUM; i++) {
   	context->ssql->sstr.insertion.value_num[i] = 0;
@@ -503,6 +508,9 @@ select:				/*  select 语句的语法解析树*/
 			if ($6 != NULL) {
 				selects_append_groups(&CONTEXT->ssql->sstr.selection, $6); 
 			}
+
+			selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps_for_select); // exp
+			CONTEXT->exps_select_length = 0;
 	    }
 	;
 	
@@ -511,7 +519,7 @@ select_attr:
 		RelAttr attr;
 		relation_attr_init(&attr, NULL, "*", NULL, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
-		relation_attr_init(&CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] , NULL, "*", NULL, 2);
+		relation_attr_init(&CONTEXT->rel_attrs[CONTEXT->rel_attr_length++], NULL, "*", NULL, 2);
 
 		$$ = (RelAttr *)malloc(sizeof(RelAttr) * CONTEXT->rel_attr_length);
 		memcpy($$, CONTEXT->rel_attrs, sizeof(RelAttr) * CONTEXT->rel_attr_length);
@@ -529,12 +537,16 @@ select_attr:
 select_param:
 	window_function {
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
-		selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps);
+		// selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps);
+		memcpy(CONTEXT->exps_for_select + CONTEXT->exps_select_length, CONTEXT->exps, sizeof(const char *) * CONTEXT->exp_length);
+		CONTEXT->exps_select_length += CONTEXT->exp_length;
 		
 		CONTEXT->exp_length = 0;
 	}
 	| expression {
-		selects_append_expressions(&CONTEXT->ssql->sstr.selection, $1);
+		// selects_append_expressions(&CONTEXT->ssql->sstr.selection, $1);
+		memcpy(CONTEXT->exps_for_select + CONTEXT->exps_select_length, $1, sizeof(const char *) * CONTEXT->tmp_len);
+		CONTEXT->exps_select_length += CONTEXT->tmp_len;
 	}
 	;
 
@@ -543,6 +555,7 @@ expression:
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
 		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
+		CONTEXT->tmp_len = CONTEXT->exp_length;
 		CONTEXT->exp_length = 0; // 清空
 		// CONTEXT->value_length = 0;
 	}
@@ -550,13 +563,14 @@ expression:
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
 		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
+		CONTEXT->tmp_len = CONTEXT->exp_length;
 		CONTEXT->exp_length = 0; // 清空
 		// CONTEXT->value_length = 0;
 	}
 	;
 
 exp_list:
-	/*empty*/
+	/*empty*/ {}
 	| op exp exp_list {}
 	;
 	
@@ -787,22 +801,6 @@ condition:
 		condition_exp(&condition, $1, $2, $3);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
-	// | id_type comOp sub_select{
-	// 	// RelAttr left_attr;
-	// 	// relation_attr_init(&left_attr, NULL, $1, NULL, 0);
-	// 	RelAttr *left_attr = &CONTEXT->rel_attrs[CONTEXT->rel_attr_length - 1];
-
-	// 	Condition condition;
-	// 	condition_init(&condition, $2, 1, left_attr, NULL, 2, NULL, NULL, $3, NULL);
-	// 	CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	// }
-	// | value comOp sub_select {
-	// 	Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
-
-	// 	Condition condition;
-	// 	condition_init(&condition, $2, 0, NULL, left_value, 2, NULL, NULL, $3, NULL);
-	// 	CONTEXT->conditions[CONTEXT->condition_length++] = condition;
-	// }
 	| expression comOp sub_select {
 		RelAttr left_attr;
 		Value left_value;
@@ -874,10 +872,9 @@ sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
 			selects_append_conditions($$, $5); // where
 		}
 		selects_append_attributes($$, $3); // select_attr
-		// group by
-		// if ($6 != NULL) {
-		// 	selects_append_groups($$, $6); 
-		// }
+
+		selects_append_expressions($$, CONTEXT->exps_for_select); // exp
+		CONTEXT->exps_select_length = 0;
 	}
 	;
 
