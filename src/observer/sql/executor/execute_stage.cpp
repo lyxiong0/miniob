@@ -1291,8 +1291,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
   }
 
-  LOG_INFO("经过where表达式计算后");
-  result.print(std::cout, true);
+  // LOG_INFO("经过where表达式计算后");
+  // result.print(std::cout, true);
 
   // Select表达式计算
   TupleSet new_result;
@@ -1421,8 +1421,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     result = std::move(new_result);
     result.set_schema(new_schema);
   }
-  LOG_INFO("经过表达式后");
-  result.print(std::cout, true);
+  // result.print(std::cout, true);
 
   // tuple_to_indexes记录<group by哈希值，在result中对应的列>
   std::unordered_map<size_t, std::vector<int>> tuple_to_indexes;
@@ -2824,7 +2823,7 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
   result = std::move(pre);
 
   result.set_schema(result_schema);
-  result.print(std::cout, true);
+  // result.print(std::cout, true);
 
   return RC::SUCCESS;
 }
