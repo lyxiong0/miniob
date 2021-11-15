@@ -1159,7 +1159,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     LOG_INFO("condition.left_is_attr = %d, right_is_attr = %d", condition.left_is_attr, condition.right_is_attr);
 
-
     if (condition.left_is_attr == 3)
     {
       if (calculate(result, left_result, condition.expression, 0, condition.exp_num) != RC::SUCCESS)
@@ -1299,6 +1298,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   TupleSet new_result;
   TupleSchema new_schema;
   int size = result.size();
+  bool is_calculate = false;
 
   for (int i = 0; i < selects.total_exp; ++i)
   {
@@ -1306,7 +1306,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     if (selects.exp_num[i] > 1)
     {
-      is_multi_table = false;
+      is_calculate = true;
       // 参考LeetCode 772计算器
       if (calculate(result, tmp, selects.expression[i], 0, selects.exp_num[i]) != RC::SUCCESS)
       {
@@ -1382,7 +1382,11 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         index = result.get_schema().index_of_field(relation_name, attribute_name);
       }
 
-      // LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
+      LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
+      if (relation_name == nullptr)
+      {
+        relation_name = strdup(result.get_schema().field(0).table_name());
+      }
 
       new_schema.add(result.get_schema().field(index).type(), relation_name, attribute_name, result.get_schema().field(index).is_nullable());
       if (i == 0)
@@ -1453,7 +1457,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     n = result.size();
     for (int i = 0; i < n; ++i)
     {
-      
+
       tuple_to_indexes[result.get(i).to_hash(group_idx)].emplace_back(i);
     }
 
@@ -1497,6 +1501,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       attr_function->add_function_type(std::string(attr.attribute_name), FuncType::NOFUNC, attr.relation_name);
     }
   }
+
+  LOG_INFO("聚合函数之前");
+  result.print(std::cout, true);
 
   if (attr_function->get_size() > 0)
   {
@@ -1669,6 +1676,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   if (!is_sub_select)
   {
+    LOG_INFO("is_calculate = %d", is_calculate);
+
     result.print(ss, is_multi_table);
 
     session_event->set_response(ss.str());
@@ -1725,7 +1734,7 @@ int is_col_legal(const RelAttr &attr, const TupleSchema &schema)
     }
   }
 
-  if (index == -1 || cnt > 1)
+  if (index == -1)
   {
     return -1;
   }
@@ -1835,18 +1844,10 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     else
     {
       // 手动搜寻
-      const TupleSchema &schema = tuple_set->get_schema();
-      int n = schema.fields().size();
-      for (int i = 0; i < n; ++i)
-      {
-        if (strcmp(schema.field(i).field_name(), attr_name) == 0)
-        {
-          index = i;
-          type = schema.field(i).type();
-          break;
-        }
-      }
+      index = tuple_set->get_schema().index_of_field(attr_name);
+      type = tuple_set->get_schema().field(index).type();
     }
+    LOG_INFO("index = %d, table_name = %s, attr_name = %s", index, table_name, attr_name);
     // const TupleField &field = tuple_set->get_schema().field(index);
 
     if (func_type == FuncType::NOFUNC)
@@ -1888,7 +1889,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       // 增加Scheme
       add_type = AttrType::INTS;
       // tmp_tuple.add((int)tuple_set->tuples().size());
-
       int ans = 0;
 
       for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
