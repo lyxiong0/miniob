@@ -718,6 +718,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     result = std::move(tuple_sets.front());
   }
 
+  LOG_INFO("多表后");
+  result.print(std::cout, true);
+
   // 在此执行子查询操作
   bool has_subselect = false;
 
@@ -761,10 +764,14 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         sub_select->attributes[sub_select->attr_num++] = sub_cond.right_attr;
         if (sub_select->attributes[0].agg_function_name == nullptr)
         {
-          sub_select->attributes[sub_select->attr_num - 1].agg_function_name = (char *)malloc(4);
           const char *tmp = "max";
-          memcpy(sub_select->attributes[sub_select->attr_num - 1].agg_function_name, tmp, 4);
+          // sub_select->attributes[sub_select->attr_num - 1].agg_function_name = (char *)malloc(4);
+          // memcpy(sub_select->attributes[sub_select->attr_num - 1].agg_function_name, tmp, 4);
+          sub_select->attributes[0].agg_function_name = (char *)malloc(4);
+          memcpy(sub_select->attributes[0].agg_function_name, tmp, 4);
         }
+
+        LOG_INFO("关联子查询 - agg_name = %s, attr_name = %s, table_name = %s", sub_select->attributes[0].agg_function_name, sub_select->attributes[0].attribute_name, sub_select->attributes[0].relation_name);
 
         is_related = true;
       }
@@ -1293,6 +1300,70 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   // LOG_INFO("经过where表达式计算后");
   // result.print(std::cout, true);
+ 
+  // tuple_to_indexes记录<group by哈希值，在result中对应的列>
+  std::unordered_map<size_t, std::vector<int>> tuple_to_indexes;
+  std::vector<TupleSet> results;
+  if (selects.group_num > 0)
+  {
+    // group by特点：不在group by中的列，在select中只能以聚合函数形式出现
+    // 检查group by列名是否存在
+    std::vector<int> group_idx; // 用于group by的列在tutal_set中的index
+    int n = selects.group_num;
+
+    for (int i = 0; i < n; ++i)
+    {
+      const RelAttr &attr = selects.group_attrs[i];
+      // int index = is_col_legal(attr, result.get_schema());
+      int index = -1;
+      if (attr.relation_name == nullptr) {
+        index = result.get_schema().index_of_field(attr.attribute_name);
+      } else {
+        index = result.get_schema().index_of_field(attr.relation_name, attr.attribute_name);
+      }
+
+      if (index == -1)
+      {
+        LOG_ERROR("出现错误列名或者二义性问题");
+        for (SelectExeNode *&tmp_node : select_nodes)
+        {
+          delete tmp_node;
+        }
+
+        if (!is_sub_select)
+        {
+          session_event->set_response("FAILURE\n");
+          end_trx_if_need(session, trx, true);
+        }
+        return RC::GENERIC_ERROR;
+      }
+      group_idx.emplace_back(index);
+    }
+
+    // 存放<Tuple哈希值，Tuple在TupleSet中的index>
+    // 遍历total set，哈希分组
+    n = result.size();
+    for (int i = 0; i < n; ++i)
+    {
+
+      tuple_to_indexes[result.get(i).to_hash(group_idx)].emplace_back(i);
+    }
+
+    // 遍历哈希桶，做成vector<TupleSet>的形式
+    results = std::vector<TupleSet>(tuple_to_indexes.size());
+    int i = 0;
+    for (auto iter = tuple_to_indexes.begin(); iter != tuple_to_indexes.end(); ++iter)
+    {
+      const std::vector<int> hash_bin = iter->second;
+      results[i].set_schema(result.get_schema());
+      for (const int &idx : hash_bin)
+      {
+        result.copy_ith_to(results[i], idx);
+      }
+      ++i;
+    }
+  }
+  //////////////////////////group by结束/////////////////////////////
 
   // Select表达式计算
   TupleSet new_result;
@@ -1421,65 +1492,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     result = std::move(new_result);
     result.set_schema(new_schema);
   }
-  // result.print(std::cout, true);
-
-  // tuple_to_indexes记录<group by哈希值，在result中对应的列>
-  std::unordered_map<size_t, std::vector<int>> tuple_to_indexes;
-  std::vector<TupleSet> results;
-  if (selects.group_num > 0)
-  {
-    // group by特点：不在group by中的列，在select中只能以聚合函数形式出现
-    // 检查group by列名是否存在
-    std::vector<int> group_idx; // 用于group by的列在tutal_set中的index
-    int n = selects.group_num;
-
-    for (int i = 0; i < n; ++i)
-    {
-      const RelAttr &attr = selects.group_attrs[i];
-      int index = is_col_legal(attr, result.get_schema());
-
-      if (index == -1)
-      {
-        LOG_ERROR("出现错误列名或者二义性问题");
-        for (SelectExeNode *&tmp_node : select_nodes)
-        {
-          delete tmp_node;
-        }
-
-        if (!is_sub_select)
-        {
-          session_event->set_response("FAILURE\n");
-          end_trx_if_need(session, trx, true);
-        }
-        return RC::GENERIC_ERROR;
-      }
-      group_idx.emplace_back(index);
-    }
-
-    // 存放<Tuple哈希值，Tuple在TupleSet中的index>
-    // 遍历total set，哈希分组
-    n = result.size();
-    for (int i = 0; i < n; ++i)
-    {
-
-      tuple_to_indexes[result.get(i).to_hash(group_idx)].emplace_back(i);
-    }
-
-    // 遍历哈希桶，做成vector<TupleSet>的形式
-    results = std::vector<TupleSet>(tuple_to_indexes.size());
-    int i = 0;
-    for (auto iter = tuple_to_indexes.begin(); iter != tuple_to_indexes.end(); ++iter)
-    {
-      const std::vector<int> hash_bin = iter->second;
-      results[i].set_schema(result.get_schema());
-      for (const int &idx : hash_bin)
-      {
-        result.copy_ith_to(results[i], idx);
-      }
-      ++i;
-    }
-  }
-  //////////////////////////group by结束/////////////////////////////
 
   // for (int i = 0; i < tuple_to_indexes.size(); ++i) {
   //   results[i].print(std::cout);
@@ -1706,6 +1718,8 @@ int is_col_legal(const RelAttr &attr, const TupleSchema &schema)
   int index = -1;
   int cnt = 0;
 
+  LOG_INFO("is_col_legal - attr.relation_name = %s, attr.attribute_name = %s", attr.relation_name, attr.attribute_name);
+
   if (attr.relation_name != nullptr)
   {
     index = schema.index_of_field(attr.relation_name, attr.attribute_name);
@@ -1738,7 +1752,7 @@ int is_col_legal(const RelAttr &attr, const TupleSchema &schema)
     }
   }
 
-  if (index == -1)
+  if (index == -1 || cnt > 1)
   {
     return -1;
   }
@@ -2217,7 +2231,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
           // 如果属性不在group中，则一定要带有聚合函数
           if (index == -1 && attr.agg_function_name == nullptr)
           {
-            LOG_ERROR("不允许select未带有聚合函数且没有在group by中的列");
+            LOG_ERROR("不允许select未带有聚合函数且没有在group by中的列, %s.%s", attr.relation_name, attr.attribute_name);
             return RC::GENERIC_ERROR;
           }
         }

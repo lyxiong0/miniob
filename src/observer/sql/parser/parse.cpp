@@ -631,7 +631,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     while (flag != 2)
     {
       selects->attributes[selects->attr_num++] = *rel_attr;
-      // LOG_INFO("rel_name = %s, attr_name = %s", rel_attr->relation_name, rel_attr->attribute_name);
+      LOG_INFO("selects_append_attributes - rel_name = %s, attr_name = %s", rel_attr->relation_name, rel_attr->attribute_name);
       ++rel_attr;
       flag = rel_attr->is_desc;
     }

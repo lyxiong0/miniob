@@ -184,6 +184,7 @@ ParserContext *get_context(yyscan_t scanner)
 %type <number> comOp;
 %type <relattr1> group_by;
 %type <relation> expression;
+%type <number> sub_comOp;
 
 // 解决value / value RBRACE冲突
 // 将更高优先级给shift，即value RBRACE
@@ -804,7 +805,7 @@ condition:
 		condition_exp(&condition, $1, $2, $3);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
-	| expression comOp sub_select {
+	| expression sub_comOp sub_select {
 		RelAttr left_attr;
 		Value left_value;
 		int left_is_attr;
@@ -850,6 +851,13 @@ condition:
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
     ;
+
+sub_comOp:
+	comOp {
+		CONTEXT->rel_attr_length = 0;
+		$$ = $1;
+	}
+	;
 
 comOp:
   	  EQ { $$ = 0; }
