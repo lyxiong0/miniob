@@ -569,7 +569,7 @@ RC Table::scan_record(Trx *trx, ConditionFilter *filter, int limit, void *contex
         if (trx == nullptr || trx->is_visible(this, &tmp)) {
             rc = record_reader(&tmp, context);
             record_count++;
-            has_next = false;
+            // has_next = false;
         }
     } else {
         if (trx == nullptr || trx->is_visible(this, &record))
@@ -1316,17 +1316,6 @@ Index *Table::find_index(const char *index_name) const
   }
   return nullptr;
 }
-/*
-const IndexMeta *Table::find_multi_index_by_Deaultfields(std::vector<const ConDesc *> &field_cond_descs)
-{
-  int size = field_cond_descs.size();
-  const char *field_names[size];
-  int i = 0;
-  for( const auto &field_cond_desc : field_cond_descs ){
-    field_names[i++] = (char *)field_cond_desc->value;
-  }
-  return  table_meta_.find_multi_index_by_fields(field_names,size);
-}*/
 IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &filters)
 {
   int filter_num = filters.filter_num();
@@ -1334,6 +1323,7 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
   const char *field_names[filter_num];
   std::vector<CompOp> comp_ops;
   std::vector<const char *> values;
+  std::vector<const ConDesc *> field_cond_descs;   // for encounter the single index case with null
   for(int i = 0; i < filter_num; i++){
     const DefaultConditionFilter *default_condition_filter = dynamic_cast<const DefaultConditionFilter *>(&filters.filter(i));
     const ConDesc *field_cond_desc = nullptr;
@@ -1362,9 +1352,9 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
     field_names[i] = field_meta->name();
     comp_ops.push_back(default_condition_filter->comp_op());
     values.push_back((char *)value_cond_desc->value);
+    field_cond_descs.push_back(field_cond_desc);
   }
 
-  //const IndexMeta *index_meta = find_multi_index_by_Deaultfields(field_cond_descs);
   int match_num = 0;
   const IndexMeta *index_meta = table_meta_.find_multi_index_by_fields(field_names,filter_num,match_num);
   if (nullptr == index_meta)
@@ -1376,6 +1366,10 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
   if (nullptr == index)
   {
     return nullptr;
+  }
+  if (index->Get_Field_Num() == 1){
+    //  (filter.comp_op(), (const char *)value_cond_desc->value, field_cond_desc->null_field_index)
+    return index->create_single_index_scanner(comp_ops[0], values[0], field_cond_descs[0]->null_field_index);
   }
                         // (const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values)
   return index->create_multi_index_scanner(comp_ops, values, match_num);

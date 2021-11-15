@@ -186,6 +186,13 @@ public:
 
   void remove_zero()
   {
+    // 去掉最后的'\0'
+    int i = value_.size() - 1;
+    while (value_[i] == '\0') {
+        i--;
+    }
+    value_ = value_.substr(0, i + 1);
+
     // 在这里处理中间的一端'\0'
     size_t first = value_.find_first_of('\0');
     size_t last = value_.find_last_of('\0');

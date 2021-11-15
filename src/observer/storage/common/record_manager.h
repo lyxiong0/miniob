@@ -79,10 +79,11 @@ public:
   bool is_full() const;
 
     PageHeader    *  page_header_;
+    BPPageHandle     page_handle_;
 private:
   DiskBufferPool * disk_buffer_pool_;
   int              file_id_;
-  BPPageHandle     page_handle_;
+  
   
   char *           bitmap_;
 };
@@ -115,8 +116,7 @@ public:
    * @return
    */
   RC insert_record(const char *data, int record_size, RID *rid);
-
-  RC insert_record_with_text(const char *data, int record_size, RID *rid);
+    RC insert_record_with_text(const char *data, int record_size, RID *rid);
 
   /**
    * 获取指定文件中标识符为rid的记录内容到rec指向的记录结构中
@@ -181,13 +181,15 @@ public:
    * @return
    */
   RC get_next_record(Record *rec, bool& has_text);
-
+  RC get_next_record_with_text(Record *rec, bool& has_text);
 private:
   DiskBufferPool  *   disk_buffer_pool_;
   int                 file_id_;                    // 参考DiskBufferPool中的fileId
 
   ConditionFilter *   condition_filter_;
   RecordPageHandler   record_page_handler_;
+
+  std::vector<bool> scanned_; // 标记每一页是否扫描过
 };
 
 

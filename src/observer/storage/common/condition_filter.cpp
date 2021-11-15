@@ -205,7 +205,6 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   } else {
     main_type = attr_type_;
   }
-    LOG_INFO("main_type: %d!!!!!!!!!!!!!!!!!!!!!!!!!!!!", main_type);
     
   // 对于null的一般运算符，全部返回错误
   if (main_type == AttrType::NULLS && comp_op_ != IS_NULL && comp_op_ != IS_NOT_NULL)
