@@ -344,7 +344,7 @@ bool conditionInTuple(const TupleSchema &schema, const Condition &cond)
 
 void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tuple &tmp, const Selects &selects, const TupleSchema &schema, TupleSchema &tmpSchema)
 {
-  LOG_INFO("START OF backtrack:");
+  // LOG_INFO("START OF backtrack:");
   // tmpSchema.print(std::cout, true);
 
   if (index == -1)
@@ -607,7 +607,6 @@ RC check_table_name(const Selects &selects, const char *db)
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
 RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_sub_select, char *main_table)
 {
-
   LOG_INFO("start do_select");
   RC rc = RC::SUCCESS;
   Session *session = session_event->get_client()->session;
@@ -1111,7 +1110,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   }
 
   // 子查询结束
-  // LOG_INFO("子查询结束");
+  LOG_INFO("子查询结束");
+  result.print(std::cout, true);
 
   if (rc != RC::SUCCESS)
   {
@@ -1156,6 +1156,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     TupleSet left_result;
     TupleSet right_result;
     int n = result.size();
+
+    LOG_INFO("condition.left_is_attr = %d, right_is_attr = %d", condition.left_is_attr, condition.right_is_attr);
 
     if (condition.left_is_attr == 3)
     {
@@ -1296,6 +1298,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   TupleSet new_result;
   TupleSchema new_schema;
   int size = result.size();
+  bool is_calculate = false;
+  bool is_star = false;
 
   for (int i = 0; i < selects.total_exp; ++i)
   {
@@ -1303,6 +1307,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     if (selects.exp_num[i] > 1)
     {
+      is_calculate = true;
       // 参考LeetCode 772计算器
       if (calculate(result, tmp, selects.expression[i], 0, selects.exp_num[i]) != RC::SUCCESS)
       {
@@ -1355,6 +1360,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       if (s[j] == '.')
       {
         // ID.ID的形式
+        relation_name = strdup(tmp);
         ++j;
         int idx = 0;
         while (s[j] != '\0')
@@ -1364,7 +1370,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         }
 
         tmp[idx] = '\0';
-        relation_name = strdup(tmp);
       }
 
       attribute_name = strdup(tmp);
@@ -1377,7 +1382,18 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         index = result.get_schema().index_of_field(relation_name, attribute_name);
       }
-      new_schema.add(result.get_schema().field(index).type(), "", tmp, result.get_schema().field(index).is_nullable());
+
+      LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
+      if (strcmp(attribute_name, "*") == 0 || index == -1) {
+        is_star = true;
+        break;
+      }
+      if (relation_name == nullptr)
+      {
+        relation_name = strdup(result.get_schema().field(0).table_name());
+      }
+
+      new_schema.add(result.get_schema().field(index).type(), relation_name, attribute_name, result.get_schema().field(index).is_nullable());
       if (i == 0)
       {
         for (int j = 0; j < size; ++j)
@@ -1397,10 +1413,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         }
       }
     }
-    is_multi_table = false;
   }
 
-  if (selects.total_exp)
+  if (selects.total_exp && !is_star)
   {
     // 如果出现*不会调用expression
     result = std::move(new_result);
@@ -1446,7 +1461,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     n = result.size();
     for (int i = 0; i < n; ++i)
     {
-      
+
       tuple_to_indexes[result.get(i).to_hash(group_idx)].emplace_back(i);
     }
 
@@ -1490,6 +1505,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       attr_function->add_function_type(std::string(attr.attribute_name), FuncType::NOFUNC, attr.relation_name);
     }
   }
+
+  LOG_INFO("聚合函数之前");
+  result.print(std::cout, true);
 
   if (attr_function->get_size() > 0)
   {
@@ -1598,13 +1616,17 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     // TupleSchema final_schema = buildSchema(selects, total_schema, db);
     final_set.set_schema(final_schema);
 
+    LOG_INFO("提取列");
+    result.print(std::cout, true);
     // 取出需要的列
     for (const Tuple &tp : result.tuples())
     {
       Tuple t;
+
       for (const TupleField &s : final_schema.fields())
       {
         int index = -1;
+        LOG_INFO("table_name = %s, field_name = %s", s.table_name(), s.field_name());
         if (s.table_name() != nullptr)
         {
           index = result_schema.index_of_field(s.table_name(), s.field_name());
@@ -1658,6 +1680,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   if (!is_sub_select)
   {
+    LOG_INFO("is_calculate = %d", is_calculate);
+
     result.print(ss, is_multi_table);
 
     session_event->set_response(ss.str());
@@ -1714,7 +1738,7 @@ int is_col_legal(const RelAttr &attr, const TupleSchema &schema)
     }
   }
 
-  if (index == -1 || cnt > 1)
+  if (index == -1)
   {
     return -1;
   }
@@ -1824,18 +1848,10 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
     else
     {
       // 手动搜寻
-      const TupleSchema &schema = tuple_set->get_schema();
-      int n = schema.fields().size();
-      for (int i = 0; i < n; ++i)
-      {
-        if (strcmp(schema.field(i).field_name(), attr_name) == 0)
-        {
-          index = i;
-          type = schema.field(i).type();
-          break;
-        }
-      }
+      index = tuple_set->get_schema().index_of_field(attr_name);
+      type = tuple_set->get_schema().field(index).type();
     }
+    LOG_INFO("index = %d, table_name = %s, attr_name = %s", index, table_name, attr_name);
     // const TupleField &field = tuple_set->get_schema().field(index);
 
     if (func_type == FuncType::NOFUNC)
@@ -1877,7 +1893,6 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       // 增加Scheme
       add_type = AttrType::INTS;
       // tmp_tuple.add((int)tuple_set->tuples().size());
-
       int ans = 0;
 
       for (int tuple_i = 0; tuple_i < tuple_set->size(); ++tuple_i)
@@ -1961,7 +1976,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       {
         // TODO: 显示什么，NULL会影响吗
         add_type = AttrType::CHARS;
-        // tmp_tuple.add("NULL", 4);
+        tmp_tuple.add("NULL", 4);
         break;
       }
 
@@ -2507,7 +2522,7 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
     const char *s = expression[i];
 
     // 处理数字，或者表达式第一个为负数
-    if ((s[0] >= '0' && s[0] <= '9') || (s[0] == '-' && i == left))
+    if (s[0] >= '0' && s[0] <= '9')
     {
       int j = 0;
 
@@ -2662,87 +2677,90 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
     if (add_to_stack)
     {
       // 处理操作符，将结果压栈
-      switch (sign)
+      if (i != left)
       {
-      case '+':
-      {
-        tuple_stack.push_back(std::move(pre));
-        break;
-      }
-      case '-':
-      {
-        TupleSet tmp_set;
-        tmp_set.set_schema(pre.get_schema());
-
-        // pre已经全部转换成float形式
-        for (int j = 0; j < size; ++j)
+        switch (sign)
         {
-          Tuple t;
-          float f;
-
-          f = -1.0 * std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
-          t.add(f);
-          tmp_set.add(std::move(t));
+        case '+':
+        {
+          tuple_stack.push_back(std::move(pre));
+          break;
         }
-
-        tuple_stack.push_back(std::move(tmp_set));
-        break;
-      }
-      case '*':
-      {
-        TupleSet tmp_set;
-        tmp_set.set_schema(pre.get_schema());
-
-        for (int j = 0; j < size; ++j)
+        case '-':
         {
-          Tuple t;
-          float f;
+          TupleSet tmp_set;
+          tmp_set.set_schema(pre.get_schema());
 
-          f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() * std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
-          t.add(f);
-          tmp_set.add(std::move(t));
-        }
-
-        tuple_stack.pop_back();
-        tuple_stack.push_back(std::move(tmp_set));
-        break;
-      }
-      case '/':
-      {
-        tuple_stack.back().print(std::cout, true);
-        pre.print(std::cout, true);
-
-        TupleSet tmp_set;
-        tmp_set.set_schema(pre.get_schema());
-
-        for (int j = 0; j < size; ++j)
-        {
-          Tuple t;
-          float f;
-          float right = std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
-
-          if (right == 0)
+          // pre已经全部转换成float形式
+          for (int j = 0; j < size; ++j)
           {
-            // = 0需要把这行排除掉
-            f = -9999.9;
-            is_include[j] = 0;
+            Tuple t;
+            float f;
+
+            f = -1.0 * std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
+            t.add(f);
+            tmp_set.add(std::move(t));
           }
-          else
+
+          tuple_stack.push_back(std::move(tmp_set));
+          break;
+        }
+        case '*':
+        {
+          TupleSet tmp_set;
+          tmp_set.set_schema(pre.get_schema());
+
+          for (int j = 0; j < size; ++j)
           {
-            f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() / right;
+            Tuple t;
+            float f;
+
+            f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() * std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
+            t.add(f);
+            tmp_set.add(std::move(t));
           }
-          t.add(f);
-          tmp_set.add(std::move(t));
+
+          tuple_stack.pop_back();
+          tuple_stack.push_back(std::move(tmp_set));
+          break;
+        }
+        case '/':
+        {
+          tuple_stack.back().print(std::cout, true);
+          pre.print(std::cout, true);
+
+          TupleSet tmp_set;
+          tmp_set.set_schema(pre.get_schema());
+
+          for (int j = 0; j < size; ++j)
+          {
+            Tuple t;
+            float f;
+            float right = std::dynamic_pointer_cast<FloatValue>(pre.get(j).get_pointer(0))->get_value();
+
+            if (right == 0)
+            {
+              // = 0需要把这行排除掉
+              f = -9999.9;
+              is_include[j] = 0;
+            }
+            else
+            {
+              f = std::dynamic_pointer_cast<FloatValue>(tuple_stack.back().get(j).get_pointer(0))->get_value() / right;
+            }
+            t.add(f);
+            tmp_set.add(std::move(t));
+          }
+
+          tuple_stack.pop_back();
+          tuple_stack.push_back(std::move(tmp_set));
+          break;
         }
 
-        tuple_stack.pop_back();
-        tuple_stack.push_back(std::move(tmp_set));
-        break;
-      }
-
-      default:
-        LOG_ERROR("错误操作符");
-        return RC::GENERIC_ERROR;
+        default:
+          LOG_ERROR("错误操作符");
+          return RC::GENERIC_ERROR;
+        }
       }
 
       sign = s[0];
@@ -2790,7 +2808,8 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
 
   for (int j = 0; j < size; ++j)
   {
-    if (is_include[j] == 0) {
+    if (is_include[j] == 0)
+    {
       continue;
     }
     Tuple t;

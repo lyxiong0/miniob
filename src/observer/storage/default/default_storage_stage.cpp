@@ -149,7 +149,6 @@ void DefaultStorageStage::cleanup()
 
 void DefaultStorageStage::handle_event(StageEvent *event)
 {
-  LOG_TRACE("Enter\n");
   TimerStat timerStat(*query_metric_);
 
   StorageEvent *storage_event = static_cast<StorageEvent *>(event);

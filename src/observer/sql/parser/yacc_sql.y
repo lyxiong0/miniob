@@ -136,6 +136,7 @@ ParserContext *get_context(yyscan_t scanner)
         INNER
         JOIN
 		IN
+		MINUS
 		TEXT_T
         
 %union {
@@ -401,14 +402,14 @@ insert:				/*insert   语句的语法解析树*/
     }
 	;
 multi_values:
-	LBRACE value value_list RBRACE {
+	LBRACE value_with_neg value_list RBRACE {
 		// 到此结束一组的插入：存储该组、增加index、value_length清零
 		inserts_init(&CONTEXT->ssql->sstr.insertion, CONTEXT->id, CONTEXT->values, CONTEXT->value_length, CONTEXT->insert_index);
 		CONTEXT->insert_index++;
 		//临时变量清零
       	CONTEXT->value_length=0;
 	}
-	|multi_values COMMA LBRACE value value_list RBRACE {
+	|multi_values COMMA LBRACE value_with_neg value_list RBRACE {
 		// 到此结束一组的插入：存储该组、增加index、value_length清零
 		inserts_init(&CONTEXT->ssql->sstr.insertion, CONTEXT->id, CONTEXT->values, CONTEXT->value_length, CONTEXT->insert_index);
 		CONTEXT->insert_index++;
@@ -418,10 +419,22 @@ multi_values:
 	;
 value_list:
     /* empty */
-    | COMMA value value_list  { 
+    | COMMA value_with_neg value_list  { 
   		// CONTEXT->values[CONTEXT->value_length++] = *$2;
 	  }
     ;
+
+value_with_neg:
+	value {
+		CONTEXT->exp_length = 0;
+	}
+	| minus NUMBER {
+		value_init_integer(&CONTEXT->values[CONTEXT->value_length++], $2 * -1, false);
+	}
+	| minus FLOAT {
+		value_init_float(&CONTEXT->values[CONTEXT->value_length++], $2 * -1.0, false);
+	}
+	;
 
 value:
     NUMBER{	
@@ -443,11 +456,10 @@ value:
 	}
     |SSS {
         // 没有末位的"\0"
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup($1);
 		$1 = substr($1, 1, strlen($1)-2);
         // 长度大于4就当作tetx来处理
 		value_init_string_with_text(&CONTEXT->values[CONTEXT->value_length++], $1, false, strlen($1));
-		$1 = substr($1,1,strlen($1)-2);
-		CONTEXT->exps[CONTEXT->exp_length++] = strdup($1);
 	}
 	;
 
@@ -465,7 +477,7 @@ delete:		/*  delete 语句的语法解析树*/
     ;
 
 update:			/*  update 语句的语法解析树*/
-    UPDATE ID SET ID EQ value where SEMICOLON
+    UPDATE ID SET ID EQ value_with_neg where SEMICOLON
 	{
 		CONTEXT->ssql->flag = SCF_UPDATE;//"update";
 		Value *value = &CONTEXT->values[0];
@@ -516,6 +528,10 @@ select_attr:
 
 select_param:
 	window_function {
+		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
+		selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps);
+		
+		CONTEXT->exp_length = 0;
 	}
 	| expression {
 		selects_append_expressions(&CONTEXT->ssql->sstr.selection, $1);
@@ -528,14 +544,14 @@ expression:
 		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
 		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
 		CONTEXT->exp_length = 0; // 清空
-		CONTEXT->value_length = 0;
+		// CONTEXT->value_length = 0;
 	}
-	| minus exp exp_list {
+	| exp_list {
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
 		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
 		CONTEXT->exp_length = 0; // 清空
-		CONTEXT->value_length = 0;
+		// CONTEXT->value_length = 0;
 	}
 	;
 
@@ -554,6 +570,7 @@ exp:
 	| value rbrace_list %prec LOWER_THAN_BRACE
 	| lbrace_list id_type rbrace_list %prec LOWER_THAN_BRACE
 	| lbrace_list value rbrace_list %prec LOWER_THAN_BRACE
+	| lbrace_list minus value rbrace_list %prec LOWER_THAN_BRACE
 	;
 
 lbrace_list:
@@ -575,7 +592,7 @@ rbrace_list:
 	;
 
 minus:
-	'-' {
+	MINUS {
 		CONTEXT->exps[CONTEXT->exp_length++] = "-";
 	}
 	;
@@ -638,42 +655,65 @@ join_list:
     }
     ;
 
+
 window_function:
 	COUNT LBRACE opt_star RBRACE 
 	{	// 只有COUNT允许COUNT(*)
 		RelAttr attr;
 		relation_attr_init(&attr, NULL, $3, $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup($3);
 	}
 	| COUNT LBRACE ID DOT ID RBRACE 
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, $3, $5, $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s.%s", $3, $5);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	| COUNT LBRACE ID DOT STAR RBRACE 
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, $3, $5, $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s.*", $3);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	| OTHER_FUNCTION_TYPE LBRACE ID RBRACE 
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, NULL, $3, $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s", $3);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	| OTHER_FUNCTION_TYPE LBRACE ID DOT ID RBRACE 
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, $3, $5, $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s.%s", $3, $5);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	| OTHER_FUNCTION_TYPE LBRACE ID DOT STAR RBRACE 
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, $3, "*", $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s.*", $3);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	;
 
@@ -706,7 +746,6 @@ where:
 		// 这里不能清零，否则多个子查询条件时，子查询没有where会把主查询的condition清零 
 	}
     | WHERE condition condition_list {	
-		// CONTEXT->conditions[CONTEXT->condition_length++]=*$2;
 		RelAttr left_attr;
 		relation_attr_init(&left_attr, NULL, "NULL", NULL, 0);
 		RelAttr right_attr;
@@ -765,11 +804,17 @@ condition:
 	// 	CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	// }
 	| expression comOp sub_select {
-		;
+		RelAttr left_attr;
+		Value left_value;
+		int left_is_attr;
+
+		init_attr_or_value(&left_attr, &left_value, &left_is_attr, $1[0]);
+		Condition condition;
+		condition_init(&condition, $2, left_is_attr, &left_attr, &left_value, 2, NULL, NULL, $3, NULL);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
 	| sub_select comOp value {
 		// 反过来，当作正的解析
-		print_str("sub_select comOp value");
 		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
@@ -819,7 +864,7 @@ comOp:
     ;
 
 sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
-	LBRACE SELECT select_attr from_rel where group_by RBRACE {
+	LBRACE SELECT select_attr from_rel where RBRACE {
 		$$ = (Selects*)malloc(sizeof(Selects));
 		// 结构体malloc，后面要不跟上memcpy要不用memset全部默认初始化
 		memset($$, 0, sizeof(Selects));
@@ -830,11 +875,11 @@ sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
 		}
 		selects_append_attributes($$, $3); // select_attr
 		// group by
-		if ($6 != NULL) {
-			selects_append_groups($$, $6); 
-		}
+		// if ($6 != NULL) {
+		// 	selects_append_groups($$, $6); 
+		// }
 	}
-;
+	;
 
 group_by:
 	/*empty*/ {$$ = NULL;}
@@ -847,26 +892,28 @@ group_by:
 	;
 
 group_list:
-	group_attr{
-		;
+	expression{
+		selects_append_expressions(&CONTEXT->ssql->sstr.selection, $1);
 	}
-	| group_list COMMA group_attr {}
+	| group_list COMMA expression {
+		selects_append_expressions(&CONTEXT->ssql->sstr.selection, $3);
+	}
 	;
 
-group_attr:
-	ID {
-		RelAttr attr;
-		relation_attr_init(&attr, NULL, $1, NULL, 0);
-		// selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
-		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
-	}
-	| ID DOT ID {
-		RelAttr attr;
-		relation_attr_init(&attr, $1, $3, NULL, 0);
-		// selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
-		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
-	}
-	;
+// group_attr:
+// 	ID {
+// 		RelAttr attr;
+// 		relation_attr_init(&attr, NULL, $1, NULL, 0);
+// 		// selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+// 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+// 	}
+// 	| ID DOT ID {
+// 		RelAttr attr;
+// 		relation_attr_init(&attr, $1, $3, NULL, 0);
+// 		// selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+// 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+// 	}
+// 	;
 
 order_by:
 	/*empty*/ 

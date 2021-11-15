@@ -47,6 +47,7 @@ extern "C"
   void init_attr_or_value(RelAttr *attr, Value *value, int *is_attr, const char *s)
   {
     // 左侧是ID.ID / ID / number
+    LOG_INFO("init_attr_or_value - %s", s);
     if (s[0] >= '0' && s[0] <= '9')
     {
       // 左侧是数字
@@ -77,17 +78,21 @@ extern "C"
         value_init_integer(value, digit, false);
       }
     }
-    else if (s[0] == '"')
+    else if (s[0] == '\'')
     {
+      *is_attr = 0;
       // 左侧是字符串
-      value_init_string(value, substr(s, 1, strlen(s) - 2), false);
+      LOG_INFO("start init string");
+      value_init_string_with_text(value, substr(s, 1, strlen(s) - 2), false, strlen(s) - 2);
     } else if (strcmp(s, "NULL") == 0) {
+      *is_attr = 0;
       // 左侧为NULL值
       value_init_string(value, "NULL", true);
     } 
     else
     {
       // 左侧是ID或ID.ID
+      LOG_INFO("init ID, s = %s", s);
       *is_attr = 1;
       char tmp[20];
       int j = 0;
@@ -127,12 +132,16 @@ extern "C"
     RelAttr left_attr;
     Value left_value;
 
+    LOG_INFO("left_exp_names[1] = %s", left_exp_names[0]);
+    LOG_INFO("right_exp_names[1] = %s", right_exp_names[1]);
+
     if (strcmp(left_exp_names[1], "NULL") == 0)
     {
       init_attr_or_value(&left_attr, &left_value, &left_is_attr, left_exp_names[0]);
     }
     else
     {
+      condition->exp_num = 0;
       condition_init_expression(condition, left_exp_names, 1);
     }
 
@@ -146,6 +155,7 @@ extern "C"
     }
     else
     {
+      condition->right_exp_num = 0;
       condition_init_expression(condition, right_exp_names, 0);
     }
 
@@ -183,7 +193,7 @@ extern "C"
     }
     attribute_name = strdup(tmp);
 
-    LOG_INFO("condition: rel_name = %s, cond_name = %s", relation_name, attribute_name);
+    // LOG_INFO("condition: rel_name = %s, cond_name = %s", relation_name, attribute_name);
 
     if (relation_name != nullptr)
     {
@@ -210,7 +220,7 @@ extern "C"
 
   void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *agg_function_name, int _is_desc)
   {
-      LOG_INFO("relation_attr_init - rel_name = %s, attr_name = %s", relation_name, attribute_name);
+    // LOG_INFO("relation_attr_init - rel_name = %s, attr_name = %s", relation_name, attribute_name);
     if (relation_name != nullptr)
     {
       relation_attr->relation_name = strdup(relation_name);
@@ -394,7 +404,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     }
     else if (check_date_format(v))
     {
-      // LOG_INFO("成功匹配日期格式开始检查具体日期");
+      LOG_INFO("成功匹配日期格式开始检查具体日期");
       // 转换为数字
       int t = 1;
       int date_num = check_date_data_convert(v, t);
@@ -425,6 +435,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
 
         // value->data = strdup(tmp);
       } else {
+        LOG_INFO("v = %s", v);
         value->type = CHARS;
         value->data = strdup(v);
       }
@@ -445,7 +456,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     }
     else if (check_date_format(v))
     {
-      // LOG_INFO("成功匹配日期格式开始检查具体日期");
+      LOG_INFO("成功匹配日期格式开始检查具体日期");
       // 转换为数字
       int t=1;
       int date_num = check_date_data_convert(v,t);
@@ -620,7 +631,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     while (flag != 2)
     {
       selects->attributes[selects->attr_num++] = *rel_attr;
-      LOG_INFO("rel_name = %s, attr_name = %s", rel_attr->relation_name, rel_attr->attribute_name);
+      // LOG_INFO("rel_name = %s, attr_name = %s", rel_attr->relation_name, rel_attr->attribute_name);
       ++rel_attr;
       flag = rel_attr->is_desc;
     }
@@ -637,6 +648,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
 
     for (; strcmp(*rel_name, "NULL") != 0; ++rel_name)
     {
+      LOG_INFO("selects_append_relations - rel_name = %s", *rel_name);
       selects->relations[selects->relation_num++] = strdup(*rel_name);
     }
   }

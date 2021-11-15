@@ -105,19 +105,20 @@ extern int yydebug;
     INNER = 311,
     JOIN = 312,
     IN = 313,
-    TEXT_T = 314,
-    NUMBER = 315,
-    FLOAT = 316,
-    ID = 317,
-    PATH = 318,
-    SSS = 319,
-    STAR = 320,
-    STRING_V = 321,
-    COUNT = 322,
-    OTHER_FUNCTION_TYPE = 323,
-    Column = 324,
-    LOWER_THAN_BRACE = 325,
-    GR = 326
+    MINUS = 314,
+    TEXT_T = 315,
+    NUMBER = 316,
+    FLOAT = 317,
+    ID = 318,
+    PATH = 319,
+    SSS = 320,
+    STAR = 321,
+    STRING_V = 322,
+    COUNT = 323,
+    OTHER_FUNCTION_TYPE = 324,
+    Column = 325,
+    LOWER_THAN_BRACE = 326,
+    GR = 327
   };
 #endif
 
@@ -125,7 +126,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 141 "yacc_sql.y"
+#line 142 "yacc_sql.y"
 
   struct _Attr *attr;
   struct _Condition *condition1;
@@ -139,7 +140,7 @@ union YYSTYPE
   struct _RelAttr *relattr1;
   struct _Selects *selnode;
 
-#line 143 "yacc_sql.tab.h"
+#line 144 "yacc_sql.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

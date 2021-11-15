@@ -345,6 +345,7 @@ RC Table::is_legal(const Value &value, const FieldMeta *field)
   {
     LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
               field->name(), field->type(), value.type);
+    
     return RC::SCHEMA_FIELD_TYPE_MISMATCH;
   }
 
@@ -1034,27 +1035,6 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
     LOG_ERROR("update_entry_of_indexes fail");
     return rc;
   }
-  /*
-  rc = insert_entry_of_indexes(data, record->rid);
-    //rc = index->insert_entry(data, &record->rid);
-  if (rc != RC::SUCCESS)
-  {
-    free(data);
-    LOG_ERROR("insert_entry_of_indexes fail");
-    return rc;
-  }
-  // 只有data和rid完全一致才会执行删除 因为record本来就是原来里面原始的,索引在这里会被删除掉
-  rc = delete_entry_of_indexes(record->data, record->rid, false); // 重复代码 refer to commit_delete
-  //rc = index->delete_entry(record->data, &record->rid);
-  if (rc != RC::SUCCESS)
-  {
-    LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
-               record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
-    free(data);
-    return rc;
-  }*/
-
-  //}
   // 更新null状态
   auto last_field = table_meta_.field(table_meta_.field_num() - 1);
   int null_field_index = last_field->offset() + last_field->len();
@@ -1239,6 +1219,7 @@ RC Table::update_entry_of_indexes(const char *record_i, const RID &rid_i,
     rc = index->insert_entry(record_i, &rid_i);
     if (rc == RC::RECORD_DUPLICATE_KEY){
       // 已经当前索引保持原样即可, 后面也不要去删除
+      rc = RC::SUCCESS;
       continue;
     }else if (rc != RC::SUCCESS)
     {
@@ -1316,17 +1297,6 @@ Index *Table::find_index(const char *index_name) const
   }
   return nullptr;
 }
-/*
-const IndexMeta *Table::find_multi_index_by_Deaultfields(std::vector<const ConDesc *> &field_cond_descs)
-{
-  int size = field_cond_descs.size();
-  const char *field_names[size];
-  int i = 0;
-  for( const auto &field_cond_desc : field_cond_descs ){
-    field_names[i++] = (char *)field_cond_desc->value;
-  }
-  return  table_meta_.find_multi_index_by_fields(field_names,size);
-}*/
 IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &filters)
 {
   int filter_num = filters.filter_num();
@@ -1334,6 +1304,7 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
   const char *field_names[filter_num];
   std::vector<CompOp> comp_ops;
   std::vector<const char *> values;
+  std::vector<const ConDesc *> field_cond_descs;   // for encounter the single index case with null
   for(int i = 0; i < filter_num; i++){
     const DefaultConditionFilter *default_condition_filter = dynamic_cast<const DefaultConditionFilter *>(&filters.filter(i));
     const ConDesc *field_cond_desc = nullptr;
@@ -1362,9 +1333,9 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
     field_names[i] = field_meta->name();
     comp_ops.push_back(default_condition_filter->comp_op());
     values.push_back((char *)value_cond_desc->value);
+    field_cond_descs.push_back(field_cond_desc);
   }
 
-  //const IndexMeta *index_meta = find_multi_index_by_Deaultfields(field_cond_descs);
   int match_num = 0;
   const IndexMeta *index_meta = table_meta_.find_multi_index_by_fields(field_names,filter_num,match_num);
   if (nullptr == index_meta)
@@ -1376,6 +1347,10 @@ IndexScanner *Table::find_multi_index_for_scan(const CompositeConditionFilter &f
   if (nullptr == index)
   {
     return nullptr;
+  }
+  if (index->Get_Field_Num() == 1){
+    //  (filter.comp_op(), (const char *)value_cond_desc->value, field_cond_desc->null_field_index)
+    return index->create_single_index_scanner(comp_ops[0], values[0], field_cond_descs[0]->null_field_index);
   }
                         // (const std::vector<CompOp> &comp_ops, const std::vector<const char *> &values)
   return index->create_multi_index_scanner(comp_ops, values, match_num);
