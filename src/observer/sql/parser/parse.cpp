@@ -658,7 +658,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
 
     for (; strcmp(*exp_name, "NULL") != 0; ++exp_name)
     {
-      // LOG_INFO("exp_name = %s, total = %d, num = %d", *exp_name, selects->total_exp, selects->exp_num[selects->total_exp]);
+      LOG_INFO("exp_name = %s, total = %d, num = %d", *exp_name, selects->total_exp, selects->exp_num[selects->total_exp]);
       selects->expression[selects->total_exp][selects->exp_num[selects->total_exp]++] = strdup(*exp_name);
     }
 

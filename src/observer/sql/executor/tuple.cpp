@@ -169,14 +169,14 @@ void TupleSchema::print(std::ostream &os, bool is_multi_table) const
   for (std::vector<TupleField>::const_iterator iter = fields_.begin(), end = --fields_.end();
        iter != end; ++iter)
   {
-    if (table_names.size() > 1 || is_multi_table == true)
+    if (is_multi_table == true)
     {
       os << iter->table_name() << ".";
     }
     os << iter->field_name() << " | ";
   }
 
-  if (table_names.size() > 1 || is_multi_table == true)
+  if (is_multi_table == true)
   {
     os << fields_.back().table_name() << ".";
   }

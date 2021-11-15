@@ -528,6 +528,8 @@ select_attr:
 
 select_param:
 	window_function {
+		selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps);
+		CONTEXT->exp_length = 0;
 	}
 	| expression {
 		selects_append_expressions(&CONTEXT->ssql->sstr.selection, $1);
@@ -651,42 +653,65 @@ join_list:
     }
     ;
 
+
 window_function:
 	COUNT LBRACE opt_star RBRACE 
 	{	// 只有COUNT允许COUNT(*)
 		RelAttr attr;
 		relation_attr_init(&attr, NULL, $3, $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup($3);
 	}
 	| COUNT LBRACE ID DOT ID RBRACE 
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, $3, $5, $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s.%s", $3, $5);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	| COUNT LBRACE ID DOT STAR RBRACE 
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, $3, $5, $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s.*", $3);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	| OTHER_FUNCTION_TYPE LBRACE ID RBRACE 
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, NULL, $3, $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s", $3);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	| OTHER_FUNCTION_TYPE LBRACE ID DOT ID RBRACE 
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, $3, $5, $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s.%s", $3, $5);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	| OTHER_FUNCTION_TYPE LBRACE ID DOT STAR RBRACE 
 	{
 		RelAttr attr;
 		relation_attr_init(&attr, $3, "*", $1, 0);
 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+
+		char exp_name[MAX_NUM];
+		sprintf(exp_name, "%s.*", $3);
+		CONTEXT->exps[CONTEXT->exp_length++] = strdup(exp_name);
 	}
 	;
 
@@ -864,26 +889,28 @@ group_by:
 	;
 
 group_list:
-	group_attr{
-		;
+	expression{
+		selects_append_expressions(&CONTEXT->ssql->sstr.selection, $1);
 	}
-	| group_list COMMA group_attr {}
+	| group_list COMMA expression {
+		selects_append_expressions(&CONTEXT->ssql->sstr.selection, $3);
+	}
 	;
 
-group_attr:
-	ID {
-		RelAttr attr;
-		relation_attr_init(&attr, NULL, $1, NULL, 0);
-		// selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
-		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
-	}
-	| ID DOT ID {
-		RelAttr attr;
-		relation_attr_init(&attr, $1, $3, NULL, 0);
-		// selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
-		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
-	}
-	;
+// group_attr:
+// 	ID {
+// 		RelAttr attr;
+// 		relation_attr_init(&attr, NULL, $1, NULL, 0);
+// 		// selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+// 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+// 	}
+// 	| ID DOT ID {
+// 		RelAttr attr;
+// 		relation_attr_init(&attr, $1, $3, NULL, 0);
+// 		// selects_append_group(&CONTEXT->ssql->sstr.selection, &attr);
+// 		CONTEXT->rel_attrs[CONTEXT->rel_attr_length++] = attr;
+// 	}
+// 	;
 
 order_by:
 	/*empty*/ 
