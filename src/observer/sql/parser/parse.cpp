@@ -133,6 +133,7 @@ extern "C"
     }
     else
     {
+      condition->exp_num = 0;
       condition_init_expression(condition, left_exp_names, 1);
     }
 
@@ -146,6 +147,7 @@ extern "C"
     }
     else
     {
+      condition->right_exp_num = 0;
       condition_init_expression(condition, right_exp_names, 0);
     }
 

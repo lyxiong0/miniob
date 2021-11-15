@@ -136,6 +136,7 @@ ParserContext *get_context(yyscan_t scanner)
         INNER
         JOIN
 		IN
+		MINUS
 		TEXT_T
         
 %union {
@@ -528,7 +529,7 @@ expression:
 		CONTEXT->exp_length = 0; // 清空
 		CONTEXT->value_length = 0;
 	}
-	| minus exp exp_list {
+	| exp_list {
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
 		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
@@ -552,6 +553,7 @@ exp:
 	| value rbrace_list %prec LOWER_THAN_BRACE
 	| lbrace_list id_type rbrace_list %prec LOWER_THAN_BRACE
 	| lbrace_list value rbrace_list %prec LOWER_THAN_BRACE
+	| lbrace_list minus value rbrace_list %prec LOWER_THAN_BRACE
 	;
 
 lbrace_list:
@@ -573,7 +575,7 @@ rbrace_list:
 	;
 
 minus:
-	'-' {
+	MINUS {
 		CONTEXT->exps[CONTEXT->exp_length++] = "-";
 	}
 	;
@@ -763,7 +765,13 @@ condition:
 	// 	CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	// }
 	| expression comOp sub_select {
-		;
+		RelAttr left_attr;
+		Value left_value;
+		int left_is_attr;
+
+		init_attr_or_value(&left_attr, &left_value, &left_is_attr, $1[0]);
+		Condition condition;
+		condition_init(&condition, $2, left_is_attr, &left_attr, &left_value, 2, NULL, NULL, $3, NULL);
 	}
 	| sub_select comOp value {
 		// 反过来，当作正的解析
@@ -832,7 +840,7 @@ sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
 			selects_append_groups($$, $6); 
 		}
 	}
-;
+	;
 
 group_by:
 	/*empty*/ {$$ = NULL;}

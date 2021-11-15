@@ -34,8 +34,8 @@ QUOTE            [\'\"]
 {WHITE_SAPCE}                           // ignore whitespace
 \n																						 ;
 
-[\-]?{DIGIT}+					                   yylval->number=atoi(yytext); RETURN_TOKEN(NUMBER);
-[\-]?{DIGIT}+{DOT}{DIGIT}+				       yylval->floats=(float)(atof(yytext)); RETURN_TOKEN(FLOAT);
+{DIGIT}+					                   yylval->number=atoi(yytext); RETURN_TOKEN(NUMBER);
+{DIGIT}+{DOT}{DIGIT}+				       yylval->floats=(float)(atof(yytext)); RETURN_TOKEN(FLOAT);
 
 ";"                 	 				           RETURN_TOKEN(SEMICOLON);
 {DOT}                 					         RETURN_TOKEN(DOT);
@@ -98,6 +98,7 @@ QUOTE            [\'\"]
 ">"                                      RETURN_TOKEN(GT);
 "+"										RETURN_TOKEN(PLUS);
 "/"										RETURN_TOKEN(DIV);
+"-"										RETURN_TOKEN(MINUS);
 {QUOTE}[\40\42\47A-Za-z0-9_/\.\-]*{QUOTE}	     yylval->string=strdup(yytext); RETURN_TOKEN(SSS);
 
 .						                             printf("Unknown character [%c]\n",yytext[0]); return yytext[0];
