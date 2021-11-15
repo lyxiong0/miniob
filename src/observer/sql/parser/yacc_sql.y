@@ -402,14 +402,14 @@ insert:				/*insert   语句的语法解析树*/
     }
 	;
 multi_values:
-	LBRACE value value_list RBRACE {
+	LBRACE value_with_neg value_list RBRACE {
 		// 到此结束一组的插入：存储该组、增加index、value_length清零
 		inserts_init(&CONTEXT->ssql->sstr.insertion, CONTEXT->id, CONTEXT->values, CONTEXT->value_length, CONTEXT->insert_index);
 		CONTEXT->insert_index++;
 		//临时变量清零
       	CONTEXT->value_length=0;
 	}
-	|multi_values COMMA LBRACE value value_list RBRACE {
+	|multi_values COMMA LBRACE value_with_neg value_list RBRACE {
 		// 到此结束一组的插入：存储该组、增加index、value_length清零
 		inserts_init(&CONTEXT->ssql->sstr.insertion, CONTEXT->id, CONTEXT->values, CONTEXT->value_length, CONTEXT->insert_index);
 		CONTEXT->insert_index++;
@@ -419,10 +419,20 @@ multi_values:
 	;
 value_list:
     /* empty */
-    | COMMA value value_list  { 
+    | COMMA value_with_neg value_list  { 
   		// CONTEXT->values[CONTEXT->value_length++] = *$2;
 	  }
     ;
+
+value_with_neg:
+	value
+	| minus NUMBER {
+		value_init_integer(&CONTEXT->values[CONTEXT->value_length++], $2 * -1, false);
+	}
+	| minus FLOAT {
+		value_init_float(&CONTEXT->values[CONTEXT->value_length++], $2 * -1.0, false);
+	}
+	;
 
 value:
     NUMBER{	
