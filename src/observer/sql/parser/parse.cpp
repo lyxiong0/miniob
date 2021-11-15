@@ -521,6 +521,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
       if (left_is_attr == 1)
       {
         condition->left_attr = *left_attr;
+        LOG_INFO("condition_init - rel_name = %s, attr = %s", left_attr->relation_name, left_attr->attribute_name);
       }
       else if (left_is_attr == 0)
       {

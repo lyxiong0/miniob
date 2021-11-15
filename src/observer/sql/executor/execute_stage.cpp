@@ -507,6 +507,8 @@ RC check_table_name(const Selects &selects, const char *db)
             ((condition.right_is_attr == 1) && (nullptr != condition.right_attr.relation_name) && (0 != strcmp(condition.right_attr.relation_name, selects.relations[i]))))
         {
           LOG_WARN("Table name in where but not in from");
+          LOG_INFO("%d - %d, i = %d", condition.left_is_attr, condition.right_is_attr, i);
+          LOG_INFO("condition.left_attr.relation_name = %s, condition.right_attr.relation_name = %s, relation = %s", condition.left_attr.relation_name, condition.right_attr.relation_name, selects.relations[i]);
           return RC::SCHEMA_TABLE_NOT_EXIST;
         }
       }
@@ -1120,7 +1122,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   }
 
   // 子查询结束
-  // result.print(std::cout, true);
+  LOG_INFO("子查询结束");
+  result.print(std::cout, true);
 
   if (rc != RC::SUCCESS)
   {
@@ -1300,8 +1303,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
   }
 
-  // LOG_INFO("经过where表达式计算后");
-  // result.print(std::cout, true);
+  LOG_INFO("经过where表达式计算后");
+  result.print(std::cout, true);
  
   // tuple_to_indexes记录<group by哈希值，在result中对应的列>
   std::unordered_map<size_t, std::vector<int>> tuple_to_indexes;
@@ -1366,6 +1369,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     }
   }
   //////////////////////////group by结束/////////////////////////////
+  LOG_INFO("经过group by后");
+  result.print(std::cout, true);
 
   // Select表达式计算
   TupleSet new_result;
@@ -1494,6 +1499,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     result = std::move(new_result);
     result.set_schema(new_schema);
   }
+
+  LOG_INFO("select表达式计算后");
+  result.print(std::cout, true);
 
   // for (int i = 0; i < tuple_to_indexes.size(); ++i) {
   //   results[i].print(std::cout);
@@ -1968,7 +1976,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       if (size == 0 || cnt == 0)
       {
         add_type = AttrType::CHARS;
-        tmp_tuple.add("NULL", 4);
+        // tmp_tuple.add("NULL", 4);
         break;
       }
 

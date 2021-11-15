@@ -22,6 +22,7 @@ typedef struct ParserContext {
   size_t rel_attr_length;
   size_t exp_length;
   size_t exps_select_length;
+  size_t exps_select_total;
   size_t tmp_len;
 
   Value values[MAX_NUM];
@@ -29,7 +30,7 @@ typedef struct ParserContext {
   char id[MAX_NUM];
   const char *rels[MAX_NUM];
   const char *exps[50];
-  const char *exps_for_select[50];
+  const char *exps_for_select[MAX_NUM][50];
   RelAttr rel_attrs[MAX_NUM];
 } ParserContext;
 
@@ -63,6 +64,7 @@ void yyerror(yyscan_t scanner, const char *str)
   context->exp_length = 0;
   context->exps_select_length = 0;
   context->tmp_len = 0;
+  context->exps_select_total = 0;
 
   for (size_t i = 0; i < MAX_NUM; i++) {
   	context->ssql->sstr.insertion.value_num[i] = 0;
@@ -511,7 +513,9 @@ select:				/*  select 语句的语法解析树*/
 			}
 
 			if (CONTEXT->exps_select_length > 0) {
-				selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps_for_select); // exp
+				for (int i = 0; i < CONTEXT->exps_select_length; ++i) {
+					selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps_for_select[i]); // exp
+				}
 				CONTEXT->exps_select_length = 0;
 			}
 	    }
@@ -541,15 +545,11 @@ select_param:
 	window_function {
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		// selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps);
-		memcpy(CONTEXT->exps_for_select + CONTEXT->exps_select_length, CONTEXT->exps, sizeof(const char *) * CONTEXT->exp_length);
-		CONTEXT->exps_select_length += CONTEXT->exp_length;
-		
-		CONTEXT->exp_length = 0;
+		memcpy(CONTEXT->exps_for_select[CONTEXT->exps_select_length++], CONTEXT->exps, sizeof(const char *) * CONTEXT->exp_length);
 	}
 	| expression {
 		// selects_append_expressions(&CONTEXT->ssql->sstr.selection, $1);
-		memcpy(CONTEXT->exps_for_select + CONTEXT->exps_select_length, $1, sizeof(const char *) * CONTEXT->tmp_len);
-		CONTEXT->exps_select_length += CONTEXT->tmp_len;
+		memcpy(CONTEXT->exps_for_select[CONTEXT->exps_select_length++], $1, sizeof(const char *) * CONTEXT->tmp_len);
 	}
 	;
 
@@ -834,8 +834,8 @@ condition:
 		// RelAttr left_attr;
 		// relation_attr_init(&left_attr, NULL, $3, NULL, 0);
 		RelAttr *left_attr = &CONTEXT->rel_attrs[CONTEXT->rel_attr_length - 1];
-		--CONTEXT->rel_attr_length;
-		--CONTEXT->exp_length;
+		CONTEXT->rel_attr_length = 0;
+		CONTEXT->exp_length = 0;
 
 		Condition condition;
 		if ($2 == GREAT_THAN || $2 == GREAT_EQUAL) {
@@ -887,7 +887,9 @@ sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
 		selects_append_attributes($$, $3); // select_attr
 
 		if (CONTEXT->exps_select_length > 0) {
-			selects_append_expressions($$, CONTEXT->exps_for_select); // exp
+			for (int i = 0; i < CONTEXT->exps_select_length; ++i) {
+				selects_append_expressions($$, CONTEXT->exps_for_select[i]); // exp
+			}
 			CONTEXT->exps_select_length = 0;
 		}
 	}
