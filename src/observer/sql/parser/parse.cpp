@@ -648,6 +648,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
 
     for (; strcmp(*rel_name, "NULL") != 0; ++rel_name)
     {
+      LOG_INFO("selects_append_relations - rel_name = %s", *rel_name);
       selects->relations[selects->relation_num++] = strdup(*rel_name);
     }
   }

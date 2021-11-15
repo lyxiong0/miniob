@@ -530,6 +530,7 @@ select_param:
 	window_function {
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps);
+		
 		CONTEXT->exp_length = 0;
 	}
 	| expression {
@@ -810,6 +811,7 @@ condition:
 		init_attr_or_value(&left_attr, &left_value, &left_is_attr, $1[0]);
 		Condition condition;
 		condition_init(&condition, $2, left_is_attr, &left_attr, &left_value, 2, NULL, NULL, $3, NULL);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
 	| sub_select comOp value {
 		// 反过来，当作正的解析
@@ -862,7 +864,7 @@ comOp:
     ;
 
 sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
-	LBRACE SELECT select_attr from_rel where group_by RBRACE {
+	LBRACE SELECT select_attr from_rel where RBRACE {
 		$$ = (Selects*)malloc(sizeof(Selects));
 		// 结构体malloc，后面要不跟上memcpy要不用memset全部默认初始化
 		memset($$, 0, sizeof(Selects));
@@ -873,9 +875,9 @@ sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
 		}
 		selects_append_attributes($$, $3); // select_attr
 		// group by
-		if ($6 != NULL) {
-			selects_append_groups($$, $6); 
-		}
+		// if ($6 != NULL) {
+		// 	selects_append_groups($$, $6); 
+		// }
 	}
 	;
 

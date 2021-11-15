@@ -607,7 +607,6 @@ RC check_table_name(const Selects &selects, const char *db)
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
 RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent *session_event, TupleSet &ret_tuple_set, bool is_sub_select, char *main_table)
 {
-
   LOG_INFO("start do_select");
   RC rc = RC::SUCCESS;
   Session *session = session_event->get_client()->session;
@@ -1111,7 +1110,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   }
 
   // 子查询结束
-  // LOG_INFO("子查询结束");
+  LOG_INFO("子查询结束");
+  result.print(std::cout, true);
 
   if (rc != RC::SUCCESS)
   {
@@ -1384,7 +1384,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
 
       LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
-      if (strcmp(attribute_name, "*") == 0) {
+      if (strcmp(attribute_name, "*") == 0 || index == -1) {
         is_star = true;
         break;
       }
