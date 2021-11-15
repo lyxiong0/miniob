@@ -1355,6 +1355,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       if (s[j] == '.')
       {
         // ID.ID的形式
+        relation_name = strdup(tmp);
         ++j;
         int idx = 0;
         while (s[j] != '\0')
@@ -1364,7 +1365,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         }
 
         tmp[idx] = '\0';
-        relation_name = strdup(tmp);
       }
 
       attribute_name = strdup(tmp);
@@ -1377,6 +1377,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         index = result.get_schema().index_of_field(relation_name, attribute_name);
       }
+
+      LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
+
       new_schema.add(result.get_schema().field(index).type(), "", tmp, result.get_schema().field(index).is_nullable());
       if (i == 0)
       {
