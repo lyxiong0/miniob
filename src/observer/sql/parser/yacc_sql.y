@@ -193,7 +193,7 @@ ParserContext *get_context(yyscan_t scanner)
 %left PLUS '-'
 %left STAR DIV // 越靠后优先级越高
 
-%right LOWER_THAN_BRACE RBRACE NOT EQ LT GR LE GE NE IN IS GT
+%right LOWER_THAN_BRACE RBRACE NOT EQ LT GR LE GE NE IN IS GT SELECT
 
 %%
 
@@ -509,8 +509,10 @@ select:				/*  select 语句的语法解析树*/
 				selects_append_groups(&CONTEXT->ssql->sstr.selection, $6); 
 			}
 
-			selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps_for_select); // exp
-			CONTEXT->exps_select_length = 0;
+			if (CONTEXT->exps_select_length > 0) {
+				selects_append_expressions(&CONTEXT->ssql->sstr.selection, CONTEXT->exps_for_select); // exp
+				CONTEXT->exps_select_length = 0;
+			}
 	    }
 	;
 	
@@ -571,6 +573,7 @@ expression:
 
 exp_list:
 	/*empty*/ {}
+	| op LBRACE exp exp_list RBRACE {}
 	| op exp exp_list {}
 	;
 	
@@ -578,32 +581,32 @@ exp_list:
 exp:
 	id_type %prec LOWER_THAN_BRACE
 	| value %prec LOWER_THAN_BRACE
-	| lbrace_list id_type %prec LOWER_THAN_BRACE
-	| lbrace_list value %prec LOWER_THAN_BRACE
-	| id_type rbrace_list %prec LOWER_THAN_BRACE
-	| value rbrace_list %prec LOWER_THAN_BRACE
-	| lbrace_list id_type rbrace_list %prec LOWER_THAN_BRACE
-	| lbrace_list value rbrace_list %prec LOWER_THAN_BRACE
-	| lbrace_list minus value rbrace_list %prec LOWER_THAN_BRACE
+	// | lbrace_list id_type %prec LOWER_THAN_BRACE
+	// | lbrace_list value %prec LOWER_THAN_BRACE
+	// | id_type rbrace_list %prec LOWER_THAN_BRACE
+	// | value rbrace_list %prec LOWER_THAN_BRACE
+	// | lbrace_list id_type rbrace_list %prec LOWER_THAN_BRACE
+	// | lbrace_list value rbrace_list %prec LOWER_THAN_BRACE
+	// | lbrace_list minus value rbrace_list %prec LOWER_THAN_BRACE
 	;
 
-lbrace_list:
-	LBRACE %prec LOWER_THAN_BRACE {
-		CONTEXT->exps[CONTEXT->exp_length++] = "(";
-	}
-	| lbrace_list LBRACE {
-		CONTEXT->exps[CONTEXT->exp_length++] = "(";
-	}
-	;
+// lbrace_list:
+// 	LBRACE %prec LOWER_THAN_BRACE {
+// 		CONTEXT->exps[CONTEXT->exp_length++] = "(";
+// 	}
+// 	| lbrace_list LBRACE {
+// 		CONTEXT->exps[CONTEXT->exp_length++] = "(";
+// 	}
+// 	;
 
-rbrace_list:
-	RBRACE %prec LOWER_THAN_BRACE {
-		CONTEXT->exps[CONTEXT->exp_length++] = ")";
-	}
-	| rbrace_list RBRACE {
-		CONTEXT->exps[CONTEXT->exp_length++] = ")";
-	}
-	;
+// rbrace_list:
+// 	RBRACE %prec LOWER_THAN_BRACE {
+// 		CONTEXT->exps[CONTEXT->exp_length++] = ")";
+// 	}
+// 	| rbrace_list RBRACE {
+// 		CONTEXT->exps[CONTEXT->exp_length++] = ")";
+// 	}
+// 	;
 
 minus:
 	MINUS {
@@ -873,8 +876,10 @@ sub_select: /* 简单子查询，只包含聚合、比较、in/not in */
 		}
 		selects_append_attributes($$, $3); // select_attr
 
-		selects_append_expressions($$, CONTEXT->exps_for_select); // exp
-		CONTEXT->exps_select_length = 0;
+		if (CONTEXT->exps_select_length > 0) {
+			selects_append_expressions($$, CONTEXT->exps_for_select); // exp
+			CONTEXT->exps_select_length = 0;
+		}
 	}
 	;
 

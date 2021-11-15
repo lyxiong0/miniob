@@ -1976,7 +1976,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       {
         // TODO: 显示什么，NULL会影响吗
         add_type = AttrType::CHARS;
-        tmp_tuple.add("NULL", 4);
+        // tmp_tuple.add("NULL", 4);
         break;
       }
 
