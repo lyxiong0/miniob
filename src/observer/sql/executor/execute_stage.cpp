@@ -344,7 +344,7 @@ bool conditionInTuple(const TupleSchema &schema, const Condition &cond)
 
 void backtrack(TupleSet &ans, const std::vector<TupleSet> &sets, int index, Tuple &tmp, const Selects &selects, const TupleSchema &schema, TupleSchema &tmpSchema)
 {
-  LOG_INFO("START OF backtrack:");
+  // LOG_INFO("START OF backtrack:");
   // tmpSchema.print(std::cout, true);
 
   if (index == -1)
@@ -1306,6 +1306,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     if (selects.exp_num[i] > 1)
     {
+      is_multi_table = false;
       // 参考LeetCode 772计算器
       if (calculate(result, tmp, selects.expression[i], 0, selects.exp_num[i]) != RC::SUCCESS)
       {
@@ -1383,7 +1384,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
       // LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
 
-      new_schema.add(result.get_schema().field(index).type(), "", tmp, result.get_schema().field(index).is_nullable());
+      new_schema.add(result.get_schema().field(index).type(), relation_name, attribute_name, result.get_schema().field(index).is_nullable());
       if (i == 0)
       {
         for (int j = 0; j < size; ++j)
@@ -1403,7 +1404,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         }
       }
     }
-    is_multi_table = false;
   }
 
   if (selects.total_exp)
@@ -1412,6 +1412,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     result = std::move(new_result);
     result.set_schema(new_schema);
   }
+  LOG_INFO("经过表达式后");
   result.print(std::cout, true);
 
   // tuple_to_indexes记录<group by哈希值，在result中对应的列>
@@ -1604,13 +1605,17 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     // TupleSchema final_schema = buildSchema(selects, total_schema, db);
     final_set.set_schema(final_schema);
 
+    LOG_INFO("提取列");
+    result.print(std::cout, true);
     // 取出需要的列
     for (const Tuple &tp : result.tuples())
     {
       Tuple t;
+
       for (const TupleField &s : final_schema.fields())
       {
         int index = -1;
+        LOG_INFO("table_name = %s, field_name = %s", s.table_name(), s.field_name());
         if (s.table_name() != nullptr)
         {
           index = result_schema.index_of_field(s.table_name(), s.field_name());
