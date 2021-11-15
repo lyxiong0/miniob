@@ -1378,7 +1378,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         index = result.get_schema().index_of_field(relation_name, attribute_name);
       }
 
-      LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
+      // LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
 
       new_schema.add(result.get_schema().field(index).type(), "", tmp, result.get_schema().field(index).is_nullable());
       if (i == 0)

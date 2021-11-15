@@ -185,7 +185,7 @@ extern "C"
     }
     attribute_name = strdup(tmp);
 
-    LOG_INFO("condition: rel_name = %s, cond_name = %s", relation_name, attribute_name);
+    // LOG_INFO("condition: rel_name = %s, cond_name = %s", relation_name, attribute_name);
 
     if (relation_name != nullptr)
     {
@@ -212,7 +212,7 @@ extern "C"
 
   void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, const char *agg_function_name, int _is_desc)
   {
-      LOG_INFO("relation_attr_init - rel_name = %s, attr_name = %s", relation_name, attribute_name);
+    // LOG_INFO("relation_attr_init - rel_name = %s, attr_name = %s", relation_name, attribute_name);
     if (relation_name != nullptr)
     {
       relation_attr->relation_name = strdup(relation_name);
@@ -622,7 +622,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
     while (flag != 2)
     {
       selects->attributes[selects->attr_num++] = *rel_attr;
-      LOG_INFO("rel_name = %s, attr_name = %s", rel_attr->relation_name, rel_attr->attribute_name);
+      // LOG_INFO("rel_name = %s, attr_name = %s", rel_attr->relation_name, rel_attr->attribute_name);
       ++rel_attr;
       flag = rel_attr->is_desc;
     }
@@ -649,7 +649,7 @@ void value_init_string_with_text(Value *value, const char *v, int is_null, int l
 
     for (; strcmp(*exp_name, "NULL") != 0; ++exp_name)
     {
-      LOG_INFO("exp_name = %s, total = %d, num = %d", *exp_name, selects->total_exp, selects->exp_num[selects->total_exp]);
+      // LOG_INFO("exp_name = %s, total = %d, num = %d", *exp_name, selects->total_exp, selects->exp_num[selects->total_exp]);
       selects->expression[selects->total_exp][selects->exp_num[selects->total_exp]++] = strdup(*exp_name);
     }
 
