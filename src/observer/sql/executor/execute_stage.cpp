@@ -1378,7 +1378,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   int size = result.size();
   bool is_exp = false;
   bool is_star = false;
-    std::vector<int> is_include(result.size(), 1);
+  std::vector<int> is_include(result.size(), 1);
 
   for (int i = 0; i < selects.total_exp; ++i)
   {
@@ -1604,7 +1604,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   // 有两种情况需要二次提取列
   // 1. 多表且没有group by，如果有group by，提取列已经在聚合里完成
   // 2. 单表且有子查询操作
-  if (attr_function->get_size() == 0 && ((selects.relation_num > 1 && selects.group_num == 0) || (selects.relation_num == 1 && has_subselect)))
+  if (!is_exp && attr_function->get_size() == 0 && ((selects.relation_num > 1 && selects.group_num == 0) || (selects.relation_num == 1 && has_subselect)))
   {
     TupleSchema final_schema;
     const TupleSchema &result_schema = result.get_schema();
@@ -2619,6 +2619,7 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
       if (s[j] == '.')
       {
         // ID.ID的形式
+        relation_name = strdup(tmp);
         ++j;
         int idx = 0;
         while (s[j] != '\0')
@@ -2628,7 +2629,6 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
         }
 
         tmp[idx] = '\0';
-        relation_name = strdup(tmp);
       }
 
       attribute_name = strdup(tmp);
