@@ -184,7 +184,7 @@ public:
     fields_.clear();
   }
 
-  void print(std::ostream &os, bool is_multi_table = false) const;
+  void print(std::ostream &os, bool is_multi_table = false, bool is_exp = false) const;
 
   int index_of_field(const char *field_name) const;
 
@@ -229,7 +229,7 @@ public:
   const Tuple &get(int index) const;
   const std::vector<Tuple> &tuples() const;
 
-  void print(std::ostream &os, bool is_multi_table = false) const;
+  void print(std::ostream &os, bool is_multi_table = false, bool is_exp = false) const;
 
   void swap_tuple(int i, int j)
   {

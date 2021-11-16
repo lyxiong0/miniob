@@ -151,7 +151,7 @@ int TupleSchema::index_of_field(const char *field_name) const
   return -1;
 }
 
-void TupleSchema::print(std::ostream &os, bool is_multi_table) const
+void TupleSchema::print(std::ostream &os, bool is_multi_table, bool is_exp) const
 {
   if (fields_.empty())
   {
@@ -169,14 +169,14 @@ void TupleSchema::print(std::ostream &os, bool is_multi_table) const
   for (std::vector<TupleField>::const_iterator iter = fields_.begin(), end = --fields_.end();
        iter != end; ++iter)
   {
-    if (table_names.size() > 1 || is_multi_table == true)
+    if ((table_names.size() > 1 || is_multi_table == true) && !is_exp)
     {
       os << iter->table_name() << ".";
     }
     os << iter->field_name() << " | ";
   }
 
-  if (table_names.size() > 1 || is_multi_table == true)
+  if ((table_names.size() > 1 || is_multi_table == true) && !is_exp)
   {
     os << fields_.back().table_name() << ".";
   }
@@ -216,7 +216,7 @@ void TupleSet::clear()
   schema_.clear();
 }
 
-void TupleSet::print(std::ostream &os, bool is_multi_table) const
+void TupleSet::print(std::ostream &os, bool is_multi_table, bool is_exp) const
 {
   if (schema_.fields().empty())
   {
@@ -224,7 +224,7 @@ void TupleSet::print(std::ostream &os, bool is_multi_table) const
     return;
   }
 
-  schema_.print(os, is_multi_table);
+  schema_.print(os, is_multi_table, is_exp);
 
   for (const Tuple &item : tuples_)
   {

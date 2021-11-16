@@ -1376,7 +1376,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   TupleSet new_result;
   TupleSchema new_schema;
   int size = result.size();
-  bool is_calculate = false;
+  bool is_exp = false;
   bool is_star = false;
 
   for (int i = 0; i < selects.total_exp; ++i)
@@ -1385,7 +1385,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     if (selects.exp_num[i] > 1)
     {
-      is_calculate = true;
+      is_exp = true;
       // 参考LeetCode 772计算器
       if (calculate(result, tmp, selects.expression[i], 0, selects.exp_num[i]) != RC::SUCCESS)
       {
@@ -1707,9 +1707,9 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   if (!is_sub_select)
   {
-    LOG_INFO("is_calculate = %d", is_calculate);
+    LOG_INFO("is_exp = %d", is_exp);
 
-    result.print(ss, is_multi_table);
+    result.print(ss, is_multi_table, is_exp);
 
     session_event->set_response(ss.str());
     end_trx_if_need(session, trx, true);
