@@ -554,8 +554,10 @@ select_param:
 	}
 	;
 
+
 expression:
 	exp exp_list {
+		// 1+2+...
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
 		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
@@ -564,6 +566,7 @@ expression:
 		// CONTEXT->value_length = 0;
 	}
 	| exp_list {
+		// -1+2+...
 		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
 		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
 		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
@@ -571,14 +574,42 @@ expression:
 		CONTEXT->exp_length = 0; // 清空
 		// CONTEXT->value_length = 0;
 	}
+	| lbrace exp exp_list rbrace exp_list {
+		// (1+2)+...
+		CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
+		$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
+		memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
+		CONTEXT->tmp_len = CONTEXT->exp_length;
+		CONTEXT->exp_length = 0; // 清空
+	}	
+	// | lbrace exp_list rbrace exp_list {
+	// 	// (-1)+...
+	// 	CONTEXT->exps[CONTEXT->exp_length++] = "NULL";
+	// 	$$ = ( const char **)malloc(sizeof(const char*) * CONTEXT->exp_length);
+	// 	memcpy($$, CONTEXT->exps, sizeof(const char*) * CONTEXT->exp_length);
+	// 	CONTEXT->tmp_len = CONTEXT->exp_length;
+	// 	CONTEXT->exp_length = 0; // 清空
+	// }
 	;
 
 exp_list:
 	/*empty*/ {}
-	| op LBRACE exp exp_list RBRACE {}
-	| op exp exp_list {}
+	| op lbrace exp exp_list rbrace exp_list
+	| op exp exp_list
+	| op lbrace minus exp rbrace exp_list // * (-1) 
 	;
-	
+
+lbrace:
+	LBRACE {
+		CONTEXT->exps[CONTEXT->exp_length++] = "(";
+	}
+	;
+
+rbrace:
+	RBRACE {
+		CONTEXT->exps[CONTEXT->exp_length++] = ")";
+	}
+	;
 
 exp:
 	id_type %prec LOWER_THAN_BRACE
@@ -800,7 +831,7 @@ condition_list:
     ;
 
 condition:
-	expression comOp expression {
+	expression sub_comOp expression {
 		// 左侧表达式，右侧表达式
 		Condition condition;
 		condition_exp(&condition, $1, $2, $3);
@@ -816,7 +847,7 @@ condition:
 		condition_init(&condition, $2, left_is_attr, &left_attr, &left_value, 2, NULL, NULL, $3, NULL);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
-	| sub_select comOp value {
+	| sub_select sub_comOp value {
 		// 反过来，当作正的解析
 		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
@@ -830,7 +861,7 @@ condition:
 		}
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
-	| sub_select comOp id_type{
+	| sub_select sub_comOp id_type{
 		// 反过来，当作正的解析
 		// RelAttr left_attr;
 		// relation_attr_init(&left_attr, NULL, $3, NULL, 0);
@@ -848,7 +879,7 @@ condition:
 		}
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
-	| sub_select comOp sub_select {
+	| sub_select sub_comOp sub_select {
 		Condition condition;
 		condition_init(&condition, $2, 2, NULL, NULL, 2, NULL, NULL, $3, $1);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;

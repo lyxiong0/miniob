@@ -1410,7 +1410,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       else
       {
         new_schema.append(tmp.get_schema());
-        for (int j = 0; j < size; ++j)
+        for (int j = 0; j < tmp.size(); ++j)
         {
           new_result.merge(tmp.get(j), j);
         }
@@ -1496,11 +1496,16 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   if (selects.total_exp && !is_star)
   {
     // 如果出现*不会调用expression
-    result = std::move(new_result);
+    result.clear();
     result.set_schema(new_schema);
+    for (int i = 0; i < new_result.size(); ++i) {
+      if (new_result.get(i).size() == selects.total_exp) {
+        new_result.copy_ith_to(result, i);
+      }
+    }
   }
 
-  LOG_INFO("select表达式计算后");
+  LOG_INFO("select表达式计算后, size = %d");
   result.print(std::cout, true);
 
   // for (int i = 0; i < tuple_to_indexes.size(); ++i) {
