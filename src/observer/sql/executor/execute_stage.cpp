@@ -1305,7 +1305,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   LOG_INFO("经过where表达式计算后");
   result.print(std::cout, true);
- 
+
   // tuple_to_indexes记录<group by哈希值，在result中对应的列>
   std::unordered_map<size_t, std::vector<int>> tuple_to_indexes;
   std::vector<TupleSet> results;
@@ -1321,9 +1321,12 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       const RelAttr &attr = selects.group_attrs[i];
       // int index = is_col_legal(attr, result.get_schema());
       int index = -1;
-      if (attr.relation_name == nullptr) {
+      if (attr.relation_name == nullptr)
+      {
         index = result.get_schema().index_of_field(attr.attribute_name);
-      } else {
+      }
+      else
+      {
         index = result.get_schema().index_of_field(attr.relation_name, attr.attribute_name);
       }
 
@@ -1376,9 +1379,17 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   TupleSet new_result;
   TupleSchema new_schema;
   int size = result.size();
-  bool is_exp = false;
   bool is_star = false;
   std::vector<int> is_include(result.size(), 1);
+  bool is_exp = false;
+
+  for (int i = 0; i < selects.total_exp; ++i) {
+    if (selects.exp_num[i] > 1) {
+      is_exp = true;
+      is_multi_table = tuple_sets.size() > 1;
+      break;
+    }
+  }
 
   for (int i = 0; i < selects.total_exp; ++i)
   {
@@ -1386,7 +1397,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     if (selects.exp_num[i] > 1)
     {
-      is_exp = true;
       // 参考LeetCode 772计算器
       if (calculate(result, tmp, selects.expression[i], 0, selects.exp_num[i], is_include) != RC::SUCCESS)
       {
@@ -1463,7 +1473,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
 
       LOG_INFO("table_name = %s, attr_name = %s, index = %d", relation_name, attribute_name, index);
-      if (strcmp(attribute_name, "*") == 0 || index == -1) {
+      if (strcmp(attribute_name, "*") == 0 || index == -1)
+      {
         is_star = true;
         break;
       }
@@ -1472,7 +1483,19 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         relation_name = strdup(result.get_schema().field(0).table_name());
       }
 
-      new_schema.add(result.get_schema().field(index).type(), relation_name, attribute_name, result.get_schema().field(index).is_nullable());
+      if (is_multi_table && is_exp)
+      {
+        // 表达式多表，输出表名.列名
+        char new_name[20] = "\0";
+        strcat(new_name, relation_name);
+        strcat(new_name, ".");
+        strcat(new_name, attribute_name);
+        new_schema.add(result.get_schema().field(index).type(), "", new_name, result.get_schema().field(index).is_nullable());
+      }
+      else
+      {
+        new_schema.add(result.get_schema().field(index).type(), relation_name, attribute_name, result.get_schema().field(index).is_nullable());
+      }
       if (i == 0)
       {
         for (int j = 0; j < size; ++j)
@@ -1500,8 +1523,10 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     result.clear();
     // result = std::move(new_result);
     result.set_schema(new_schema);
-    for (int i = 0; i < new_result.size(); ++i) {
-      if (is_include[i]) {
+    for (int i = 0; i < new_result.size(); ++i)
+    {
+      if (is_include[i])
+      {
         new_result.copy_ith_to(result, i);
       }
     }
