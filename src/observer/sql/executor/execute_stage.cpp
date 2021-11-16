@@ -862,6 +862,13 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     // LOG_INFO("sub_res.size() = %d", sub_res.size());
 
+    if (sub_res.size() == 1 && sub_res.get_schema().field(0).type() == CHARS) {
+      const char *value = std::dynamic_pointer_cast<StringValue>(sub_res.get(0).get_pointer(0))->get_value();
+      if (strcmp(value, "NULL") == 0) {
+        sub_res.clear_tuples();
+      }
+    }
+
     if (sub_res.size() == 0)
     {
       // 子查询没有结果，如果是not in保留所有结果，否则清空
@@ -2008,7 +2015,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       if (size == 0 || cnt == 0)
       {
         add_type = AttrType::CHARS;
-        // tmp_tuple.add("NULL", 4);
+        tmp_tuple.add("NULL", 4);
         break;
       }
 
@@ -2032,7 +2039,7 @@ RC do_aggregation(TupleSet *tuple_set, AttrFunction *attr_function, std::vector<
       {
         // TODO: 显示什么，NULL会影响吗
         add_type = AttrType::CHARS;
-        // tmp_tuple.add("NULL", 4);
+        tmp_tuple.add("NULL", 4);
         break;
       }
 
