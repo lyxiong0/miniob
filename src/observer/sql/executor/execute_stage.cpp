@@ -44,7 +44,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 
 FuncType judge_function_type(char *agg_function_name);
 
-RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expression, int left, int right);
+RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expression, int left, int right, std::vector<int> &is_include);
 
 bool cmp_value(AttrType left_type, AttrType right_type, void *left_data, const std::shared_ptr<TupleValue> &right_value, CompOp op, const std::shared_ptr<TupleValue> &left_value, void *right_data);
 
@@ -1160,10 +1160,10 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
   //   map[key] = i;
   // }
-
   // 处理where里的表达式，即left_is_attr, right_is_attr至少有一个== 3
   for (int i = selects.condition_num - 1; i >= 0; --i)
   {
+    std::vector<int> is_include(result.size(), 1);
     const Condition &condition = selects.conditions[i];
     TupleSet left_result;
     TupleSet right_result;
@@ -1173,7 +1173,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
 
     if (condition.left_is_attr == 3)
     {
-      if (calculate(result, left_result, condition.expression, 0, condition.exp_num) != RC::SUCCESS)
+      if (calculate(result, left_result, condition.expression, 0, condition.exp_num, is_include) != RC::SUCCESS)
       {
         for (SelectExeNode *&tmp_node : select_nodes)
         {
@@ -1189,12 +1189,12 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       }
 
       LOG_INFO("where左表达式计算结果：");
-      // left_result.print(std::cout, true);
+      left_result.print(std::cout, true);
     }
 
     if (condition.right_is_attr == 3)
     {
-      if (calculate(result, right_result, condition.right_expression, 0, condition.right_exp_num) != RC::SUCCESS)
+      if (calculate(result, right_result, condition.right_expression, 0, condition.right_exp_num, is_include) != RC::SUCCESS)
       {
         for (SelectExeNode *&tmp_node : select_nodes)
         {
@@ -1240,7 +1240,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       for (int j = 0; j < left_result.size(); ++j)
       {
         const std::shared_ptr<TupleValue> &left_value = left_result.get(j).get_pointer(0);
-        if (cmp_value(FLOATS, right_type, nullptr, left_value, condition.comp, left_value, right_data))
+        if (cmp_value(FLOATS, right_type, nullptr, left_value, condition.comp, left_value, right_data) && is_include[j] == 1)
         {
           result.copy_ith_to(new_result, j);
         }
@@ -1275,7 +1275,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       for (int j = 0; j < right_result.size(); ++j)
       {
         const std::shared_ptr<TupleValue> &right_value = right_result.get(j).get_pointer(0);
-        if (cmp_value(left_type, FLOATS, left_data, right_value, condition.comp, right_value, nullptr))
+        if (cmp_value(left_type, FLOATS, left_data, right_value, condition.comp, right_value, nullptr) && is_include[j] == 1)
         {
           result.copy_ith_to(new_result, j);
         }
@@ -1293,7 +1293,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
       {
         const std::shared_ptr<TupleValue> &left_value = left_result.get(j).get_pointer(0);
         const std::shared_ptr<TupleValue> &right_value = right_result.get(j).get_pointer(0);
-        if (cmp_value(FLOATS, FLOATS, nullptr, right_value, condition.comp, left_value, nullptr))
+        if (cmp_value(FLOATS, FLOATS, nullptr, right_value, condition.comp, left_value, nullptr) && is_include[j] == 1)
         {
           result.copy_ith_to(new_result, j);
         }
@@ -1378,6 +1378,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   int size = result.size();
   bool is_exp = false;
   bool is_star = false;
+    std::vector<int> is_include(result.size(), 1);
 
   for (int i = 0; i < selects.total_exp; ++i)
   {
@@ -1387,7 +1388,7 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     {
       is_exp = true;
       // 参考LeetCode 772计算器
-      if (calculate(result, tmp, selects.expression[i], 0, selects.exp_num[i]) != RC::SUCCESS)
+      if (calculate(result, tmp, selects.expression[i], 0, selects.exp_num[i], is_include) != RC::SUCCESS)
       {
         for (SelectExeNode *&tmp_node : select_nodes)
         {
@@ -1497,9 +1498,10 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
   {
     // 如果出现*不会调用expression
     result.clear();
+    // result = std::move(new_result);
     result.set_schema(new_schema);
     for (int i = 0; i < new_result.size(); ++i) {
-      if (new_result.get(i).size() == selects.total_exp) {
+      if (is_include[i]) {
         new_result.copy_ith_to(result, i);
       }
     }
@@ -2529,7 +2531,7 @@ int find_rbrace(char *const *s, int start, int end)
   return i == end ? -1 : i;
 }
 
-RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expression, int left, int right)
+RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expression, int left, int right, std::vector<int> &is_include)
 {
   int i = left;
   int size = total_set.size();
@@ -2538,7 +2540,7 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
   char sign = '+';
   char final_name[100] = "\0";
   bool add_to_stack;
-  std::vector<int> is_include(size, 1);
+  // std::vector<int> is_include(size, 1);
 
   for (int j = left; j < right; ++j)
   {
@@ -2684,7 +2686,7 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
         return RC::GENERIC_ERROR;
       }
 
-      RC rc = calculate(total_set, pre, expression, i + 1, j);
+      RC rc = calculate(total_set, pre, expression, i + 1, j, is_include);
       if (rc != RC::SUCCESS)
       {
         return rc;
@@ -2770,7 +2772,7 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
             if (right == 0)
             {
               // = 0需要把这行排除掉
-              f = -9999.9;
+              f = -999.9;
               is_include[j] = 0;
             }
             else
@@ -2837,10 +2839,10 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
 
   for (int j = 0; j < size; ++j)
   {
-    if (is_include[j] == 0)
-    {
-      continue;
-    }
+    // if (is_include[j] == 0)
+    // {
+    //   continue;
+    // }
     Tuple t;
     float f;
 
@@ -2852,7 +2854,8 @@ RC calculate(const TupleSet &total_set, TupleSet &result, char *const *expressio
   result = std::move(pre);
 
   result.set_schema(result_schema);
-  // result.print(std::cout, true);
+  LOG_INFO("表达式计算结果");
+  result.print(std::cout, true);
 
   return RC::SUCCESS;
 }
