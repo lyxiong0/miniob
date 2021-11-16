@@ -793,7 +793,7 @@ rel_list:
 where:
     /* empty */ { 
 		$$ = NULL; 
-		// 这里不能清零，否则多个子查询条件时，子查询没有where会把主查询的condition清零 
+		CONTEXT->rel_attr_length = 0;
 	}
     | WHERE condition condition_list {	
 		RelAttr left_attr;
@@ -808,6 +808,7 @@ where:
 		CONTEXT->condition_length = 0; 
 		// 由于select里只有condition涉及到value_length，所以一并在此清零
 		CONTEXT->value_length = 0;
+		CONTEXT->rel_attr_length = 0;
 	}
     ;
 

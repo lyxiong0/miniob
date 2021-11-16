@@ -1352,6 +1352,8 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
         }
         return RC::GENERIC_ERROR;
       }
+
+      LOG_INFO("group index add - %d", index);
       group_idx.emplace_back(index);
     }
 
@@ -1360,7 +1362,6 @@ RC ExecuteStage::do_select(const char *db, const Selects &selects, SessionEvent 
     n = result.size();
     for (int i = 0; i < n; ++i)
     {
-
       tuple_to_indexes[result.get(i).to_hash(group_idx)].emplace_back(i);
     }
 
