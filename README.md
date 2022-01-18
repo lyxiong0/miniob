@@ -2,6 +2,8 @@
 
 赛题详见https://oceanbase-partner.github.io/lectures-on-dbms-implementation/miniob-topics
 
+初赛复盘https://blog.csdn.net/bear507/article/details/122564079
+
 ## 完成情况
 
 分数：240/240
